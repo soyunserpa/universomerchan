@@ -1,0 +1,542 @@
+// ============================================================
+// UNIVERSO MERCHAN — Cart & Checkout Service
+// ============================================================
+// Manages the full purchase flow:
+//   1. Cart persistence (DB-backed, survives sessions)
+//   2. Stripe Checkout session creation
+//   3. Payment confirmation webhook handling
+//   4. Order submission to Midocean Order Entry API
+//   5. Email notifications trigger
+// ============================================================
+
+import Stripe from "stripe";
+import { db } from "./database";
+import { eq, sql } from "drizzle-orm";
+import * as schema from "./schema";
+import * as midoceanApi from "./midocean-api";
+import * as emails from "./email-service";
+import { type CartItem, cartItemToMidoceanOrderLine } from "./configurator-engine";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20" as any,
+});
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com";
+
+// ============================================================
+// GENERATE ORDER NUMBER — UM-YYYY-XXXX
+// ============================================================
+
+async function generateOrderNumber(): Promise<string> {
+  const year = new Date().getFullYear();
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.orders)
+    .where(sql`EXTRACT(YEAR FROM ${schema.orders.createdAt}) = ${year}`);
+  
+  const seq = Number(result[0].count) + 1;
+  return `UM-${year}-${String(seq).padStart(4, "0")}`;
+}
+
+// ============================================================
+// CREATE ORDER (draft) from cart items
+// ============================================================
+
+export async function createOrderFromCart(params: {
+  userId: number;
+  items: CartItem[];
+  shippingAddress: {
+    name: string;
+    company?: string;
+    street: string;
+    postalCode: string;
+    city: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+  expressShipping?: boolean;
+  customerNotes?: string;
+}): Promise<{ orderId: number; orderNumber: string }> {
+  const { userId, items, shippingAddress, expressShipping, customerNotes } = params;
+  
+  // Get user for discount
+  const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  const discountPct = parseFloat(user?.discountPercent?.toString() || "0");
+  
+  // Get margin settings
+  const marginProdSetting = await db.query.adminSettings.findFirst({
+    where: eq(schema.adminSettings.key, "margin_product_pct"),
+  });
+  const marginPrintSetting = await db.query.adminSettings.findFirst({
+    where: eq(schema.adminSettings.key, "margin_print_pct"),
+  });
+  
+  const marginProd = parseFloat(marginProdSetting?.value || "40");
+  const marginPrint = parseFloat(marginPrintSetting?.value || "50");
+  
+  // Calculate totals
+  const hasCustomization = items.some(i => i.orderType === "PRINT");
+  const orderType = hasCustomization ? "PRINT" : "NORMAL";
+  
+  let subtotalProduct = 0;
+  let subtotalPrint = 0;
+  for (const item of items) {
+    subtotalProduct += item.unitPriceProduct * item.quantity;
+    if (item.customization) {
+      subtotalPrint += item.totalPrice - (item.unitPriceProduct * item.quantity);
+    }
+  }
+  
+  const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
+  const discountAmount = subtotal * (discountPct / 100);
+  const totalPrice = subtotal - discountAmount;
+  
+  const orderNumber = await generateOrderNumber();
+  
+  // Insert order
+  const [order] = await db.insert(schema.orders).values({
+    orderNumber,
+    userId,
+    status: "draft",
+    orderType: orderType as any,
+    subtotalProduct: String(subtotalProduct),
+    subtotalPrint: String(subtotalPrint),
+    marginProductApplied: String(marginProd),
+    marginPrintApplied: String(marginPrint),
+    discountApplied: String(discountPct),
+    totalPrice: String(totalPrice),
+    shippingName: shippingAddress.name,
+    shippingCompany: shippingAddress.company || null,
+    shippingStreet: shippingAddress.street,
+    shippingPostalCode: shippingAddress.postalCode,
+    shippingCity: shippingAddress.city,
+    shippingCountry: shippingAddress.country,
+    shippingEmail: shippingAddress.email,
+    shippingPhone: shippingAddress.phone,
+    expressShipping: expressShipping || false,
+    customerNotes: customerNotes || null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).returning();
+  
+  // Insert order lines
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    await db.insert(schema.orderLines).values({
+      orderId: order.id,
+      lineNumber: i + 1,
+      masterCode: item.productMasterCode,
+      sku: item.variantSku,
+      variantId: item.variantId,
+      productName: item.productName,
+      colorDescription: item.color,
+      size: item.size || null,
+      quantity: item.quantity,
+      unitPriceSell: String(item.unitPriceTotal),
+      lineTotal: String(item.totalPrice),
+      printConfig: item.customization ? item.customization as any : null,
+      proofStatus: item.orderType === "PRINT" ? "in_progress" : "not_applicable",
+      artworkUrl: item.customization?.artworkUrl || null,
+      mockupUrl: item.customization?.mockupUrl || null,
+      createdAt: new Date(),
+    });
+  }
+  
+  return { orderId: order.id, orderNumber };
+}
+
+// ============================================================
+// CREATE STRIPE CHECKOUT SESSION
+// ============================================================
+
+export async function createCheckoutSession(params: {
+  orderId: number;
+  orderNumber: string;
+  customerEmail: string;
+  totalPrice: number;
+  items: CartItem[];
+}): Promise<{ sessionUrl: string; sessionId: string }> {
+  const { orderId, orderNumber, customerEmail, totalPrice, items } = params;
+  
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
+    price_data: {
+      currency: "eur",
+      product_data: {
+        name: item.productName,
+        description: `${item.color}${item.customization ? ` — ${item.customization.positions.map(p => p.techniqueName).join(" + ")}` : ""}`,
+        images: item.productImage ? [item.productImage] : undefined,
+      },
+      unit_amount: Math.round(item.unitPriceTotal * 100), // Stripe uses cents
+    },
+    quantity: item.quantity,
+  }));
+  
+  // ── Payment methods ────────────────────────────────────────
+  // "card" includes Apple Pay and Google Pay automatically:
+  //   - Apple Pay appears on Safari/iOS when domain is verified
+  //   - Google Pay appears on Chrome/Android automatically
+  //   - Both use the "card" payment method type in Stripe
+  // "sepa_debit" for SEPA bank transfers (common in EU B2B)
+  // "link" for Stripe Link (1-click checkout for returning users)
+  //
+  // To enable Apple Pay:
+  //   1. Stripe Dashboard → Settings → Payment Methods → Apple Pay
+  //   2. Add & verify domain: universomerchan.com
+  //   3. Place verification file at:
+  //      /.well-known/apple-developer-merchantid-domain-association
+  //      (configured in Nginx, see DEPLOY.md)
+  //
+  // Google Pay: Enabled automatically, no extra config needed.
+  // ────────────────────────────────────────────────────────────
+  
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: customerEmail,
+    line_items: lineItems,
+    metadata: {
+      order_id: String(orderId),
+      order_number: orderNumber,
+    },
+    success_url: `${SITE_URL}/checkout/success?order=${orderNumber}`,
+    cancel_url: `${SITE_URL}/checkout/cancel?order=${orderNumber}`,
+    locale: "es",
+    
+    // Card = Visa/MC/Amex + Apple Pay + Google Pay
+    // SEPA = Bank transfer (popular for B2B in Spain/EU)
+    // Link = Stripe's 1-click checkout for repeat customers
+    payment_method_types: ["card", "sepa_debit", "link"],
+    
+    // Auto-generate invoice (useful for B2B clients with CIF)
+    invoice_creation: {
+      enabled: true,
+    },
+    
+    // Allow promo codes if we add them later
+    allow_promotion_codes: true,
+    
+    // Collect billing address (needed for invoices)
+    billing_address_collection: "required",
+    
+    // Phone number for shipping coordination
+    phone_number_collection: {
+      enabled: true,
+    },
+    
+    // Shipping options (standard vs express)
+    shipping_options: expressShipping ? [
+      {
+        shipping_rate_data: {
+          type: "fixed_amount",
+          fixed_amount: { amount: 2495, currency: "eur" }, // 24.95€ express
+          display_name: "Envío express",
+          delivery_estimate: {
+            minimum: { unit: "business_day", value: 3 },
+            maximum: { unit: "business_day", value: 5 },
+          },
+        },
+      },
+    ] : [
+      {
+        shipping_rate_data: {
+          type: "fixed_amount",
+          fixed_amount: { amount: 0, currency: "eur" },
+          display_name: "Envío estándar",
+          delivery_estimate: {
+            minimum: { unit: "business_day", value: 7 },
+            maximum: { unit: "business_day", value: 10 },
+          },
+        },
+      },
+    ],
+  });
+  
+  // Update order with Stripe session
+  await db.update(schema.orders).set({
+    stripeSessionId: session.id,
+    status: "pending_payment",
+    updatedAt: new Date(),
+  }).where(eq(schema.orders.id, orderId));
+  
+  return {
+    sessionUrl: session.url!,
+    sessionId: session.id,
+  };
+}
+
+// ============================================================
+// HANDLE STRIPE WEBHOOK — payment_intent.succeeded
+// ============================================================
+
+export async function handlePaymentSuccess(
+  paymentIntentId: string,
+  sessionId: string,
+): Promise<void> {
+  // Find order by Stripe session
+  const order = await db.query.orders.findFirst({
+    where: eq(schema.orders.stripeSessionId, sessionId),
+  });
+  
+  if (!order) {
+    console.error(`[Checkout] No order found for session ${sessionId}`);
+    return;
+  }
+  
+  // Update order status
+  await db.update(schema.orders).set({
+    status: "paid",
+    stripePaymentIntentId: paymentIntentId,
+    paidAt: new Date(),
+    updatedAt: new Date(),
+  }).where(eq(schema.orders.id, order.id));
+  
+  console.log(`[Checkout] Order ${order.orderNumber} paid successfully`);
+  
+  // Get user and order lines
+  const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
+  const orderLines = await db.query.orderLines.findMany({
+    where: eq(schema.orderLines.orderId, order.id),
+  });
+  
+  // Send confirmation email to customer
+  if (user?.email) {
+    await emails.sendOrderConfirmationEmail(user.email, {
+      firstName: user.firstName || "Cliente",
+      orderNumber: order.orderNumber,
+      items: orderLines.map(l => ({
+        name: l.productName || "",
+        quantity: l.quantity,
+        color: l.colorDescription || "",
+        technique: l.printConfig ? "Con personalización" : undefined,
+      })),
+      totalPrice: `${parseFloat(order.totalPrice?.toString() || "0").toFixed(2)} €`,
+      estimatedDelivery: "7-10 días laborables",
+    });
+  }
+  
+  // Notify admin
+  await emails.notifyAdminNewOrder({
+    orderNumber: order.orderNumber,
+    clientName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+    clientEmail: user?.email || "",
+    totalPrice: `${parseFloat(order.totalPrice?.toString() || "0").toFixed(2)} €`,
+    items: orderLines.map(l => ({ name: l.productName || "", quantity: l.quantity })),
+    hasCustomization: order.orderType === "PRINT",
+  });
+  
+  // Submit to Midocean
+  try {
+    await submitOrderToMidocean(order.id);
+  } catch (error: any) {
+    console.error(`[Checkout] Failed to submit to Midocean: ${error.message}`);
+    // Don't fail the payment — log error for admin to handle manually
+    await db.insert(schema.errorLog).values({
+      errorType: "order_api_error",
+      severity: "high",
+      message: `Failed to submit order ${order.orderNumber} to Midocean: ${error.message}`,
+      orderId: order.id,
+      createdAt: new Date(),
+    });
+    await emails.notifyAdminOrderError({
+      orderNumber: order.orderNumber,
+      errorType: "Midocean API Error",
+      message: error.message,
+    });
+  }
+}
+
+// ============================================================
+// SUBMIT ORDER TO MIDOCEAN — Via Order Entry 2.1 API
+// ============================================================
+
+async function submitOrderToMidocean(orderId: number): Promise<void> {
+  const order = await db.query.orders.findFirst({ where: eq(schema.orders.id, orderId) });
+  if (!order) throw new Error("Order not found");
+  
+  const orderLines = await db.query.orderLines.findMany({
+    where: eq(schema.orderLines.orderId, orderId),
+  });
+  
+  // Build shipping date (preferred: 1 day from now)
+  const shippingDate = new Date();
+  shippingDate.setDate(shippingDate.getDate() + 1);
+  const shippingDateStr = shippingDate.toISOString().split("T")[0];
+  
+  // Build Midocean order request
+  const midoceanOrder: midoceanApi.MidoceanOrderRequest = {
+    order_header: {
+      preferred_shipping_date: shippingDateStr,
+      currency: "EUR",
+      contact_email: order.shippingEmail || "",
+      check_price: "false",
+      shipping_address: {
+        contact_name: order.shippingName || "",
+        company_name: order.shippingCompany || "",
+        street1: order.shippingStreet || "",
+        postal_code: order.shippingPostalCode || "",
+        city: order.shippingCity || "",
+        region: "",
+        country: order.shippingCountry || "ES",
+        email: order.shippingEmail || "",
+        phone: order.shippingPhone || "",
+      },
+      po_number: order.orderNumber,
+      timestamp: new Date().toISOString(),
+      contact_name: order.shippingName || "",
+      order_type: order.orderType as "NORMAL" | "PRINT" | "SAMPLE",
+      express: order.expressShipping ? "true" : "false",
+    },
+    order_lines: orderLines.map((line, i) => {
+      if (order.orderType === "PRINT" && line.printConfig) {
+        const config = line.printConfig as any;
+        return {
+          order_line_id: String((i + 1) * 10),
+          master_code: line.masterCode,
+          quantity: String(line.quantity),
+          expected_price: "0",
+          printing_positions: (config.positions || []).map((pos: any) => ({
+            id: pos.positionId,
+            print_size_height: String(pos.printHeightMm),
+            print_size_width: String(pos.printWidthMm),
+            printing_technique_id: pos.techniqueId,
+            number_of_print_colors: String(pos.numColors),
+            print_artwork_url: config.artworkUrl || "",
+            print_mockup_url: config.mockupUrl || "",
+            print_instruction: pos.instructions || "None",
+            print_colors: (pos.pmsColors || []).map((c: string) => ({ color: c })),
+          })),
+          print_items: (config.print_items || [{
+            item_color_number: line.colorDescription || "",
+            quantity: String(line.quantity),
+          }]),
+        };
+      }
+      
+      return {
+        order_line_id: String((i + 1) * 10),
+        sku: line.sku || "",
+        variant_id: line.variantId || "",
+        quantity: String(line.quantity),
+        expected_price: "0",
+      };
+    }),
+  };
+  
+  // Submit to Midocean
+  const response = await midoceanApi.createOrder(midoceanOrder);
+  
+  // Store Midocean's order number
+  const midoceanOrderNumber = response?.order_number || response?.order_header?.order_number;
+  
+  await db.update(schema.orders).set({
+    status: "submitted",
+    midoceanOrderNumber: midoceanOrderNumber || null,
+    midoceanPoNumber: order.orderNumber,
+    updatedAt: new Date(),
+  }).where(eq(schema.orders.id, orderId));
+  
+  // If it's a PRINT order, upload artworks
+  if (order.orderType === "PRINT") {
+    for (const line of orderLines) {
+      if (line.artworkUrl && midoceanOrderNumber) {
+        try {
+          await midoceanApi.addArtwork(
+            midoceanOrderNumber,
+            String(line.lineNumber * 10),
+            line.artworkUrl,
+          );
+        } catch (artworkError: any) {
+          console.error(`[Order] Failed to add artwork for line ${line.lineNumber}:`, artworkError.message);
+        }
+      }
+    }
+  }
+  
+  console.log(`[Order] ${order.orderNumber} submitted to Midocean as ${midoceanOrderNumber}`);
+}
+
+// ============================================================
+// HANDLE PROOF APPROVAL — From customer's account panel
+// ============================================================
+
+export async function handleProofApproval(
+  orderId: number,
+  lineId: number,
+  approved: boolean,
+  rejectionReason?: string,
+): Promise<void> {
+  const order = await db.query.orders.findFirst({ where: eq(schema.orders.id, orderId) });
+  if (!order || !order.midoceanOrderNumber) {
+    throw new Error("Order not found or not yet submitted to Midocean");
+  }
+  
+  const orderLine = await db.query.orderLines.findFirst({
+    where: eq(schema.orderLines.id, lineId),
+  });
+  if (!orderLine) throw new Error("Order line not found");
+  
+  const midoceanLineId = String(orderLine.lineNumber * 10);
+  
+  if (approved) {
+    // Approve in Midocean
+    await midoceanApi.approveProof(order.midoceanOrderNumber, midoceanLineId);
+    
+    // Update local DB
+    await db.update(schema.orderLines).set({
+      proofStatus: "approved",
+      proofApprovedAt: new Date(),
+    }).where(eq(schema.orderLines.id, lineId));
+    
+    // Check if all lines are approved
+    const allLines = await db.query.orderLines.findMany({
+      where: eq(schema.orderLines.orderId, orderId),
+    });
+    const allApproved = allLines.every(
+      l => l.proofStatus === "approved" || l.proofStatus === "not_applicable"
+    );
+    
+    if (allApproved) {
+      await db.update(schema.orders).set({
+        status: "proof_approved",
+        updatedAt: new Date(),
+      }).where(eq(schema.orders.id, orderId));
+    }
+    
+    // Email customer
+    const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
+    if (user?.email) {
+      await emails.sendProofApprovedEmail(user.email, {
+        firstName: user.firstName || "Cliente",
+        orderNumber: order.orderNumber,
+      });
+    }
+    
+  } else {
+    // Reject in Midocean
+    await midoceanApi.rejectProof(
+      order.midoceanOrderNumber,
+      midoceanLineId,
+      rejectionReason || "Customer requested changes",
+    );
+    
+    // Update local DB
+    await db.update(schema.orderLines).set({
+      proofStatus: "rejected",
+      proofRejectedAt: new Date(),
+      proofRejectionReason: rejectionReason || null,
+    }).where(eq(schema.orderLines.id, lineId));
+    
+    await db.update(schema.orders).set({
+      status: "proof_rejected",
+      updatedAt: new Date(),
+    }).where(eq(schema.orders.id, orderId));
+    
+    // Notify admin
+    await emails.notifyAdminProofRejected({
+      orderNumber: order.orderNumber,
+      clientName: `${(await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) }))?.firstName || ""}`,
+      productName: orderLine.productName || "",
+      reason: rejectionReason || "Sin motivo especificado",
+    });
+  }
+}
