@@ -173,6 +173,10 @@ export function ProductConfigurator({ product }: Props) {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [cachedMockups, setCachedMockups] = useState<Record<string, string>>({});
 
+  // Bug 2 fix: Logo state lives here so it survives Step 3→2 unmount/remount
+  const [savedLogos, setSavedLogos] = useState<Record<string, { dataUrl: string; fileName: string }>>({});
+  const [savedLogoPos, setSavedLogoPos] = useState<Record<string, { x: number; y: number; scale: number }>>({});
+
   const variant = product.variants[variantIdx];
   const uniqueColors = product.variants.filter((v, i, arr) => arr.findIndex(x => x.color === v.color) === i);
 
@@ -254,7 +258,7 @@ export function ProductConfigurator({ product }: Props) {
     imageVariants: pos.imageVariants || [],
   })), [product.printPositions, variant.mainImage]);
 
-  const hasLogos = logoPlacements.length > 0;
+  const hasLogos = logoPlacements.length > 0 || Object.keys(savedLogos).length > 0;
 
   // Sync canvas zone selection with configurator position
   const handleCanvasZoneChange = useCallback((zoneId: string) => {
@@ -551,6 +555,10 @@ export function ProductConfigurator({ product }: Props) {
                 onPlacementsChange={setLogoPlacements}
                 activeZoneId={selectedPosition}
                 onActiveZoneChange={handleCanvasZoneChange}
+                initialLogos={savedLogos}
+                initialLogoPos={savedLogoPos}
+                onLogosChange={setSavedLogos}
+                onLogoPosChange={setSavedLogoPos}
               />
             ) : (
               <div className="w-full aspect-square bg-surface-50 rounded-3xl relative flex items-center justify-center overflow-hidden">
