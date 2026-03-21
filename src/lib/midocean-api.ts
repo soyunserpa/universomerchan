@@ -6,7 +6,10 @@
 // Base URL: https://api.midocean.com/gateway/
 // ============================================================
 
-const MIDOCEAN_BASE_URL = "https://api.midocean.com/gateway";
+const isTestEnv = process.env.MIDOCEAN_TEST_ENV === "true";
+const MIDOCEAN_BASE_URL = isTestEnv 
+  ? "https://apitest.midocean.com/gateway" 
+  : "https://api.midocean.com/gateway";
 const API_KEY = process.env.MIDOCEAN_API_KEY!;
 
 if (!API_KEY) {
