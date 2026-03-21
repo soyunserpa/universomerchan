@@ -165,7 +165,7 @@ export default function OrderDetailPage() {
                   title="Devolver al carrito para modificarlo antes de pagar"
                 >
                   <ShoppingCart size={18} />
-                  Modificar Productos
+                  Ver carrito
                 </button>
                 <button
                   onClick={handlePayNow}
