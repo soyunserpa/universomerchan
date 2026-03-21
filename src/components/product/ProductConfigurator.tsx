@@ -165,6 +165,7 @@ export function ProductConfigurator({ product }: Props) {
   // State
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [variantIdx, setVariantIdx] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [qty, setQty] = useState(50);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null);
@@ -173,19 +174,108 @@ export function ProductConfigurator({ product }: Props) {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [cachedMockups, setCachedMockups] = useState<Record<string, string>>({});
 
-  const variant = product.variants[variantIdx];
-  const uniqueColors = product.variants.filter((v, i, arr) => arr.findIndex(x => x.color === v.color) === i);
+  // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
+  const hasSize = product.hasSize;
 
-  // ── PRODUCT PRICE (from price scales) ─────────────────────
+  // Group variants by color (for textiles: multiple sizes per color)
+  const colorGroups = useMemo(() => {
+    const groups = new Map<string, typeof product.variants>();
+    for (const v of product.variants) {
+      const key = v.colorCode || v.color;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(v);
+    }
+    return groups;
+  }, [product.variants]);
+
+  // Unique colors (one per color group — use first variant of each group)
+  const uniqueColors = useMemo(() => {
+    const seen = new Set<string>();
+    return product.variants.filter(v => {
+      const key = v.colorCode || v.color;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [product.variants]);
+
+  const variant = product.variants[variantIdx];
+  const currentColorKey = variant.colorCode || variant.color;
+
+  // Available sizes for current color (sorted S → 5XL)
+  const sizesForColor = useMemo(() => {
+    if (!hasSize) return [];
+    const sizeOrder = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "XXL", "3XL", "XXXL", "4XL", "5XL"];
+    const variants = colorGroups.get(currentColorKey) || [];
+    return variants
+      .filter(v => v.size)
+      .sort((a, b) => {
+        const ai = sizeOrder.indexOf(a.size!.toUpperCase());
+        const bi = sizeOrder.indexOf(b.size!.toUpperCase());
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+  }, [hasSize, colorGroups, currentColorKey]);
+
+  // Auto-sync size selection when color changes (textile products)
+  // When the user picks a new color via the existing color selector (setVariantIdx),
+  // we detect the color change and auto-select the first available size for that color.
+  const prevColorRef = useRef(currentColorKey);
+  useMemo(() => {
+    if (!hasSize) return;
+    if (prevColorRef.current !== currentColorKey) {
+      // Color changed — pick first available size for the new color
+      const sizesInColor = colorGroups.get(currentColorKey) || [];
+      const firstSize = sizesInColor.find(v => v.size);
+      if (firstSize) {
+        setSelectedSize(firstSize.size || null);
+        const realIdx = product.variants.indexOf(firstSize);
+        if (realIdx >= 0 && realIdx !== variantIdx) setVariantIdx(realIdx);
+      }
+      prevColorRef.current = currentColorKey;
+    }
+  }, [hasSize, currentColorKey, colorGroups, product.variants, variantIdx]);
+
+  // When user picks a size within the same color
+  const handleSizeSelect = useCallback((size: string) => {
+    setSelectedSize(size);
+    const match = sizesForColor.find(v => v.size === size);
+    if (match) {
+      const realIdx = product.variants.indexOf(match);
+      if (realIdx >= 0) setVariantIdx(realIdx);
+    }
+  }, [sizesForColor, product.variants]);
+
+  // Initialize selectedSize on first render for textile products
+  useMemo(() => {
+    if (hasSize && !selectedSize && variant.size) {
+      setSelectedSize(variant.size);
+    }
+  }, [hasSize, selectedSize, variant.size]);
+
+  // ── PRODUCT PRICE (from variant price or price scales) ────
 
   const getUnitPrice = useCallback(() => {
+    // Try per-variant pricing first (more accurate for textiles)
+    const vp = (product as any).variantPrices?.[variant.sku];
+    if (vp) {
+      if (vp.scales && vp.scales.length > 0) {
+        // Use quantity-scaled sell price
+        let price = vp.scales[0].priceSell;
+        for (const s of vp.scales) {
+          if (qty >= s.minQuantity) price = s.priceSell;
+        }
+        return price;
+      }
+      return vp.priceSell;
+    }
+    // Fallback to product-level price scales
     if (product.priceScales.length === 0) return product.startingPriceRaw;
     let unitPrice = product.priceScales[0].pricePerUnitRaw;
     for (const scale of product.priceScales) {
       if (qty >= scale.minQuantity) unitPrice = scale.pricePerUnitRaw;
     }
     return unitPrice;
-  }, [qty, product.priceScales, product.startingPriceRaw]);
+  }, [qty, product.priceScales, product.startingPriceRaw, variant.sku, (product as any).variantPrices]);
 
   const unitProductPrice = getUnitPrice();
   const basePrice = unitProductPrice * qty;
@@ -487,10 +577,47 @@ export function ProductConfigurator({ product }: Props) {
               </div>
             </div>
 
+            {/* Size selector (textiles only) */}
+            {hasSize && sizesForColor.length > 0 && (
+              <div className="mb-5">
+                <label className="text-sm font-semibold mb-2 block">
+                  Talla: <span className="text-brand-red">{selectedSize || variant.size || "—"}</span>
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {sizesForColor.map((sv) => {
+                    const isActive = sv.size === (selectedSize || variant.size);
+                    const sizeStock = sv.stock;
+                    const outOfStock = sizeStock <= 0;
+                    return (
+                      <button
+                        key={sv.sku}
+                        onClick={() => !outOfStock && handleSizeSelect(sv.size!)}
+                        disabled={outOfStock}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold border-2 transition-all ${
+                          outOfStock
+                            ? "bg-surface-100 text-gray-300 border-surface-200 cursor-not-allowed line-through"
+                            : isActive
+                              ? "bg-brand-red text-white border-brand-red shadow-sm"
+                              : "bg-white text-gray-600 border-surface-200 hover:border-gray-300"
+                        }`}
+                        title={outOfStock ? `${sv.size} — Agotada` : `${sv.size} — ${sizeStock.toLocaleString("es-ES")} uds`}
+                      >
+                        {sv.size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Stock */}
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5 ${variant.stock > 1000 ? "bg-green-50" : "bg-amber-50"}`}>
-              <div className={`w-2 h-2 rounded-full ${variant.stock > 1000 ? "bg-green-500" : "bg-amber-500"}`} />
-              <span className="text-sm font-medium">{variant.stock.toLocaleString("es-ES")} unidades disponibles</span>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5 ${variant.stock > 1000 ? "bg-green-50" : variant.stock > 0 ? "bg-amber-50" : "bg-red-50"}`}>
+              <div className={`w-2 h-2 rounded-full ${variant.stock > 1000 ? "bg-green-500" : variant.stock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
+              <span className="text-sm font-medium">
+                {variant.stock > 0
+                  ? `${variant.stock.toLocaleString("es-ES")} unidades disponibles${hasSize && variant.size ? ` (${variant.size})` : ""}`
+                  : "Agotado"}
+              </span>
             </div>
 
             {/* Quantity */}
