@@ -166,7 +166,8 @@ export function ProductConfigurator({ product }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [variantIdx, setVariantIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [qty, setQty] = useState(50);
+  const [baseQty, setBaseQty] = useState(50);
+  const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({});
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null);
   const [numColors, setNumColors] = useState(1);
@@ -177,6 +178,10 @@ export function ProductConfigurator({ product }: Props) {
 
   // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
   const hasSize = product.hasSize;
+
+  const qty = hasSize
+    ? Math.max(0, Object.values(sizeQuantities).reduce((a, b) => a + b, 0))
+    : baseQty;
 
   // Group variants by color (for textiles: multiple sizes per color)
   const colorGroups = useMemo(() => {
@@ -255,27 +260,28 @@ export function ProductConfigurator({ product }: Props) {
 
   // ── PRODUCT PRICE (from variant price or price scales) ────
 
-  const getUnitPrice = useCallback(() => {
-    // Try per-variant pricing first (more accurate for textiles)
-    const vp = (product as any).variantPrices?.[variant.sku];
-    if (vp) {
-      if (vp.scales && vp.scales.length > 0) {
-        // Use quantity-scaled sell price
-        let price = vp.scales[0].priceSell;
-        for (const s of vp.scales) {
-          if (qty >= s.minQuantity) price = s.priceSell;
-        }
-        return price;
+  const getUnitPrice = useCallback((forVariantSku = variant.sku) => {
+    // Try per-variant pricing scales first (more accurate for textiles)
+    const vp = (product as any).variantPrices?.[forVariantSku];
+    if (vp && vp.scales && vp.scales.length > 0) {
+      // Use quantity-scaled sell price
+      let price = vp.scales[0].priceSell;
+      for (const s of vp.scales) {
+        if (qty >= s.minQuantity) price = s.priceSell;
       }
-      return vp.priceSell;
+      return price;
     }
-    // Fallback to product-level price scales
-    if (product.priceScales.length === 0) return product.startingPriceRaw;
-    let unitPrice = product.priceScales[0].pricePerUnitRaw;
-    for (const scale of product.priceScales) {
-      if (qty >= scale.minQuantity) unitPrice = scale.pricePerUnitRaw;
+
+    // Fallback to product-level price scales if variant doesn't have specific scales
+    if (product.priceScales && product.priceScales.length > 0) {
+      let unitPrice = product.priceScales[0].pricePerUnitRaw;
+      for (const scale of product.priceScales) {
+        if (qty >= scale.minQuantity) unitPrice = scale.pricePerUnitRaw;
+      }
+      return unitPrice;
     }
-    return unitPrice;
+
+    return vp?.priceSell || product.startingPriceRaw;
   }, [qty, product.priceScales, product.startingPriceRaw, variant.sku, (product as any).variantPrices]);
 
   const unitProductPrice = getUnitPrice();
@@ -392,41 +398,69 @@ export function ProductConfigurator({ product }: Props) {
         } catch (e) { console.error("Artwork upload error:", e); }
       }
 
-      addItem({
-        productMasterCode: product.masterCode,
-        productName: product.name,
-        variantSku: variant.sku,
-        variantId: variant.sku,
-        color: variant.color,
-        colorCode: variant.colorCode,
-        size: variant.size,
-        quantity: qty,
-        unitPriceProduct: unitProductPrice,
-        unitPriceTotal: round(perUnit),
-        totalPrice: round(total),
-        customization: selectedTechnique && hasLogos ? {
-          positions: logoPlacements.map(lp => {
-            const posData = product.printPositions.find(p => p.positionId === lp.positionId);
-            const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
-            return {
-              positionId: lp.positionId,
-              positionName: posData?.description || lp.positionId,
-              techniqueId: selectedTechnique!,
-              techniqueName: techData?.name || selectedTechnique!,
-              printWidthMm: posData?.maxWidth || 50,
-              printHeightMm: posData?.maxHeight || 50,
-              numColors: effectiveColors,
-              pmsColors: [],
-              instructions: "",
-            };
-          }),
-          artworkUrl: finalArtworkUrl || logoPlacements[0]?.logoDataUrl || "",
-          artworkFileName: logoPlacements[0]?.logoFileName || "",
-          mockupUrl,
-        } : null,
-        orderType: selectedTechnique && hasLogos ? "PRINT" : "NORMAL",
-        productImage: variant.mainImage,
-      });
+      const customizationPayload = selectedTechnique && hasLogos ? {
+        positions: logoPlacements.map(lp => {
+          const posData = product.printPositions.find(p => p.positionId === lp.positionId);
+          const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
+          return {
+            positionId: lp.positionId,
+            positionName: posData?.description || lp.positionId,
+            techniqueId: selectedTechnique!,
+            techniqueName: techData?.name || selectedTechnique!,
+            printWidthMm: posData?.maxWidth || 50,
+            printHeightMm: posData?.maxHeight || 50,
+            numColors: effectiveColors,
+            pmsColors: [],
+            instructions: "",
+          };
+        }),
+        artworkUrl: finalArtworkUrl || logoPlacements[0]?.logoDataUrl || "",
+        artworkFileName: logoPlacements[0]?.logoFileName || "",
+        mockupUrl,
+      } : null;
+
+      const orderTypePayload = selectedTechnique && hasLogos ? "PRINT" : "NORMAL";
+
+      if (hasSize) {
+        for (const sv of sizesForColor) {
+          const sizeQty = sizeQuantities[sv.size!] || 0;
+          if (sizeQty > 0) {
+            addItem({
+              productMasterCode: product.masterCode,
+              productName: product.name,
+              variantSku: sv.sku,
+              variantId: sv.sku,
+              color: sv.color || variant.color,
+              colorCode: sv.colorCode || variant.colorCode,
+              size: sv.size,
+              quantity: sizeQty,
+              unitPriceProduct: getUnitPrice(sv.sku),
+              unitPriceTotal: round(perUnit),
+              totalPrice: round(perUnit * sizeQty),
+              customization: customizationPayload,
+              orderType: orderTypePayload,
+              productImage: sv.mainImage || variant.mainImage,
+            });
+          }
+        }
+      } else {
+        addItem({
+          productMasterCode: product.masterCode,
+          productName: product.name,
+          variantSku: variant.sku,
+          variantId: variant.sku,
+          color: variant.color,
+          colorCode: variant.colorCode,
+          size: variant.size,
+          quantity: qty,
+          unitPriceProduct: unitProductPrice,
+          unitPriceTotal: round(perUnit),
+          totalPrice: round(total),
+          customization: customizationPayload,
+          orderType: orderTypePayload,
+          productImage: variant.mainImage,
+        });
+      }
     } finally {
       setIsAddingToCart(false);
     }
@@ -480,7 +514,7 @@ export function ProductConfigurator({ product }: Props) {
             masterCode: product.masterCode,
             color: variant.color,
             colorCode: variant.colorCode,
-            size: variant.size || undefined,
+            size: hasSize ? Object.entries(sizeQuantities).filter(([_, q]) => (q as number) > 0).map(([s, q]) => `${q}x${s}`).join(", ") : variant.size || undefined,
             imageUrl: variant.mainImage || undefined,
             quantity: qty,
           },
@@ -610,73 +644,93 @@ export function ProductConfigurator({ product }: Props) {
               </div>
             </div>
 
-            {/* Size selector (textiles only) */}
+            {/* Size selector & Quantities (textiles only) */}
             {hasSize && sizesForColor.length > 0 && (
               <div className="mb-5">
-                <label className="text-sm font-semibold mb-2 block">
-                  Talla: <span className="text-brand-red">{selectedSize || variant.size || "—"}</span>
-                </label>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex justify-between items-baseline mb-3">
+                  <label className="text-sm font-semibold block">Cantidades por talla</label>
+                  <span className="text-xs bg-surface-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Total: {qty} uds</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {sizesForColor.map((sv) => {
-                    const isActive = sv.size === (selectedSize || variant.size);
                     const sizeStock = sv.stock;
                     const outOfStock = sizeStock <= 0;
+                    const val = sizeQuantities[sv.size!] || 0;
                     return (
-                      <button
-                        key={sv.sku}
-                        onClick={() => !outOfStock && handleSizeSelect(sv.size!)}
-                        disabled={outOfStock}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold border-2 transition-all ${outOfStock
-                          ? "bg-surface-100 text-gray-300 border-surface-200 cursor-not-allowed line-through"
-                          : isActive
-                            ? "bg-brand-red text-white border-brand-red shadow-sm"
-                            : "bg-white text-gray-600 border-surface-200 hover:border-gray-300"
-                          }`}
-                        title={outOfStock ? `${sv.size} — Agotada` : `${sv.size} — ${sizeStock.toLocaleString("es-ES")} uds`}
-                      >
-                        {sv.size}
-                      </button>
+                      <div key={sv.sku} className={`border border-surface-200 rounded-xl overflow-hidden flex flex-col ${outOfStock ? 'opacity-50 grayscale bg-surface-50' : 'bg-white'}`}>
+                        <div className="bg-surface-100 py-1.5 px-2 text-center border-b border-surface-200 flex justify-between items-center">
+                          <span className="text-xs font-bold text-gray-700">{sv.size}</span>
+                          <span className="text-[9px] font-medium text-gray-400" title={`Stock: ${sizeStock}`}>{sizeStock > 0 ? "Stock" : "Agot."}</span>
+                        </div>
+                        <div className="p-2 flex items-center justify-between">
+                          <button
+                            disabled={outOfStock}
+                            onClick={() => setSizeQuantities(prev => ({ ...prev, [sv.size!]: Math.max(0, (prev[sv.size!] || 0) - 10) }))}
+                            className="w-6 h-6 rounded bg-surface-100 flex items-center justify-center text-gray-500 hover:bg-surface-200 disabled:opacity-50 hover:text-gray-900 transition-colors"
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <input
+                            title={`Cantidad talla ${sv.size}`}
+                            placeholder="0"
+                            type="number"
+                            disabled={outOfStock}
+                            value={val === 0 ? '' : val}
+                            onChange={(e) => setSizeQuantities(prev => ({ ...prev, [sv.size!]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            className="w-10 text-center text-sm font-bold bg-transparent outline-none disabled:cursor-not-allowed text-brand-red"
+                          />
+                          <button
+                            disabled={outOfStock}
+                            onClick={() => setSizeQuantities(prev => ({ ...prev, [sv.size!]: (prev[sv.size!] || 0) + 10 }))}
+                            className="w-6 h-6 rounded bg-surface-100 flex items-center justify-center text-gray-500 hover:bg-surface-200 disabled:opacity-50 hover:text-gray-900 transition-colors"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
             )}
 
-            {/* Stock */}
+            {/* Stock Indicator (Global) */}
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5 ${variant.stock > 1000 ? "bg-green-50" : variant.stock > 0 ? "bg-amber-50" : "bg-red-50"}`}>
               <div className={`w-2 h-2 rounded-full ${variant.stock > 1000 ? "bg-green-500" : variant.stock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
               <span className="text-sm font-medium">
                 {variant.stock > 0
-                  ? `${variant.stock.toLocaleString("es-ES")} unidades disponibles${hasSize && variant.size ? ` (${variant.size})` : ""}`
-                  : "Agotado"}
+                  ? `${variant.stock.toLocaleString("es-ES")} unidades disponibles globales`
+                  : "Agotado globalmente"}
               </span>
             </div>
 
-            {/* Quantity */}
-            <div className="mb-5">
-              <label className="text-sm font-semibold mb-2 block">Cantidad</label>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setQty(Math.max(1, qty - 10))} className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50"><Minus size={14} /></button>
-                <input type="number" value={qty} onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body" />
-                <button onClick={() => setQty(qty + 10)} className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50"><Plus size={14} /></button>
-                <div className="flex gap-1.5 ml-2">
-                  {[50, 100, 250, 500].map(q => (
-                    <button key={q} onClick={() => setQty(q)} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${qty === q ? "bg-brand-red/10 text-brand-red border border-brand-red" : "bg-surface-100 text-gray-400 border border-transparent"}`}>{q}</button>
-                  ))}
+            {/* Quantity (non-textiles) */}
+            {!hasSize && (
+              <div className="mb-5">
+                <label className="text-sm font-semibold mb-2 block">Cantidad</label>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setBaseQty(Math.max(1, baseQty - 10))} title="Restar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50"><Minus size={14} /></button>
+                  <input type="number" title="Unidades" placeholder="1" value={baseQty} onChange={(e) => setBaseQty(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body outline-none" />
+                  <button onClick={() => setBaseQty(baseQty + 10)} title="Sumar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50"><Plus size={14} /></button>
+                  <div className="flex gap-1.5 ml-2">
+                    {[50, 100, 250, 500].map(q => (
+                      <button key={q} title={`Elegir ${q} unidades`} onClick={() => setBaseQty(q)} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${baseQty === q ? "bg-brand-red/10 text-brand-red border border-brand-red" : "bg-surface-100 text-gray-400 border border-transparent hover:bg-surface-200"}`}>{q}</button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Price scales table */}
             {product.priceScales.length > 1 && (
               <div className="mb-5">
-                <label className="text-xs text-gray-400 mb-1.5 block">Precio por unidad según cantidad</label>
+                <label className="text-xs text-gray-400 mb-1.5 block">Precio por unidad según cantidad total</label>
                 <div className="flex gap-1.5 flex-wrap">
                   {product.priceScales.map((s, i) => {
                     const nextScale = product.priceScales[i + 1];
                     const isActive = qty >= s.minQuantity && (!nextScale || qty < nextScale.minQuantity);
                     return (
-                      <button key={s.minQuantity} onClick={() => setQty(s.minQuantity)} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
+                      <button key={s.minQuantity} title={hasSize ? "Ingresa la cantidad en las tallas" : `Sumar ${s.minQuantity} uds`} onClick={() => !hasSize && setBaseQty(s.minQuantity)} disabled={hasSize} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
                         <div>≥{s.minQuantity}</div>
                         <div className="font-bold">{s.pricePerUnit}</div>
                       </button>
