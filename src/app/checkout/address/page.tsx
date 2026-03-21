@@ -85,7 +85,7 @@ export default function CheckoutAddressPage() {
     return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
   }
 
-  const shippingCost = isUnder300 ? 24.95 : 0;
+  const shippingCost = isUnder300 ? 8.00 : 0;
   const total = subtotal + shippingCost;
 
   return (
@@ -171,7 +171,7 @@ export default function CheckoutAddressPage() {
                       <p className="text-xs text-gray-400">Aplicado a pedidos menores de 300€</p>
                     </div>
                   </div>
-                  <span className="font-bold text-sm">24,95€</span>
+                  <span className="font-bold text-sm">8,00€</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-between p-4 rounded-xl border-2 border-green-500 bg-green-50">
@@ -248,7 +248,7 @@ export default function CheckoutAddressPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Envío</span>
                 <span className={`font-semibold ${isUnder300 ? "" : "text-green-600"}`}>
-                  {isUnder300 ? "24,95€" : "Gratis"}
+                  {isUnder300 ? "8,00€" : "Gratis"}
                 </span>
               </div>
               {user?.discountPercent && user.discountPercent > 0 && (

@@ -228,7 +228,7 @@ export async function createCheckoutSession(params: {
       {
         shipping_rate_data: {
           type: "fixed_amount",
-          fixed_amount: { amount: 2495, currency: "eur" }, // 24.95€ express small order fee
+          fixed_amount: { amount: 800, currency: "eur" }, // 8.00€ express small order fee
           display_name: "Envío Directo (Gestión pedidos < 300€)",
           delivery_estimate: {
             minimum: { unit: "business_day", value: 3 },
