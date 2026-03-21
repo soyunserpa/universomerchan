@@ -236,6 +236,18 @@ export interface ProductDetailResponse extends CatalogProductResponse {
     pricePerUnit: string;    // Already with product margin
     pricePerUnitRaw: number;
   }>;
+  // Per-variant pricing (keyed by SKU) — for textiles with different prices per size
+  variantPrices: Record<string, {
+    price: number;           // Midocean cost price (no margin)
+    priceSell: number;       // With product margin applied
+    scales?: Array<{
+      minQuantity: number;
+      price: number;         // Cost
+      priceSell: number;     // With margin
+    }>;
+  }>;
+  // Whether this product has size variants (textile)
+  hasSize: boolean;
   printPositions: Array<{
     positionId: string;
     description: string;
@@ -411,6 +423,44 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
     (a: any) => a.type === "document"
   );
 
+  // ── Per-variant pricing from variant_prices table ──────────
+  const variantPrices: Record<string, {
+    price: number;
+    priceSell: number;
+    scales?: Array<{ minQuantity: number; price: number; priceSell: number }>;
+  }> = {};
+
+  try {
+    const vpRows = await db.execute(
+      sql`SELECT sku, price, price_scales::text as scales_json FROM variant_prices WHERE master_code = ${masterCode}`
+    );
+    const margin = 1 + DEFAULT_MARGINS.productMarginPct / 100;
+    for (const row of ((vpRows as any).rows || vpRows) as any[]) {
+      const cost = parseFloat(row.price?.toString() || "0");
+      const sell = Math.round(cost * margin * 100) / 100;
+      let scales: Array<{ minQuantity: number; price: number; priceSell: number }> | undefined;
+      if (row.scales_json) {
+        try {
+          const parsed = JSON.parse(row.scales_json);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            scales = parsed.map((s: any) => ({
+              minQuantity: parseInt(s.minimum_quantity) || 1,
+              price: typeof s.price === "number" ? s.price : parseFloat(s.price || "0"),
+              priceSell: Math.round((typeof s.price === "number" ? s.price : parseFloat(s.price || "0")) * margin * 100) / 100,
+            }));
+          }
+        } catch { /* ignore parse errors */ }
+      }
+      variantPrices[row.sku] = { price: cost, priceSell: sell, scales };
+    }
+  } catch (e: any) {
+    // variant_prices table might not exist yet — fall back gracefully
+    console.warn("[catalog-api] variant_prices query failed:", e.message);
+  }
+
+  // Detect if product has size variants (textile)
+  const hasSize = base.variants.some(v => !!v.size);
+
   return {
     ...base,
     longDescription: product.longDescription || "",
@@ -418,6 +468,8 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
     countryOfOrigin: product.countryOfOrigin || "",
     documents,
     priceScales,
+    variantPrices,
+    hasSize,
     printPositions,
   };
 }
