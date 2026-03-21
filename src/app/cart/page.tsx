@@ -44,7 +44,16 @@ export default function CartPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setQuoteMessage(`Presupuesto ${data.quoteNumber} generado. Revisa tu email.`);
+        setQuoteMessage(`¡Presupuesto ${data.quoteNumber} generado con éxito! Iniciando descarga...`);
+        if (data.pdfUrl) {
+          const a = document.createElement("a");
+          a.href = data.pdfUrl;
+          a.target = "_blank";
+          a.download = `${data.quoteNumber}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
       } else {
         setQuoteMessage(data.error || "Error al generar presupuesto");
       }
