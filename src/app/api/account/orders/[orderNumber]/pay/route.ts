@@ -3,7 +3,7 @@ import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { createCheckoutSession } from "@/lib/cart-checkout";
-import { verifyJwt } from "@/lib/jwt";
+import { requireAuth } from "@/lib/auth-service";
 import type { CartItem } from "@/lib/configurator-engine";
 
 export async function POST(
@@ -11,15 +11,12 @@ export async function POST(
     { params }: { params: { orderNumber: string } }
 ) {
     try {
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-        }
-
-        const token = authHeader.split(" ")[1];
-        const payload = await verifyJwt(token);
-        if (!payload?.userId) {
-            return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+        const auth = await requireAuth(
+            req.headers.get("authorization"),
+            "customer"
+        );
+        if ("error" in auth) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
         }
 
         const { orderNumber } = params;
@@ -37,7 +34,7 @@ export async function POST(
         }
 
         // Security check
-        if (order.userId !== payload.userId) {
+        if (order.userId !== auth.user.id) {
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
 
@@ -53,7 +50,7 @@ export async function POST(
         }
 
         // Map order.lines back to CartItem shape expected by createCheckoutSession
-        const itemsForStripe: any[] = order.lines.map(line => ({
+        const itemsForStripe: any[] = (order.lines as any[]).map((line: any) => ({
             productName: line.productName,
             color: line.color,
             productImage: line.productImage,
@@ -68,7 +65,7 @@ export async function POST(
         const { sessionUrl, sessionId } = await createCheckoutSession({
             orderId: order.id,
             orderNumber: order.orderNumber,
-            customerEmail: order.shippingEmail || payload.email || "not-provided@example.com",
+            customerEmail: order.shippingEmail || auth.user.email || "not-provided@example.com",
             totalPrice: totalPrice,
             items: itemsForStripe,
             expressShipping: order.expressShipping || false,

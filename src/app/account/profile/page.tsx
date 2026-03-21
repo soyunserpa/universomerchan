@@ -78,7 +78,7 @@ export default function AccountProfilePage() {
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100">
                                 <div className="text-gray-400 mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Phone size={14} /> Teléfono</div>
-                                <div className="font-medium">{user?.phone || <span className="text-gray-400 italic">No especificado</span>}</div>
+                                <div className="font-medium">{(user as any)?.phone || <span className="text-gray-400 italic">No especificado</span>}</div>
                             </div>
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100">
@@ -88,7 +88,7 @@ export default function AccountProfilePage() {
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100 sm:col-span-2">
                                 <div className="text-gray-400 mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Briefcase size={14} /> CIF / VAT Id</div>
-                                <div className="font-medium">{user?.cif || <span className="text-gray-400 italic">No especificado</span>}</div>
+                                <div className="font-medium">{(user as any)?.cif || <span className="text-gray-400 italic">No especificado</span>}</div>
                             </div>
                         </div>
 
