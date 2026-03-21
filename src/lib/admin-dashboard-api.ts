@@ -1073,7 +1073,10 @@ export async function getAdminQuotes(params?: {
       }
     } else {
       // Might be in the cart_snapshot
-      const snap = q.cartSnapshot as any;
+      let snap = q.cartSnapshot as any;
+      if (typeof snap === "string") {
+        try { snap = JSON.parse(snap); } catch (e) { snap = []; }
+      }
       if (snap?.clientName) clientName = snap.clientName;
       if (snap?.clientEmail) clientEmail = snap.clientEmail;
     }
