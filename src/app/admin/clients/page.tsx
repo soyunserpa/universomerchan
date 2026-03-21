@@ -28,7 +28,7 @@ export default function AdminClientsPage() {
   }, [search, authHeaders]);
 
   const toggleActive = async (id: number, active: boolean) => {
-    await fetch("/api/admin/clients/active", {
+    await fetch(`/api/admin/clients/${id}/active`, {
       method: "PUT", headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ clientId: id, active }),
     });
@@ -36,10 +36,11 @@ export default function AdminClientsPage() {
   };
 
   const saveDiscount = async (id: number, discount: number) => {
-    await fetch("/api/admin/clients/discount", {
+    await fetch(`/api/admin/clients/${id}/discount`, {
       method: "PUT", headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ clientId: id, discountPercent: discount }),
     });
+    setClients(prev => prev.map(c => c.id === id ? { ...c, discountPercent: discount } : c));
   };
 
   return (
