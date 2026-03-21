@@ -12,7 +12,7 @@ import {
 
 export default function CartPage() {
   const { state, removeItem, updateQuantity, clearCart, subtotal, itemCount, totalItems } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, token } = useAuth();
   const router = useRouter();
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteMessage, setQuoteMessage] = useState("");
@@ -26,13 +26,21 @@ export default function CartPage() {
   };
 
   const handleQuote = async () => {
+    if (!isAuthenticated) {
+      router.push("/auth/login?redirect=/cart");
+      return;
+    }
+
     setQuoteLoading(true);
     setQuoteMessage("");
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/quotes/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: state.items, guestEmail: undefined }),
+        headers,
+        body: JSON.stringify({ items: state.items, userId: user?.id }),
       });
       const data = await res.json();
       if (data.success) {
@@ -204,7 +212,7 @@ export default function CartPage() {
             </button>
 
             {quoteMessage && (
-              <p className={`text-xs mt-2 text-center ${quoteMessage.includes("Error") ? "text-red-500" : "text-green-600"}`}>
+              <p className={`text-xs mt-2 text-center ${!quoteMessage.includes("generado") ? "text-red-500" : "text-green-600"}`}>
                 {quoteMessage}
               </p>
             )}
