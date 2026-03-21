@@ -7,10 +7,12 @@
 // ============================================================
 
 const isTestEnv = process.env.MIDOCEAN_TEST_ENV === "true";
-const MIDOCEAN_BASE_URL = isTestEnv 
-  ? "https://apitest.midocean.com/gateway" 
+const MIDOCEAN_BASE_URL = isTestEnv
+  ? "https://apitest.midocean.com/gateway"
   : "https://api.midocean.com/gateway";
-const API_KEY = process.env.MIDOCEAN_API_KEY!;
+const API_KEY = isTestEnv
+  ? (process.env.MIDOCEAN_TEST_API_KEY || process.env.MIDOCEAN_API_KEY!)
+  : process.env.MIDOCEAN_API_KEY!;
 
 if (!API_KEY) {
   throw new Error("MIDOCEAN_API_KEY environment variable is required");
@@ -29,32 +31,32 @@ const headers = {
 async function midoceanGet<T>(endpoint: string): Promise<T> {
   const url = `${MIDOCEAN_BASE_URL}${endpoint}`;
   console.log(`[Midocean API] GET ${url}`);
-  
+
   const response = await fetch(url, { method: "GET", headers });
-  
+
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Midocean API error ${response.status}: ${errorText}`);
   }
-  
+
   return response.json();
 }
 
 async function midoceanPost<T>(endpoint: string, body: any): Promise<T> {
   const url = `${MIDOCEAN_BASE_URL}${endpoint}`;
   console.log(`[Midocean API] POST ${url}`);
-  
+
   const response = await fetch(url, {
     method: "POST",
     headers,
     body: JSON.stringify(body),
   });
-  
+
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Midocean API error ${response.status}: ${errorText}`);
   }
-  
+
   return response.json();
 }
 
@@ -484,7 +486,7 @@ export function calculatePrintPrice(params: {
   handlingPricePerUnit: number;
 }): PrintPriceCalculation {
   const { technique, quantity, numColors, numPositions, areaCm2, isRepeatOrder, isTextileNonWhite, handlingPricePerUnit } = params;
-  
+
   // Find the right scale price based on quantity
   const findScalePrice = (scales: Array<{ minimum_quantity: string; price: string; next_price: string }>) => {
     let selectedScale = scales[0];
@@ -507,13 +509,13 @@ export function calculatePrintPrice(params: {
   // Effective colors for non-white textiles with ST technique
   const effectiveColors = isTextileNonWhite && technique.id.startsWith("ST") ? numColors + 1 : numColors;
   // But setup is still based on actual numColors, not effective
-  
+
   switch (technique.pricing_type) {
     case "NumberOfColours": {
       setupCost = setupBase * numColors;
       const varCost = technique.var_costs[0]; // Usually single range for this type
       const { price, nextPrice } = findScalePrice(varCost.scales);
-      
+
       if (technique.next_colour_cost_indicator === "true" || technique.next_colour_cost_indicator === "X") {
         // First color at price, rest at next_price
         const colorsForPrint = isTextileNonWhite ? effectiveColors : numColors;
@@ -524,7 +526,7 @@ export function calculatePrintPrice(params: {
       }
       break;
     }
-    
+
     case "NumberOfPositions": {
       setupCost = setupBase * numPositions;
       const varCost = technique.var_costs[0];
@@ -532,7 +534,7 @@ export function calculatePrintPrice(params: {
       printingCost = price * numPositions * quantity;
       break;
     }
-    
+
     case "AreaRange": {
       setupCost = setupBase;
       // Find the right area range
@@ -548,7 +550,7 @@ export function calculatePrintPrice(params: {
       printingCost = price * quantity;
       break;
     }
-    
+
     case "ColourAreaRange": {
       setupCost = setupBase * numColors;
       // Find the right area range, then multiply by colors
@@ -561,7 +563,7 @@ export function calculatePrintPrice(params: {
         }
       }
       const { price, nextPrice } = findScalePrice(selectedRange.scales);
-      
+
       if (technique.next_colour_cost_indicator === "true" || technique.next_colour_cost_indicator === "X") {
         printingCost = (price * quantity) + (nextPrice * (numColors - 1) * quantity);
       } else {

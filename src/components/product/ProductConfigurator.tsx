@@ -107,7 +107,7 @@ function calculateRealPrintCost(params: {
       const additionalColorCost = pricing.nextColourCostIndicator
         ? selectedScale.nextPrice
         : selectedScale.price;  // If no indicator, same price per additional color
-      
+
       if (numColors <= 1) {
         printCostPerUnit = firstColorCost;
       } else {
@@ -131,7 +131,7 @@ function calculateRealPrintCost(params: {
       const additionalColorCost = pricing.nextColourCostIndicator
         ? selectedScale.nextPrice
         : selectedScale.price;
-      
+
       if (numColors <= 1) {
         printCostPerUnit = firstColorCost;
       } else {
@@ -172,6 +172,7 @@ export function ProductConfigurator({ product }: Props) {
   const [numColors, setNumColors] = useState(1);
   const [logoPlacements, setLogoPlacements] = useState<LogoPlacement[]>([]);
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cachedMockups, setCachedMockups] = useState<Record<string, string>>({});
 
   // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
@@ -355,47 +356,80 @@ export function ProductConfigurator({ product }: Props) {
   // ── ADD TO CART ────────────────────────────────────────────
 
   const handleAddToCart = async () => {
-    let mockupUrl: string | null = null;
-    if (canvasEditorRef.current && hasLogos) {
-      const mockups = await canvasEditorRef.current.exportAllMockups();
-      mockupUrl = Object.values(mockups)[0] || null;
-    }
+    setIsAddingToCart(true);
+    try {
+      let mockupUrl: string | null = null;
+      let finalArtworkUrl: string | null = null;
 
-    addItem({
-      productMasterCode: product.masterCode,
-      productName: product.name,
-      variantSku: variant.sku,
-      variantId: variant.sku,
-      color: variant.color,
-      colorCode: variant.colorCode,
-      size: variant.size,
-      quantity: qty,
-      unitPriceProduct: unitProductPrice,
-      unitPriceTotal: round(perUnit),
-      totalPrice: round(total),
-      customization: selectedTechnique && hasLogos ? {
-        positions: logoPlacements.map(lp => {
-          const posData = product.printPositions.find(p => p.positionId === lp.positionId);
-          const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
-          return {
-            positionId: lp.positionId,
-            positionName: posData?.description || lp.positionId,
-            techniqueId: selectedTechnique!,
-            techniqueName: techData?.name || selectedTechnique!,
-            printWidthMm: posData?.maxWidth || 50,
-            printHeightMm: posData?.maxHeight || 50,
-            numColors: effectiveColors,
-            pmsColors: [],
-            instructions: "",
-          };
-        }),
-        artworkUrl: logoPlacements[0]?.logoDataUrl || "",
-        artworkFileName: logoPlacements[0]?.logoFileName || "",
-        mockupUrl,
-      } : null,
-      orderType: selectedTechnique && hasLogos ? "PRINT" : "NORMAL",
-      productImage: variant.mainImage,
-    });
+      if (canvasEditorRef.current && hasLogos) {
+        const mockups = await canvasEditorRef.current.exportAllMockups();
+        const firstMockup = Object.values(mockups)[0];
+        if (firstMockup) {
+          try {
+            const upRes = await fetch("/api/uploads/mockup", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ dataUrl: firstMockup, ref: product.masterCode + "-mockup" })
+            });
+            if (upRes.ok) mockupUrl = (await upRes.json()).url;
+          } catch (e) { console.error("Mockup upload error:", e); }
+        }
+      }
+
+      if (hasLogos && logoPlacements[0]?.logoDataUrl) {
+        try {
+          const extMatch = logoPlacements[0].logoFileName.match(/\.([a-zA-Z0-9]+)$/);
+          const ext = extMatch ? extMatch[1] : undefined;
+
+          const upRes = await fetch("/api/uploads/artwork", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              dataUrl: logoPlacements[0].logoDataUrl,
+              ref: product.masterCode + "-artwork",
+              extension: ext
+            })
+          });
+          if (upRes.ok) finalArtworkUrl = (await upRes.json()).url;
+        } catch (e) { console.error("Artwork upload error:", e); }
+      }
+
+      addItem({
+        productMasterCode: product.masterCode,
+        productName: product.name,
+        variantSku: variant.sku,
+        variantId: variant.sku,
+        color: variant.color,
+        colorCode: variant.colorCode,
+        size: variant.size,
+        quantity: qty,
+        unitPriceProduct: unitProductPrice,
+        unitPriceTotal: round(perUnit),
+        totalPrice: round(total),
+        customization: selectedTechnique && hasLogos ? {
+          positions: logoPlacements.map(lp => {
+            const posData = product.printPositions.find(p => p.positionId === lp.positionId);
+            const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
+            return {
+              positionId: lp.positionId,
+              positionName: posData?.description || lp.positionId,
+              techniqueId: selectedTechnique!,
+              techniqueName: techData?.name || selectedTechnique!,
+              printWidthMm: posData?.maxWidth || 50,
+              printHeightMm: posData?.maxHeight || 50,
+              numColors: effectiveColors,
+              pmsColors: [],
+              instructions: "",
+            };
+          }),
+          artworkUrl: finalArtworkUrl || logoPlacements[0]?.logoDataUrl || "",
+          artworkFileName: logoPlacements[0]?.logoFileName || "",
+          mockupUrl,
+        } : null,
+        orderType: selectedTechnique && hasLogos ? "PRINT" : "NORMAL",
+        productImage: variant.mainImage,
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   // ── PDF DOWNLOAD ───────────────────────────────────────────
@@ -532,9 +566,8 @@ export function ProductConfigurator({ product }: Props) {
                 <button
                   key={v.sku}
                   onClick={() => setVariantIdx(i)}
-                  className={`w-14 h-14 rounded-xl bg-surface-50 border-2 flex items-center justify-center overflow-hidden transition-colors ${
-                    variantIdx === i ? "border-brand-red" : "border-surface-200"
-                  }`}
+                  className={`w-14 h-14 rounded-xl bg-surface-50 border-2 flex items-center justify-center overflow-hidden transition-colors ${variantIdx === i ? "border-brand-red" : "border-surface-200"
+                    }`}
                 >
                   {v.mainImage ? <img src={v.mainImage} alt={v.color} className="w-[80%] h-[80%] object-contain" /> : <div className="w-6 h-6 rounded-full" style={{ background: v.colorHex }} />}
                 </button>
@@ -593,13 +626,12 @@ export function ProductConfigurator({ product }: Props) {
                         key={sv.sku}
                         onClick={() => !outOfStock && handleSizeSelect(sv.size!)}
                         disabled={outOfStock}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold border-2 transition-all ${
-                          outOfStock
-                            ? "bg-surface-100 text-gray-300 border-surface-200 cursor-not-allowed line-through"
-                            : isActive
-                              ? "bg-brand-red text-white border-brand-red shadow-sm"
-                              : "bg-white text-gray-600 border-surface-200 hover:border-gray-300"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold border-2 transition-all ${outOfStock
+                          ? "bg-surface-100 text-gray-300 border-surface-200 cursor-not-allowed line-through"
+                          : isActive
+                            ? "bg-brand-red text-white border-brand-red shadow-sm"
+                            : "bg-white text-gray-600 border-surface-200 hover:border-gray-300"
+                          }`}
                         title={outOfStock ? `${sv.size} — Agotada` : `${sv.size} — ${sizeStock.toLocaleString("es-ES")} uds`}
                       >
                         {sv.size}
@@ -657,8 +689,11 @@ export function ProductConfigurator({ product }: Props) {
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} />
 
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setStep(2)} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors">Personalizar <Palette size={16} /></button>
-              <button onClick={handleAddToCart} className="bg-gray-900 text-white px-5 py-3 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-gray-700 transition-colors"><ShoppingCart size={16} /> Sin marcaje</button>
+              <button onClick={() => { setStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors">Personalizar <Palette size={16} /></button>
+              <button onClick={handleAddToCart} disabled={isAddingToCart} className="bg-gray-900 text-white px-5 py-3 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-gray-700 transition-colors disabled:opacity-50">
+                {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
+                Sin marcaje
+              </button>
             </div>
           </div>
         </div>
@@ -753,7 +788,7 @@ export function ProductConfigurator({ product }: Props) {
                 </div>
                 {techniqueData?.pricing?.nextColourCostIndicator && numColors > 1 && (
                   <div className="mt-2 text-[10px] text-gray-400">
-                    1er color: {round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit * printMarginMultiplier) : 0).toFixed(2)}€/ud · 
+                    1er color: {round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit * printMarginMultiplier) : 0).toFixed(2)}€/ud ·
                     Colores adicionales a precio reducido
                   </div>
                 )}
@@ -900,7 +935,10 @@ export function ProductConfigurator({ product }: Props) {
 
             <div className="flex gap-3">
               <button onClick={() => setStep(selectedTechnique ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
-              <button onClick={handleAddToCart} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors"><ShoppingCart size={16} /> Añadir al carrito</button>
+              <button onClick={handleAddToCart} disabled={isAddingToCart} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50">
+                {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
+                Añadir al carrito
+              </button>
             </div>
 
             <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full mt-3 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center justify-center gap-2 text-gray-500 hover:border-gray-300 transition-colors disabled:opacity-50">

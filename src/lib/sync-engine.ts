@@ -17,6 +17,7 @@ import { db } from "./database";
 import { eq, sql } from "drizzle-orm";
 import * as schema from "./schema";
 import * as midocean from "./midocean-api";
+import { sendProofReadyEmail } from "./email-service";
 
 // ============================================================
 // SYNC PRODUCTS
@@ -268,7 +269,7 @@ export async function syncPricelist(): Promise<{ updated: number }> {
     const BATCH_SIZE = 100;
     for (let i = 0; i < skuPrices.length; i += BATCH_SIZE) {
       const batch = skuPrices.slice(i, i + BATCH_SIZE);
-      
+
       for (const entry of batch) {
         const price = parseEuPrice(entry.price);
         if (price <= 0) continue;
@@ -545,12 +546,12 @@ export async function syncActiveOrders(): Promise<{ checked: number; updated: nu
       checked++;
       try {
         const details = await midocean.getOrderDetails(order.midoceanOrderNumber!);
-        
+
         if (!details.order_header || details.order_header.order_found !== "true") continue;
 
         // Check for status changes
         let newStatus = order.status;
-        
+
         if (details.order_header.order_status === "COMPLETED") {
           newStatus = "completed";
         } else if (details.order_header.order_status === "CANCELLED") {
@@ -578,20 +579,37 @@ export async function syncActiveOrders(): Promise<{ checked: number; updated: nu
           }
 
           // Update order line proof info
-          if (line.proof_url) {
+          if (line.proof_url || line.proof_status) {
             const orderLine = await db.query.orderLines.findFirst({
               where: sql`${schema.orderLines.orderId} = ${order.id} 
                 AND ${schema.orderLines.lineNumber} = ${parseInt(line.order_line_id)}`,
             });
-            
-            if (orderLine && orderLine.proofUrl !== line.proof_url) {
-              await db.update(schema.orderLines).set({
-                proofUrl: line.proof_url,
-                proofStatus: line.proof_status === "WaitingApproval" ? "waiting_approval" :
-                             line.proof_status === "Approved" ? "approved" :
-                             line.proof_status === "ArtworkRequired" ? "artwork_required" :
-                             "in_progress",
-              }).where(eq(schema.orderLines.id, orderLine.id));
+
+            if (orderLine) {
+              const newProofStatus = line.proof_status === "WaitingApproval" ? "waiting_approval" :
+                line.proof_status === "Approved" ? "approved" :
+                  line.proof_status === "ArtworkRequired" ? "artwork_required" :
+                    "in_progress";
+
+              if (orderLine.proofUrl !== line.proof_url || orderLine.proofStatus !== newProofStatus) {
+                await db.update(schema.orderLines).set({
+                  proofUrl: line.proof_url || orderLine.proofUrl,
+                  proofStatus: newProofStatus,
+                }).where(eq(schema.orderLines.id, orderLine.id));
+
+                // Trigger email if it just became waiting_approval
+                if (newProofStatus === "waiting_approval" && orderLine.proofStatus !== "waiting_approval") {
+                  const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
+                  if (user) {
+                    await sendProofReadyEmail(user.email, {
+                      firstName: user.firstName || "Cliente",
+                      orderNumber: order.orderNumber,
+                      productName: orderLine.productName || "Producto personalizado",
+                      proofUrl: line.proof_url || orderLine.proofUrl || "",
+                    });
+                  }
+                }
+              }
             }
           }
         }

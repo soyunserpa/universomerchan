@@ -52,6 +52,7 @@ import {
   getErrorLog,
   resolveError,
   getCatalogStats,
+  getAdminQuotes,
 } from "@/lib/admin-dashboard-api";
 import {
   syncProducts,
@@ -446,6 +447,30 @@ export async function GET_catalogStats(req: NextRequest) {
   try {
     const stats = await getCatalogStats();
     return NextResponse.json(stats);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// ============================================================
+// QUOTES
+// ============================================================
+
+// GET /api/admin/quotes?search=&status=&page=1
+export async function GET_quotes(req: NextRequest) {
+  const auth = await adminAuth(req);
+  if ("error" in auth) return unauthorized(auth);
+
+  const { searchParams } = new URL(req.url);
+
+  try {
+    const result = await getAdminQuotes({
+      search: searchParams.get("search") || undefined,
+      status: searchParams.get("status") || undefined,
+      page: parseInt(searchParams.get("page") || "1"),
+      limit: parseInt(searchParams.get("limit") || "25"),
+    });
+    return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

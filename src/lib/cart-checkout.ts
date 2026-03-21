@@ -33,7 +33,7 @@ async function generateOrderNumber(): Promise<string> {
     .select({ count: sql<number>`count(*)` })
     .from(schema.orders)
     .where(sql`EXTRACT(YEAR FROM ${schema.orders.createdAt}) = ${year}`);
-  
+
   const seq = Number(result[0].count) + 1;
   return `UM-${year}-${String(seq).padStart(4, "0")}`;
 }
@@ -59,11 +59,11 @@ export async function createOrderFromCart(params: {
   customerNotes?: string;
 }): Promise<{ orderId: number; orderNumber: string }> {
   const { userId, items, shippingAddress, expressShipping, customerNotes } = params;
-  
+
   // Get user for discount
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
   const discountPct = parseFloat(user?.discountPercent?.toString() || "0");
-  
+
   // Get margin settings
   const marginProdSetting = await db.query.adminSettings.findFirst({
     where: eq(schema.adminSettings.key, "margin_product_pct"),
@@ -71,14 +71,14 @@ export async function createOrderFromCart(params: {
   const marginPrintSetting = await db.query.adminSettings.findFirst({
     where: eq(schema.adminSettings.key, "margin_print_pct"),
   });
-  
+
   const marginProd = parseFloat(marginProdSetting?.value || "40");
   const marginPrint = parseFloat(marginPrintSetting?.value || "50");
-  
+
   // Calculate totals
   const hasCustomization = items.some(i => i.orderType === "PRINT");
   const orderType = hasCustomization ? "PRINT" : "NORMAL";
-  
+
   let subtotalProduct = 0;
   let subtotalPrint = 0;
   for (const item of items) {
@@ -87,13 +87,13 @@ export async function createOrderFromCart(params: {
       subtotalPrint += item.totalPrice - (item.unitPriceProduct * item.quantity);
     }
   }
-  
+
   const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
   const discountAmount = subtotal * (discountPct / 100);
   const totalPrice = subtotal - discountAmount;
-  
+
   const orderNumber = await generateOrderNumber();
-  
+
   // Insert order
   const [order] = await db.insert(schema.orders).values({
     orderNumber,
@@ -119,7 +119,7 @@ export async function createOrderFromCart(params: {
     createdAt: new Date(),
     updatedAt: new Date(),
   }).returning();
-  
+
   // Insert order lines
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -142,7 +142,7 @@ export async function createOrderFromCart(params: {
       createdAt: new Date(),
     });
   }
-  
+
   return { orderId: order.id, orderNumber };
 }
 
@@ -158,7 +158,7 @@ export async function createCheckoutSession(params: {
   items: CartItem[];
 }): Promise<{ sessionUrl: string; sessionId: string }> {
   const { orderId, orderNumber, customerEmail, totalPrice, items } = params;
-  
+
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
     price_data: {
       currency: "eur",
@@ -171,7 +171,7 @@ export async function createCheckoutSession(params: {
     },
     quantity: item.quantity,
   }));
-  
+
   // ── Payment methods ────────────────────────────────────────
   // "card" includes Apple Pay and Google Pay automatically:
   //   - Apple Pay appears on Safari/iOS when domain is verified
@@ -189,7 +189,7 @@ export async function createCheckoutSession(params: {
   //
   // Google Pay: Enabled automatically, no extra config needed.
   // ────────────────────────────────────────────────────────────
-  
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: customerEmail,
@@ -201,28 +201,28 @@ export async function createCheckoutSession(params: {
     success_url: `${SITE_URL}/checkout/success?order=${orderNumber}`,
     cancel_url: `${SITE_URL}/checkout/cancel?order=${orderNumber}`,
     locale: "es",
-    
+
     // Card = Visa/MC/Amex + Apple Pay + Google Pay
     // SEPA = Bank transfer (popular for B2B in Spain/EU)
     // Link = Stripe's 1-click checkout for repeat customers
     payment_method_types: ["card", "sepa_debit", "link"],
-    
+
     // Auto-generate invoice (useful for B2B clients with CIF)
     invoice_creation: {
       enabled: true,
     },
-    
+
     // Allow promo codes if we add them later
     allow_promotion_codes: true,
-    
+
     // Collect billing address (needed for invoices)
     billing_address_collection: "required",
-    
+
     // Phone number for shipping coordination
     phone_number_collection: {
       enabled: true,
     },
-    
+
     // Shipping options (standard vs express)
     shipping_options: expressShipping ? [
       {
@@ -250,14 +250,14 @@ export async function createCheckoutSession(params: {
       },
     ],
   });
-  
+
   // Update order with Stripe session
   await db.update(schema.orders).set({
     stripeSessionId: session.id,
     status: "pending_payment",
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, orderId));
-  
+
   return {
     sessionUrl: session.url!,
     sessionId: session.id,
@@ -276,12 +276,12 @@ export async function handlePaymentSuccess(
   const order = await db.query.orders.findFirst({
     where: eq(schema.orders.stripeSessionId, sessionId),
   });
-  
+
   if (!order) {
     console.error(`[Checkout] No order found for session ${sessionId}`);
     return;
   }
-  
+
   // Update order status
   await db.update(schema.orders).set({
     status: "paid",
@@ -289,15 +289,15 @@ export async function handlePaymentSuccess(
     paidAt: new Date(),
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, order.id));
-  
+
   console.log(`[Checkout] Order ${order.orderNumber} paid successfully`);
-  
+
   // Get user and order lines
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
   const orderLines = await db.query.orderLines.findMany({
     where: eq(schema.orderLines.orderId, order.id),
   });
-  
+
   // Send confirmation email to customer
   if (user?.email) {
     await emails.sendOrderConfirmationEmail(user.email, {
@@ -313,7 +313,7 @@ export async function handlePaymentSuccess(
       estimatedDelivery: "7-10 días laborables",
     });
   }
-  
+
   // Notify admin
   await emails.notifyAdminNewOrder({
     orderNumber: order.orderNumber,
@@ -323,7 +323,7 @@ export async function handlePaymentSuccess(
     items: orderLines.map(l => ({ name: l.productName || "", quantity: l.quantity })),
     hasCustomization: order.orderType === "PRINT",
   });
-  
+
   // Submit to Midocean
   try {
     await submitOrderToMidocean(order.id);
@@ -349,19 +349,19 @@ export async function handlePaymentSuccess(
 // SUBMIT ORDER TO MIDOCEAN — Via Order Entry 2.1 API
 // ============================================================
 
-async function submitOrderToMidocean(orderId: number): Promise<void> {
+export async function submitOrderToMidocean(orderId: number): Promise<void> {
   const order = await db.query.orders.findFirst({ where: eq(schema.orders.id, orderId) });
   if (!order) throw new Error("Order not found");
-  
+
   const orderLines = await db.query.orderLines.findMany({
     where: eq(schema.orderLines.orderId, orderId),
   });
-  
+
   // Build shipping date (preferred: 1 day from now)
   const shippingDate = new Date();
   shippingDate.setDate(shippingDate.getDate() + 1);
   const shippingDateStr = shippingDate.toISOString().split("T")[0];
-  
+
   // Build Midocean order request
   const midoceanOrder: midoceanApi.MidoceanOrderRequest = {
     order_header: {
@@ -389,6 +389,7 @@ async function submitOrderToMidocean(orderId: number): Promise<void> {
     order_lines: orderLines.map((line, i) => {
       if (order.orderType === "PRINT" && line.printConfig) {
         const config = line.printConfig as any;
+        const colorCode = (line.sku || "").replace(`${line.masterCode}-`, "").split("-")[0] || "";
         return {
           order_line_id: String((i + 1) * 10),
           master_code: line.masterCode,
@@ -405,13 +406,14 @@ async function submitOrderToMidocean(orderId: number): Promise<void> {
             print_instruction: pos.instructions || "None",
             print_colors: (pos.pmsColors || []).map((c: string) => ({ color: c })),
           })),
-          print_items: (config.print_items || [{
-            item_color_number: line.colorDescription || "",
+          print_items: [{
+            item_color_number: colorCode,
+            ...(line.size ? { item_size: line.size } : {}),
             quantity: String(line.quantity),
-          }]),
+          }],
         };
       }
-      
+
       return {
         order_line_id: String((i + 1) * 10),
         sku: line.sku || "",
@@ -421,20 +423,20 @@ async function submitOrderToMidocean(orderId: number): Promise<void> {
       };
     }),
   };
-  
+
   // Submit to Midocean
   const response = await midoceanApi.createOrder(midoceanOrder);
-  
+
   // Store Midocean's order number
   const midoceanOrderNumber = response?.order_number || response?.order_header?.order_number;
-  
+
   await db.update(schema.orders).set({
     status: "submitted",
     midoceanOrderNumber: midoceanOrderNumber || null,
     midoceanPoNumber: order.orderNumber,
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, orderId));
-  
+
   // If it's a PRINT order, upload artworks
   if (order.orderType === "PRINT") {
     for (const line of orderLines) {
@@ -451,7 +453,7 @@ async function submitOrderToMidocean(orderId: number): Promise<void> {
       }
     }
   }
-  
+
   console.log(`[Order] ${order.orderNumber} submitted to Midocean as ${midoceanOrderNumber}`);
 }
 
@@ -469,24 +471,24 @@ export async function handleProofApproval(
   if (!order || !order.midoceanOrderNumber) {
     throw new Error("Order not found or not yet submitted to Midocean");
   }
-  
+
   const orderLine = await db.query.orderLines.findFirst({
     where: eq(schema.orderLines.id, lineId),
   });
   if (!orderLine) throw new Error("Order line not found");
-  
+
   const midoceanLineId = String(orderLine.lineNumber * 10);
-  
+
   if (approved) {
     // Approve in Midocean
     await midoceanApi.approveProof(order.midoceanOrderNumber, midoceanLineId);
-    
+
     // Update local DB
     await db.update(schema.orderLines).set({
       proofStatus: "approved",
       proofApprovedAt: new Date(),
     }).where(eq(schema.orderLines.id, lineId));
-    
+
     // Check if all lines are approved
     const allLines = await db.query.orderLines.findMany({
       where: eq(schema.orderLines.orderId, orderId),
@@ -494,14 +496,14 @@ export async function handleProofApproval(
     const allApproved = allLines.every(
       l => l.proofStatus === "approved" || l.proofStatus === "not_applicable"
     );
-    
+
     if (allApproved) {
       await db.update(schema.orders).set({
         status: "proof_approved",
         updatedAt: new Date(),
       }).where(eq(schema.orders.id, orderId));
     }
-    
+
     // Email customer
     const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
     if (user?.email) {
@@ -510,7 +512,7 @@ export async function handleProofApproval(
         orderNumber: order.orderNumber,
       });
     }
-    
+
   } else {
     // Reject in Midocean
     await midoceanApi.rejectProof(
@@ -518,19 +520,19 @@ export async function handleProofApproval(
       midoceanLineId,
       rejectionReason || "Customer requested changes",
     );
-    
+
     // Update local DB
     await db.update(schema.orderLines).set({
       proofStatus: "rejected",
       proofRejectedAt: new Date(),
       proofRejectionReason: rejectionReason || null,
     }).where(eq(schema.orderLines.id, lineId));
-    
+
     await db.update(schema.orders).set({
       status: "proof_rejected",
       updatedAt: new Date(),
     }).where(eq(schema.orders.id, orderId));
-    
+
     // Notify admin
     await emails.notifyAdminProofRejected({
       orderNumber: order.orderNumber,

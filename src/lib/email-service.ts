@@ -53,6 +53,10 @@ export async function sendProofReadyEmail(to: string, d: { firstName: string; or
   return sendEmail({ to, subject: `Boceto listo: ${d.orderNumber} 👁️`, html: T(`<h2 style="font-size:24px;font-weight:800">Tu boceto está listo</h2><p style="color:#666">Hola ${d.firstName}, el boceto de <strong>${d.productName}</strong> (pedido ${d.orderNumber}) está listo.</p><div class="ab" style="background:#FEF3C7"><p style="font-size:13px;color:#92400E;margin:0"><strong>Acción requerida:</strong> Revisa y aprueba desde tu panel.</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Revisar boceto</a></p>`) });
 }
 
+export async function sendProofReminderEmail(to: string, d: { firstName: string; orderNumber: string; productName: string; proofUrl: string }) {
+  return sendEmail({ to, subject: `Recordatorio: Boceto pendiente de revisión ${d.orderNumber} ⏱️`, html: T(`<h2 style="font-size:24px;font-weight:800">Tu boceto necesita revisión</h2><p style="color:#666">Hola ${d.firstName}, te recordamos que tienes pendiente de revisar el boceto de <strong>${d.productName}</strong> (pedido ${d.orderNumber}). Han pasado 48 horas y necesitamos tu aprobación para enviar a producción.</p><div class="ab" style="background:#FEF3C7"><p style="font-size:13px;color:#92400E;margin:0"><strong>Acción requerida:</strong> Revisa y aprueba desde tu panel lo antes posible.</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Revisar boceto</a></p>`) });
+}
+
 export async function sendProofApprovedEmail(to: string, d: { firstName: string; orderNumber: string }) {
   return sendEmail({ to, subject: `Boceto aprobado — En producción: ${d.orderNumber} 🏭`, html: T(`<h2 style="font-size:24px;font-weight:800">¡En producción!</h2><p style="color:#666">Hola ${d.firstName}, el pedido <strong>${d.orderNumber}</strong> ya está en producción. Te avisaremos cuando se envíe (5-8 días).</p><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Ver estado</a></p>`) });
 }
