@@ -176,7 +176,14 @@ export async function syncStock(): Promise<{ updated: number }> {
 
 // ============================================================
 // SYNC PRICELIST
-// Fetches product prices with quantity scales
+// Midocean pricelist 2.0 returns prices per SKU (variant).
+// Some SKUs include a `scale` array with quantity-based pricing.
+//
+// Strategy:
+//   1. Upsert each SKU into `variant_prices` (per-SKU truth)
+//   2. Aggregate by master_code into `product_prices` (for catalog listings)
+//      - If any SKU has scales → use those (they're identical within a product)
+//      - Otherwise → single scale at qty=1 with the lowest variant price
 // ============================================================
 
 export async function syncPricelist(): Promise<{ updated: number }> {
@@ -186,36 +193,193 @@ export async function syncPricelist(): Promise<{ updated: number }> {
   try {
     console.log("[Sync] Starting pricelist sync...");
     const pricelist = await midocean.fetchPricelist();
+    const skuPrices = pricelist.price || [];
+    console.log(`[Sync] Received ${skuPrices.length} SKU prices`);
 
-    for (const priceEntry of pricelist.prices || []) {
+    // Helper: parse EU price "6,90" or "1.234,50" → number; also handles "6.90" (legacy decimal)
+    function parseEuPrice(s: string | number): number {
+      if (typeof s === "number") return s;
+      if (!s || s === "") return 0;
+      const str = String(s).trim();
+      // If it has comma → EU format: strip dots (thousands), replace comma with dot
+      if (str.includes(",")) {
+        return parseFloat(str.replace(/\./g, "").replace(",", ".")) || 0;
+      }
+      // Otherwise standard decimal
+      return parseFloat(str) || 0;
+    }
+
+    // Build a map: SKU → variant info from product_variants table
+    const variantRows = await db.execute(
+      sql`SELECT sku, variant_id, product_id FROM product_variants`
+    );
+    const variantMap = new Map<string, { variantId: string; productId: number }>();
+    for (const row of ((variantRows as any).rows || variantRows) as any[]) {
+      variantMap.set(row.sku, { variantId: row.variant_id, productId: row.product_id });
+    }
+
+    // Build a map: product_id → master_code
+    const productRows = await db.execute(
+      sql`SELECT id, master_code FROM products`
+    );
+    const productIdToMaster = new Map<number, string>();
+    for (const row of ((productRows as any).rows || productRows) as any[]) {
+      productIdToMaster.set(row.id, row.master_code);
+    }
+
+    // Ensure variant_prices table exists (safe migration)
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS variant_prices (
+          id SERIAL PRIMARY KEY,
+          sku VARCHAR(30) NOT NULL,
+          variant_id VARCHAR(20) NOT NULL,
+          master_code VARCHAR(20) NOT NULL,
+          price DECIMAL(10,4) NOT NULL,
+          price_scales JSONB,
+          valid_until VARCHAR(10),
+          currency VARCHAR(3) DEFAULT 'EUR',
+          last_synced_at TIMESTAMP DEFAULT NOW() NOT NULL
+        )
+      `);
+      // Create unique index (ignore if exists)
+      try {
+        await db.execute(sql`CREATE UNIQUE INDEX variant_prices_sku_idx ON variant_prices (sku)`);
+      } catch (e: any) {
+        if (!e.message?.includes("already exists")) throw e;
+      }
+      try {
+        await db.execute(sql`CREATE INDEX variant_prices_master_code_idx ON variant_prices (master_code)`);
+      } catch (e: any) {
+        if (!e.message?.includes("already exists")) throw e;
+      }
+    } catch (e: any) {
+      console.log("[Sync] variant_prices table setup:", e.message);
+    }
+
+    // Group SKU prices by master_code for product_prices aggregation
+    const byMaster = new Map<string, {
+      prices: number[];
+      scales: Array<{ minimum_quantity: string; price: string }> | null;
+      validUntil: string;
+    }>();
+
+    // Process each SKU price in batches
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < skuPrices.length; i += BATCH_SIZE) {
+      const batch = skuPrices.slice(i, i + BATCH_SIZE);
+
+      for (const entry of batch) {
+        const price = parseEuPrice(entry.price);
+        if (price <= 0) continue;
+
+        // Resolve master_code: first try via variant_id from product_variants
+        const variantInfo = variantMap.get(entry.sku);
+        let masterCode = "";
+        if (variantInfo) {
+          masterCode = productIdToMaster.get(variantInfo.productId) || "";
+        }
+        // Fallback: extract master_code from SKU (format: "MO9177-06" → "MO9177" or "S47101-AQ-L" → "S47101")
+        if (!masterCode) {
+          masterCode = entry.sku.split("-")[0] || entry.sku;
+        }
+
+        // Parse scales if present (store as clean numbers)
+        let cleanScales: Array<{ minimum_quantity: number; price: number }> | null = null;
+        if (entry.scale && entry.scale.length > 0) {
+          cleanScales = entry.scale.map(s => ({
+            minimum_quantity: parseInt(s.minimum_quantity) || 1,
+            price: parseEuPrice(s.price),
+          })).sort((a, b) => a.minimum_quantity - b.minimum_quantity);
+        }
+
+        // Upsert into variant_prices
+        await db.execute(sql`
+          INSERT INTO variant_prices (sku, variant_id, master_code, price, price_scales, valid_until, currency, last_synced_at)
+          VALUES (
+            ${entry.sku},
+            ${entry.variant_id},
+            ${masterCode},
+            ${price},
+            ${cleanScales ? JSON.stringify(cleanScales) : null}::jsonb,
+            ${entry.valid_until || ""},
+            ${pricelist.currency || "EUR"},
+            NOW()
+          )
+          ON CONFLICT (sku) DO UPDATE SET
+            variant_id = EXCLUDED.variant_id,
+            master_code = EXCLUDED.master_code,
+            price = EXCLUDED.price,
+            price_scales = EXCLUDED.price_scales,
+            valid_until = EXCLUDED.valid_until,
+            currency = EXCLUDED.currency,
+            last_synced_at = NOW()
+        `);
+        updated++;
+
+        // Aggregate for product_prices
+        if (masterCode) {
+          let group = byMaster.get(masterCode);
+          if (!group) {
+            group = { prices: [], scales: null, validUntil: entry.valid_until || "" };
+            byMaster.set(masterCode, group);
+          }
+          group.prices.push(price);
+          // If this SKU has scales, store them (they're identical across variants of the same product)
+          if (entry.scale && entry.scale.length > 0 && !group.scales) {
+            group.scales = entry.scale;
+          }
+        }
+      }
+    }
+
+    // Now upsert aggregated product_prices
+    let productPricesUpdated = 0;
+    for (const [masterCode, group] of byMaster) {
+      // Build price_scales for this product
+      let priceScales: Array<{ minimum_quantity: number; price: number }>;
+
+      if (group.scales && group.scales.length > 0) {
+        // Product has real quantity scales — use them (parsed to clean numbers)
+        priceScales = group.scales.map(s => ({
+          minimum_quantity: parseInt(s.minimum_quantity) || 1,
+          price: parseEuPrice(s.price),
+        })).sort((a, b) => a.minimum_quantity - b.minimum_quantity);
+      } else {
+        // No scales — single price at qty=1, use the lowest variant price
+        const minPrice = Math.min(...group.prices);
+        priceScales = [{ minimum_quantity: 1, price: minPrice }];
+      }
+
       await db.insert(schema.productPrices)
         .values({
-          masterCode: priceEntry.master_code,
-          currency: pricelist.currency,
-          pricelistValidFrom: pricelist.pricelist_valid_from,
-          pricelistValidUntil: pricelist.pricelist_valid_until,
-          priceScales: priceEntry.scales,
+          masterCode,
+          currency: pricelist.currency || "EUR",
+          pricelistValidFrom: pricelist.date || "",
+          pricelistValidUntil: group.validUntil,
+          priceScales: priceScales,
           lastSyncedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: schema.productPrices.masterCode,
           set: {
-            priceScales: priceEntry.scales,
-            currency: pricelist.currency,
-            pricelistValidFrom: pricelist.pricelist_valid_from,
-            pricelistValidUntil: pricelist.pricelist_valid_until,
+            priceScales: priceScales,
+            currency: pricelist.currency || "EUR",
+            pricelistValidFrom: pricelist.date || "",
+            pricelistValidUntil: group.validUntil,
             lastSyncedAt: new Date(),
           },
         });
-      updated++;
+      productPricesUpdated++;
     }
 
-    await logSync("pricelist", "success", pricelist.prices?.length || 0, updated, 0, Date.now() - startTime);
-    console.log(`[Sync] Pricelist complete: ${updated} products`);
+    await logSync("pricelist", "success", skuPrices.length, updated, 0, Date.now() - startTime);
+    console.log(`[Sync] Pricelist complete: ${updated} variant prices, ${productPricesUpdated} product prices`);
     return { updated };
 
   } catch (error: any) {
     await logSync("pricelist", "error", 0, 0, 0, Date.now() - startTime, error.message);
+    console.error("[Sync] Pricelist sync failed:", error.message);
     throw error;
   }
 }

@@ -42,6 +42,11 @@ interface Props {
   selectedColorCode?: string;
   activeZoneId?: string | null;
   onActiveZoneChange?: (zoneId: string) => void;
+  // Bug 2 fix: allow parent to own logo state so it survives unmount/remount
+  initialLogos?: Record<string, { dataUrl: string; fileName: string }>;
+  initialLogoPos?: Record<string, { x: number; y: number; scale: number }>;
+  onLogosChange?: (logos: Record<string, { dataUrl: string; fileName: string }>) => void;
+  onLogoPosChange?: (pos: Record<string, { x: number; y: number; scale: number }>) => void;
 }
 
 function proxyUrl(url: string | null | undefined): string {
@@ -59,7 +64,8 @@ function proxyUrl(url: string | null | undefined): string {
 
 export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
   function ProductCanvasEditor(
-    { printZones, productImage, productName, onPlacementsChange, selectedColorCode, activeZoneId, onActiveZoneChange },
+    { printZones, productImage, productName, onPlacementsChange, selectedColorCode, activeZoneId, onActiveZoneChange,
+      initialLogos, initialLogoPos, onLogosChange, onLogoPosChange },
     ref
   ) {
     const [internalActiveZone, setInternalActiveZone] = useState<string>(printZones[0]?.positionId || "");
@@ -69,8 +75,25 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
       onActiveZoneChange?.(id);
     }, [onActiveZoneChange]);
 
-    const [logos, setLogos] = useState<Record<string, { dataUrl: string; fileName: string }>>({});
-    const [logoPos, setLogoPos] = useState<Record<string, { x: number; y: number; scale: number }>>({});
+    const [logos, setLogosInternal] = useState<Record<string, { dataUrl: string; fileName: string }>>(initialLogos || {});
+    const [logoPos, setLogoPosInternal] = useState<Record<string, { x: number; y: number; scale: number }>>(initialLogoPos || {});
+
+    // Wrap setters to notify parent
+    const setLogos: typeof setLogosInternal = useCallback((updater) => {
+      setLogosInternal(prev => {
+        const next = typeof updater === "function" ? updater(prev) : updater;
+        onLogosChange?.(next);
+        return next;
+      });
+    }, [onLogosChange]);
+
+    const setLogoPos: typeof setLogoPosInternal = useCallback((updater) => {
+      setLogoPosInternal(prev => {
+        const next = typeof updater === "function" ? updater(prev) : updater;
+        onLogoPosChange?.(next);
+        return next;
+      });
+    }, [onLogoPosChange]);
     const [dragging, setDragging] = useState(false);
     const canvasAreaRef = useRef<HTMLDivElement>(null);
     const dragStartRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -161,43 +184,86 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
       setLogoPos(prev => { const n = { ...prev }; delete n[activeZone]; return n; });
     };
 
-    // Export: composites logo onto product image at the correct zone position
+    // Export: composites logo onto product image using the SAME logic as PreviewWithLogo
+    // Uses natural image dimensions + position_points (%) + logo aspect ratio (objectFit contain)
     const exportMockup = useCallback(async (positionId: string): Promise<string | null> => {
       const zone = printZones.find(z => z.positionId === positionId);
       const logo = logos[positionId];
       if (!zone || !logo) return null;
       try {
-        const canvas = document.createElement("canvas");
-        canvas.width = 500; canvas.height = 500;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return null;
-
-        // Load product image (color-matched)
+        // Load product image (color-matched) — same logic as previewUrl
         let imgSrc = zone.imageWithArea || zone.imageBlank;
         if (selectedColorCode && zone.imageVariants?.length) {
           const match = zone.imageVariants.find(v => v.colorCode.toUpperCase() === selectedColorCode.toUpperCase());
           if (match) imgSrc = match.imageWithArea || match.imageBlank || imgSrc;
         }
         const productImg = await loadImage(proxyUrl(imgSrc));
-        if (productImg) {
-          const s = Math.min(500 / productImg.naturalWidth, 500 / productImg.naturalHeight);
-          const w = productImg.naturalWidth * s, h = productImg.naturalHeight * s;
-          ctx.drawImage(productImg, (500 - w) / 2, (500 - h) / 2, w, h);
-        }
+        if (!productImg) return null;
 
-        // Draw logo at zone position
+        // Use NATURAL dimensions — matches how PreviewWithLogo renders the <img>
+        const natW = productImg.naturalWidth;
+        const natH = productImg.naturalHeight;
+        const canvas = document.createElement("canvas");
+        canvas.width = natW;
+        canvas.height = natH;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+
+        // White background first — prevents black bars on transparent/partial images
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, natW, natH);
+
+        // Draw product image at full natural size
+        ctx.drawImage(productImg, 0, 0, natW, natH);
+
+        // Draw logo using IDENTICAL math to PreviewWithLogo's logoOverlay
         const logoImg = await loadImage(logo.dataUrl);
         if (logoImg && zone.points?.length >= 2) {
-          const sorted = [...zone.points].sort((a, b) => a.sequence_no - b.sequence_no);
+          const pts = [...zone.points].sort((a, b) => a.sequence_no - b.sequence_no);
           const p = logoPos[positionId] || { x: 0.5, y: 0.5, scale: 0.65 };
-          const zL = sorted[0].distance_from_left, zT = sorted[0].distance_from_top;
-          const zW = Math.abs(sorted[1].distance_from_left - sorted[0].distance_from_left);
-          const zH = Math.abs(sorted[1].distance_from_top - sorted[0].distance_from_top);
-          const logoW = zW * p.scale, logoH = zH * p.scale;
-          ctx.drawImage(logoImg, zL + zW * p.x - logoW / 2, zT + zH * p.y - logoH / 2, logoW, logoH);
+
+          // Same relative % calc as PreviewWithLogo
+          const zoneLeftPct = pts[0].distance_from_left / natW;
+          const zoneTopPct = pts[0].distance_from_top / natH;
+          const zoneWidthPct = Math.abs(pts[1].distance_from_left - pts[0].distance_from_left) / natW;
+          const zoneHeightPct = Math.abs(pts[1].distance_from_top - pts[0].distance_from_top) / natH;
+
+          // Zone bounding box in pixels (matches PreviewWithLogo's CSS %)
+          const zonePxW = zoneWidthPct * natW * p.scale;
+          const zonePxH = zoneHeightPct * natH * p.scale;
+
+          // ── KEY FIX: respect logo aspect ratio (CSS objectFit: contain) ──
+          // PreviewWithLogo uses CSS width+height+objectFit:contain on the <img>,
+          // which fits the logo INSIDE the zone rect preserving its own aspect ratio.
+          // ctx.drawImage stretches — so we must calculate the "contain" box ourselves.
+          const logoNatAspect = logoImg.naturalWidth / logoImg.naturalHeight;
+          const zoneAspect = zonePxW / zonePxH;
+          let drawW: number, drawH: number;
+          if (logoNatAspect > zoneAspect) {
+            // Logo is wider than zone → constrain by width
+            drawW = zonePxW;
+            drawH = zonePxW / logoNatAspect;
+          } else {
+            // Logo is taller than zone → constrain by height
+            drawH = zonePxH;
+            drawW = zonePxH * logoNatAspect;
+          }
+
+          // Center the logo within its zone box (same as objectFit: contain centering)
+          const logoLeftPct = zoneLeftPct + zoneWidthPct * p.x;
+          const logoTopPct = zoneTopPct + zoneHeightPct * p.y;
+          const lx = logoLeftPct * natW - drawW / 2;
+          const ly = logoTopPct * natH - drawH / 2;
+
+          ctx.globalAlpha = 0.92;
+          ctx.drawImage(logoImg, lx, ly, drawW, drawH);
+          ctx.globalAlpha = 1;
         }
         return canvas.toDataURL("image/jpeg", 0.85);
-      } catch { return null; }
+      } catch (err) {
+        console.error("[exportMockup] Error:", err);
+        return null;
+      }
     }, [printZones, logos, logoPos, selectedColorCode]);
 
     const exportAllMockups = useCallback(async () => {
