@@ -167,23 +167,27 @@ export async function POST(req: NextRequest) {
 
     // Save to DB
     try {
-      await db.insert(schema.quotes).values({
+      const quoteInsertValues: any = {
         quoteNumber,
+        userId: body.userId || null,
         guestEmail: body.clientEmail || null,
         cartSnapshot: { product: quoteData.product, pricing: quoteData.pricing, zones: zonesForDb },
         totalPrice: String(quoteData.pricing.grandTotal),
         pdfUrl,
         expiresAt: validUntil,
-      });
+      };
+      await db.insert(schema.quotes).values(quoteInsertValues);
     } catch (dbErr: any) {
       console.error("[Quote] DB save error (non-fatal):", dbErr.message);
     }
 
-    return new NextResponse(buffer, { status: 200, headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="' + quoteNumber + '.pdf"',
-      "Cache-Control": "no-store",
-    }});
+    return new NextResponse(buffer, {
+      status: 200, headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="' + quoteNumber + '.pdf"',
+        "Cache-Control": "no-store",
+      }
+    });
   } catch (error: any) {
     console.error("[Quote] PDF generation error:", error);
     return NextResponse.json(
