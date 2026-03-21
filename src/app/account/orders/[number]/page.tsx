@@ -81,6 +81,27 @@ export default function OrderDetailPage() {
     setActionLoading(false);
   };
 
+  const handlePayNow = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/account/orders/${orderNumber}/pay`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+      if (data.success && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert(data.error || "No se ha podido iniciar el pago.");
+        setActionLoading(false);
+      }
+    } catch {
+      alert("Error de red");
+      setActionLoading(false);
+    }
+  };
+
+
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
   if (!order) return <div className="text-center py-20"><p className="text-gray-400">Pedido no encontrado</p></div>;
 
@@ -116,6 +137,23 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         {/* Main content */}
         <div className="space-y-5">
+
+          {/* Pay Now banner */}
+          {(order.status === "draft" || order.status === "pending_payment") && (
+            <div className="bg-brand-red/5 border border-brand-red/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display font-bold text-brand-red text-lg">Finaliza tu pedido</h2>
+                <p className="text-sm text-brand-red/80">Este pedido está guardado pero pendiente de pago. Finaliza la compra para que empecemos a prepararlo.</p>
+              </div>
+              <button
+                onClick={handlePayNow}
+                disabled={actionLoading}
+                className="whitespace-nowrap bg-brand-red text-white px-6 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : "Pagar Ahora con Stripe"}
+              </button>
+            </div>
+          )}
 
           {/* Tracking banner */}
           {order.trackingNumber && (
@@ -239,12 +277,11 @@ export default function OrderDetailPage() {
             <div className="space-y-4">
               {timeline.map((event, i) => (
                 <div key={i} className="flex gap-3">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    event.type === "success" ? "bg-green-100 text-green-600" :
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${event.type === "success" ? "bg-green-100 text-green-600" :
                     event.type === "warning" ? "bg-amber-100 text-amber-600" :
-                    event.type === "error" ? "bg-red-100 text-red-600" :
-                    "bg-surface-100 text-gray-400"
-                  }`}>
+                      event.type === "error" ? "bg-red-100 text-red-600" :
+                        "bg-surface-100 text-gray-400"
+                    }`}>
                     <IconForEvent icon={event.icon} />
                   </div>
                   <div>
