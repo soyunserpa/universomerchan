@@ -15,6 +15,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/catalog", label: "Catálogo" },
+    { href: "/#sobre-nosotros", label: "Sobre nosotros" },
     { href: "/#como-funciona", label: "Cómo funciona" },
     { href: "/#contacto", label: "Contacto" },
   ];
@@ -41,11 +42,10 @@ export function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors pb-0.5 border-b-2 ${
-                pathname === link.href
+              className={`text-sm font-medium transition-colors pb-0.5 border-b-2 ${pathname === link.href
                   ? "text-brand-red border-brand-red"
                   : "text-gray-400 border-transparent hover:text-gray-700"
-              }`}
+                }`}
             >
               {link.label}
             </Link>
