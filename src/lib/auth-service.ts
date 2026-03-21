@@ -33,7 +33,9 @@ export interface AuthUser {
   role: "customer" | "admin";
   firstName: string;
   lastName: string;
+  phone?: string;
   companyName?: string;
+  cif?: string;
   discountPercent: number;
 }
 
@@ -196,10 +198,12 @@ export async function loginUser(
     user: {
       id: user.id,
       email: user.email,
-      role: expectedRole,
+      role: user.role as "customer" | "admin",
       firstName: user.firstName || "",
       lastName: user.lastName || "",
+      phone: user.phone || undefined,
       companyName: user.companyName || undefined,
+      cif: user.cif || undefined,
       discountPercent: parseFloat(user.discountPercent?.toString() || "0"),
     },
   };
@@ -278,7 +282,9 @@ export async function requireAuth(
       role: user.role as "customer" | "admin",
       firstName: user.firstName || "",
       lastName: user.lastName || "",
+      phone: user.phone || undefined,
       companyName: user.companyName || undefined,
+      cif: user.cif || undefined,
       discountPercent: parseFloat(user.discountPercent?.toString() || "0"),
     },
   };
@@ -382,7 +388,9 @@ export async function updateProfile(
         role: updated.role as "customer" | "admin",
         firstName: updated.firstName || "",
         lastName: updated.lastName || "",
+        phone: updated.phone || undefined,
         companyName: updated.companyName || undefined,
+        cif: updated.cif || undefined,
         discountPercent: parseFloat(updated.discountPercent?.toString() || "0"),
       },
     };
