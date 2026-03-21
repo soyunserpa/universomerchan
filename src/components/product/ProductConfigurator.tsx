@@ -262,11 +262,16 @@ export function ProductConfigurator({ product }: Props) {
 
   const getUnitPrice = useCallback((forVariantSku = variant.sku) => {
     // Try per-variant pricing scales first (more accurate for textiles)
-    const vp = (product as any).variantPrices?.[forVariantSku];
+    let vp = (product as any).variantPrices?.[forVariantSku];
+    if (!vp && (product as any).variantPrices) {
+      const matchedKey = Object.keys((product as any).variantPrices).find(k => k.startsWith(forVariantSku + "-"));
+      if (matchedKey) vp = (product as any).variantPrices[matchedKey];
+    }
     if (vp && vp.scales && vp.scales.length > 0) {
       // Use quantity-scaled sell price
-      let price = vp.scales[0].priceSell;
-      for (const s of vp.scales) {
+      const sorted = [...vp.scales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+      let price = sorted[0].priceSell || product.startingPriceRaw;
+      for (const s of sorted) {
         if (qty >= s.minQuantity) price = s.priceSell;
       }
       return price;
@@ -274,8 +279,9 @@ export function ProductConfigurator({ product }: Props) {
 
     // Fallback to product-level price scales if variant doesn't have specific scales
     if (product.priceScales && product.priceScales.length > 0) {
-      let unitPrice = product.priceScales[0].pricePerUnitRaw;
-      for (const scale of product.priceScales) {
+      const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+      let unitPrice = sorted[0].pricePerUnitRaw;
+      for (const scale of sorted) {
         if (qty >= scale.minQuantity) unitPrice = scale.pricePerUnitRaw;
       }
       return unitPrice;
@@ -709,8 +715,14 @@ export function ProductConfigurator({ product }: Props) {
 
             {/* Price scales table */}
             {(() => {
-              const vp = (product as any).variantPrices?.[variant.sku];
-              const displayScales = (vp && vp.scales && vp.scales.length > 0) ? vp.scales : (product.priceScales || []);
+              let vp = (product as any).variantPrices?.[variant.sku];
+              if (!vp && (product as any).variantPrices) {
+                const matchedKey = Object.keys((product as any).variantPrices).find(k => k.startsWith(variant.sku + "-"));
+                if (matchedKey) vp = (product as any).variantPrices[matchedKey];
+              }
+
+              const rawScales = (vp && vp.scales && vp.scales.length > 0) ? vp.scales : (product.priceScales || []);
+              const displayScales = [...rawScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
 
               return displayScales.length > 1 ? (
                 <div className="mb-5">
