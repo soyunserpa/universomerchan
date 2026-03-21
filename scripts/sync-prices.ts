@@ -50,7 +50,9 @@ async function main() {
   // Build product price aggregates
   await sql`DELETE FROM product_prices`;
   const agg = await sql`
-    SELECT p.master_code, MIN(pv.price) as min_price
+    SELECT p.master_code, 
+           MIN(pv.price) as min_price,
+           (SELECT price_scales FROM variant_prices vp WHERE vp.master_code = p.master_code AND vp.price_scales IS NOT NULL LIMIT 1) as scales
     FROM products p JOIN product_variants pv ON pv.product_id = p.id
     WHERE pv.price IS NOT NULL AND pv.price > 0
     GROUP BY p.master_code
@@ -58,8 +60,12 @@ async function main() {
   let inserted = 0;
   for (const row of agg) {
     try {
+      const scalesToSave = row.scales
+        ? row.scales
+        : [{ minimum_quantity: 1, price: parseFloat(row.min_price) }];
+
       await sql`INSERT INTO product_prices (master_code, currency, price_scales, last_synced_at)
-        VALUES (${row.master_code}, 'EUR', ${JSON.stringify([{ minQuantity: 1, price: parseFloat(row.min_price) }])}, NOW())`;
+        VALUES (${row.master_code}, 'EUR', ${JSON.stringify(scalesToSave)}::jsonb, NOW())`;
       inserted++;
     } catch (e) { }
   }
