@@ -671,10 +671,13 @@ export function ProductConfigurator({ product }: Props) {
                     return (
                       <div key={sv.sku} className={`flex items-center justify-between outline-none p-2 rounded-lg transition-colors ${outOfStock ? 'opacity-50 grayscale' : 'hover:bg-surface-50'} ${idx !== sizesForColor.length - 1 ? 'border-b border-surface-100' : ''}`}>
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gray-800">{sv.size}</span>
-                          <span className="text-[10px] font-medium text-gray-400">
-                            {sizeStock > 0 ? `${sizeStock} disponibles` : "Agotado"}
-                          </span>
+                          <span className="text-sm font-bold text-gray-800 mb-1">{sv.size}</span>
+                          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md w-fit ${sizeStock > 1000 ? "bg-green-50 text-green-700" : sizeStock > 0 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${sizeStock > 1000 ? "bg-green-500" : sizeStock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
+                            <span className="text-[10px] font-medium">
+                              {sizeStock > 0 ? `${sizeStock} disponibles` : "Agotado"}
+                            </span>
+                          </div>
                         </div>
                         <input
                           title={`Cantidad talla ${sv.size}`}
@@ -693,14 +696,16 @@ export function ProductConfigurator({ product }: Props) {
             )}
 
             {/* Stock Indicator (Global) */}
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5 ${variant.stock > 1000 ? "bg-green-50" : variant.stock > 0 ? "bg-amber-50" : "bg-red-50"}`}>
-              <div className={`w-2 h-2 rounded-full ${variant.stock > 1000 ? "bg-green-500" : variant.stock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
-              <span className="text-sm font-medium">
-                {variant.stock > 0
-                  ? `${variant.stock.toLocaleString("es-ES")} unidades disponibles globales`
-                  : "Agotado globalmente"}
-              </span>
-            </div>
+            {!hasSize && (
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-5 ${variant.stock > 1000 ? "bg-green-50" : variant.stock > 0 ? "bg-amber-50" : "bg-red-50"}`}>
+                <div className={`w-2 h-2 rounded-full ${variant.stock > 1000 ? "bg-green-500" : variant.stock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
+                <span className="text-sm font-medium">
+                  {variant.stock > 0
+                    ? `${variant.stock.toLocaleString("es-ES")} unidades disponibles globales`
+                    : "Agotado globalmente"}
+                </span>
+              </div>
+            )}
 
             {/* Quantity (non-textiles) */}
             {!hasSize && (
