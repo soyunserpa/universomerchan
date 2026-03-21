@@ -8,6 +8,7 @@ import {
   Package, Clock, CheckCircle, Truck, AlertTriangle, Eye, Gift,
   ShoppingCart, FileText, User, LogOut, ChevronRight, RefreshCw, Trash2,
 } from "lucide-react";
+import { useCart } from "@/lib/cart-store";
 
 interface Order {
   id: number; orderNumber: string; status: string; statusLabel: string; statusColor: string;
@@ -22,12 +23,26 @@ interface Stats {
 
 export default function AccountOrdersPage() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+  const { restoreFromOrder } = useCart();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [restoreLoading, setRestoreLoading] = useState<string | null>(null);
+
+  const handleRestoreCart = async (orderNumber: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRestoreLoading(orderNumber);
+    try {
+      await restoreFromOrder(orderNumber);
+      router.push("/cart");
+    } catch {
+      alert("Error al reactivar el carrito");
+      setRestoreLoading(null);
+    }
+  };
 
   const handleDeleteOrder = async (orderNumber: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se abra la vista de detalle
@@ -197,17 +212,29 @@ export default function AccountOrdersPage() {
                         <p className="text-xs text-green-600 flex items-center gap-1 justify-end"><Truck size={12} /> {order.forwarder}</p>
                       )}
 
-                      {/* Botón de eliminar para pedidos no pagados */}
+                      {/* Botones de acción para pedidos no pagados */}
                       {(order.status === "draft" || order.status === "pending_payment") && (
-                        <button
-                          onClick={(e) => handleDeleteOrder(order.orderNumber, e)}
-                          disabled={deleteLoading === order.orderNumber}
-                          className="bg-red-50 text-red-600 hover:bg-red-100 p-1.5 rounded-lg transition-colors border border-red-100 opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 flex items-center gap-1"
-                          title="Eliminar pedido no pagado"
-                        >
-                          {deleteLoading === order.orderNumber ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                          <span className="text-xs font-medium pr-1 hidden sm:inline">Eliminar</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => handleRestoreCart(order.orderNumber, e)}
+                            disabled={restoreLoading === order.orderNumber || deleteLoading === order.orderNumber}
+                            className="bg-brand-red/5 text-brand-red border border-brand-red/20 hover:bg-brand-red/10 px-3 py-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 flex items-center gap-1.5"
+                            title="Deshacer y devolver al carrito"
+                          >
+                            {restoreLoading === order.orderNumber ? <RefreshCw size={14} className="animate-spin" /> : <ShoppingCart size={14} />}
+                            <span className="text-xs font-semibold hidden sm:inline">Ver carrito</span>
+                          </button>
+
+                          <button
+                            onClick={(e) => handleDeleteOrder(order.orderNumber, e)}
+                            disabled={deleteLoading === order.orderNumber || restoreLoading === order.orderNumber}
+                            className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 flex items-center gap-1"
+                            title="Eliminar pedido no pagado"
+                          >
+                            {deleteLoading === order.orderNumber ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                            <span className="text-xs font-medium pr-1 hidden sm:inline">Eliminar</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
