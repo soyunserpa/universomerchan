@@ -362,7 +362,63 @@ export async function submitOrderToMidocean(orderId: number): Promise<void> {
   shippingDate.setDate(shippingDate.getDate() + 1);
   const shippingDateStr = shippingDate.toISOString().split("T")[0];
 
-  // Build Midocean order request
+  // ── GROUPING LOGIC FOR MIDOCEAN ──
+  const groupedPrintLines = new Map<string, any>();
+  const normalLines: any[] = [];
+
+  for (const line of orderLines) {
+    if (order.orderType === "PRINT" && line.printConfig) {
+      const config = line.printConfig as any;
+      const colorCode = (line.sku || "").replace(`${line.masterCode}-`, "").split("-")[0] || "";
+      const hashKey = `${line.masterCode}_${colorCode}_${JSON.stringify(config.positions)}`;
+
+      if (!groupedPrintLines.has(hashKey)) {
+        groupedPrintLines.set(hashKey, {
+          // Usamos el lineNumber de la PRIMERA línea que entre al grupo como order_line_id de todo el bloque
+          order_line_id: String(line.lineNumber * 10),
+          master_code: line.masterCode,
+          quantity: 0,
+          expected_price: "0",
+          printing_positions: (config.positions || []).map((pos: any) => ({
+            id: pos.positionId,
+            print_size_height: String(pos.printHeightMm),
+            print_size_width: String(pos.printWidthMm),
+            printing_technique_id: pos.techniqueId,
+            number_of_print_colors: String(pos.numColors),
+            print_artwork_url: config.artworkUrl || "",
+            print_mockup_url: config.mockupUrl || "",
+            print_instruction: pos.instructions || "None",
+            print_colors: (pos.pmsColors || []).map((c: string) => ({ color: c })),
+          })),
+          print_items: [],
+          _refLine: line,
+        });
+      }
+
+      const group = groupedPrintLines.get(hashKey);
+      group.quantity += line.quantity;
+      group.print_items.push({
+        item_color_number: colorCode,
+        ...(line.size ? { item_size: line.size } : {}),
+        quantity: String(line.quantity),
+      });
+    } else {
+      normalLines.push({
+        order_line_id: String(line.lineNumber * 10),
+        sku: line.sku || "",
+        variant_id: line.variantId || "",
+        quantity: String(line.quantity),
+        expected_price: "0",
+      });
+    }
+  }
+
+  // Convert map to array and stringify merged quantities
+  const mergedPrintLines = Array.from(groupedPrintLines.values()).map(g => {
+    const { _refLine, ...rest } = g;
+    return { ...rest, quantity: String(rest.quantity) };
+  });
+
   const midoceanOrder: midoceanApi.MidoceanOrderRequest = {
     order_header: {
       preferred_shipping_date: shippingDateStr,
@@ -386,42 +442,7 @@ export async function submitOrderToMidocean(orderId: number): Promise<void> {
       order_type: order.orderType as "NORMAL" | "PRINT" | "SAMPLE",
       express: order.expressShipping ? "true" : "false",
     },
-    order_lines: orderLines.map((line, i) => {
-      if (order.orderType === "PRINT" && line.printConfig) {
-        const config = line.printConfig as any;
-        const colorCode = (line.sku || "").replace(`${line.masterCode}-`, "").split("-")[0] || "";
-        return {
-          order_line_id: String((i + 1) * 10),
-          master_code: line.masterCode,
-          quantity: String(line.quantity),
-          expected_price: "0",
-          printing_positions: (config.positions || []).map((pos: any) => ({
-            id: pos.positionId,
-            print_size_height: String(pos.printHeightMm),
-            print_size_width: String(pos.printWidthMm),
-            printing_technique_id: pos.techniqueId,
-            number_of_print_colors: String(pos.numColors),
-            print_artwork_url: config.artworkUrl || "",
-            print_mockup_url: config.mockupUrl || "",
-            print_instruction: pos.instructions || "None",
-            print_colors: (pos.pmsColors || []).map((c: string) => ({ color: c })),
-          })),
-          print_items: [{
-            item_color_number: colorCode,
-            ...(line.size ? { item_size: line.size } : {}),
-            quantity: String(line.quantity),
-          }],
-        };
-      }
-
-      return {
-        order_line_id: String((i + 1) * 10),
-        sku: line.sku || "",
-        variant_id: line.variantId || "",
-        quantity: String(line.quantity),
-        expected_price: "0",
-      };
-    }),
+    order_lines: [...mergedPrintLines, ...normalLines],
   };
 
   // Submit to Midocean
@@ -438,13 +459,15 @@ export async function submitOrderToMidocean(orderId: number): Promise<void> {
   }).where(eq(schema.orders.id, orderId));
 
   // If it's a PRINT order, upload artworks
+  // Iteramos sobre groupedPrintLines para subir el artwork 1 única vez por grupo
   if (order.orderType === "PRINT") {
-    for (const line of orderLines) {
+    for (const group of Array.from(groupedPrintLines.values())) {
+      const line = group._refLine;
       if (line.artworkUrl && midoceanOrderNumber) {
         try {
           await midoceanApi.addArtwork(
             midoceanOrderNumber,
-            String(line.lineNumber * 10),
+            group.order_line_id,
             line.artworkUrl,
           );
         } catch (artworkError: any) {
@@ -477,7 +500,27 @@ export async function handleProofApproval(
   });
   if (!orderLine) throw new Error("Order line not found");
 
-  const midoceanLineId = String(orderLine.lineNumber * 10);
+  // Si fue un pedido PRINT y se agrupó, buscamos la línea "primaria" del grupo (la de menor lineNumber)
+  let midoceanLineId = String(orderLine.lineNumber * 10);
+
+  if (order.orderType === "PRINT" && orderLine.printConfig) {
+    const allLines = await db.query.orderLines.findMany({
+      where: eq(schema.orderLines.orderId, orderId),
+      orderBy: schema.orderLines.lineNumber,
+    });
+    const orderLineColor = (orderLine.sku || "").replace(`${orderLine.masterCode}-`, "").split("-")[0] || "";
+
+    // El primer matching define el ID aglutinado en Midocean
+    const firstMatchingLine = allLines.find(l => {
+      const lColor = (l.sku || "").replace(`${l.masterCode}-`, "").split("-")[0] || "";
+      return l.masterCode === orderLine.masterCode &&
+        lColor === orderLineColor &&
+        JSON.stringify(l.printConfig) === JSON.stringify(orderLine.printConfig);
+    });
+    if (firstMatchingLine) {
+      midoceanLineId = String(firstMatchingLine.lineNumber * 10);
+    }
+  }
 
   if (approved) {
     // Approve in Midocean
