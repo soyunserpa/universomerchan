@@ -208,6 +208,12 @@ export function ProductConfigurator({ product }: Props) {
   const variant = product.variants[variantIdx];
   const currentColorKey = variant.colorCode || variant.color;
 
+  // Stock logic
+  const maxStock = variant.stock || 0;
+  const isOutOfStock = maxStock <= 0;
+  const isOverStock = !hasSize && qty > maxStock;
+  const canProceed = !isOutOfStock && !isOverStock && qty > 0;
+
   // Available sizes for current color (sorted S → 5XL)
   const sizesForColor = useMemo(() => {
     if (!hasSize) return [];
@@ -701,9 +707,9 @@ export function ProductConfigurator({ product }: Props) {
               <div className="mb-5">
                 <label className="text-sm font-semibold mb-2 block">Cantidad</label>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setBaseQty(Math.max(1, baseQty - 10))} title="Restar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50"><Minus size={14} /></button>
-                  <input type="number" title="Unidades" placeholder="1" value={baseQty} onChange={(e) => setBaseQty(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body outline-none" />
-                  <button onClick={() => setBaseQty(baseQty + 10)} title="Sumar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50"><Plus size={14} /></button>
+                  <button onClick={() => setBaseQty(Math.max(1, baseQty - 10))} disabled={isOutOfStock} title="Restar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Minus size={14} /></button>
+                  <input type="number" max={maxStock} title="Unidades" placeholder="1" value={baseQty} onChange={(e) => setBaseQty(Math.max(1, Math.min(maxStock, parseInt(e.target.value) || 1)))} disabled={isOutOfStock} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body outline-none disabled:opacity-50" />
+                  <button onClick={() => setBaseQty(Math.min(maxStock, baseQty + 10))} disabled={isOutOfStock || baseQty >= maxStock} title="Sumar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Plus size={14} /></button>
                   <div className="flex gap-1.5 ml-2">
                     {[50, 100, 250, 500].map(q => (
                       <button key={q} title={`Elegir ${q} unidades`} onClick={() => setBaseQty(q)} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${baseQty === q ? "bg-brand-red/10 text-brand-red border border-brand-red" : "bg-surface-100 text-gray-400 border border-transparent hover:bg-surface-200"}`}>{q}</button>
@@ -748,8 +754,20 @@ export function ProductConfigurator({ product }: Props) {
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} />
 
             <div className="flex gap-3 mt-5">
-              <button onClick={() => { setStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors">Personalizar <Palette size={16} /></button>
-              <button onClick={handleAddToCart} disabled={isAddingToCart} className="bg-gray-900 text-white px-5 py-3 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-gray-700 transition-colors disabled:opacity-50">
+              <button
+                onClick={() => { setStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
+                disabled={!canProceed}
+                title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
+                className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Personalizar <Palette size={16} />
+              </button>
+              <button
+                onClick={handleAddToCart}
+                disabled={isAddingToCart || !canProceed}
+                title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
+                className="bg-gray-900 text-white px-5 py-3 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
                 Sin marcaje
               </button>
@@ -994,7 +1012,12 @@ export function ProductConfigurator({ product }: Props) {
 
             <div className="flex gap-3">
               <button onClick={() => setStep(selectedTechnique ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
-              <button onClick={handleAddToCart} disabled={isAddingToCart} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50">
+              <button
+                onClick={handleAddToCart}
+                disabled={isAddingToCart || !canProceed}
+                title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
+                className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
                 Añadir al carrito
               </button>
