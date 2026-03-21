@@ -15,16 +15,15 @@ export async function POST(req: NextRequest) {
         const email = guestEmail || (userId ? (await db.query.users.findFirst({ where: eq(schema.users.id, userId) }))?.email : null);
         if (!email) return NextResponse.json({ error: "Se necesita un email para enviar el presupuesto" }, { status: 400 });
 
-        const countResult = await db.select({ count: schema.quotes.id }).from(schema.quotes).limit(1);
-        const nextId = (countResult.length || 0) + 1;
-        const quoteNumber = generateQuoteNumber(nextId);
+        const sequentialId = Math.floor(Date.now() / 1000) % 100000;
+        const quoteNumber = generateQuoteNumber(sequentialId);
         const buyUrl = generateBuyUrl(quoteNumber);
 
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 15);
         const totalPrice = items.reduce((sum, i) => sum + i.totalPrice, 0);
 
-        await db.insert(schema.quotes).values({
+        const quoteInsertValues: any = {
             quoteNumber,
             userId: userId || null,
             guestEmail: !userId ? email : null,
@@ -32,7 +31,9 @@ export async function POST(req: NextRequest) {
             totalPrice: String(totalPrice),
             expiresAt,
             createdAt: new Date(),
-        });
+        };
+
+        await db.insert(schema.quotes).values(quoteInsertValues);
 
         let clientName = "Cliente";
         if (userId) {

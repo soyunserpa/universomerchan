@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useCart } from "@/lib/cart-store";
+import { useAuth } from "@/lib/auth-context";
 import type { ProductDetailResponse } from "@/lib/catalog-api";
 import {
   Leaf, ShoppingCart, Palette, Eye, ArrowLeft,
@@ -160,6 +161,7 @@ interface Props {
 
 export function ProductConfigurator({ product }: Props) {
   const { addItem } = useCart();
+  const { user } = useAuth();
   const canvasEditorRef = useRef<CanvasEditorRef>(null);
 
   // State
@@ -542,8 +544,9 @@ export function ProductConfigurator({ product }: Props) {
             perUnit,
           },
           zones,
-          clientName: "",
-          clientEmail: "",
+          clientName: user?.firstName || "",
+          clientEmail: user?.email || "",
+          userId: user?.id,
         }),
       });
       if (!response.ok) throw new Error("Error generating PDF");
