@@ -20,10 +20,9 @@ import {
 
 
 
-export async function GET(
-  req: NextRequest,
-  orderNumber: string
-) {
+export async function GET(req: NextRequest, { params }: { params: { orderNumber: string } }) {
+  const orderNumber = params.orderNumber;
+
   const auth = await requireAuth(
     req.headers.get("authorization"),
     "customer"
