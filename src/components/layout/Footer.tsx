@@ -41,6 +41,21 @@ export function Footer() {
             ))}
           </div>
 
+          {/* Legal */}
+          <div>
+            <h4 className="font-display font-bold text-sm mb-4">Legal</h4>
+            {[
+              { label: "Política de Privacidad", href: "/legal/privacidad" },
+              { label: "Política de Cookies", href: "/legal/cookies" },
+              { label: "Aviso Legal", href: "/legal/aviso-legal" },
+              { label: "Términos y Condiciones", href: "/legal/terminos" },
+            ].map((l) => (
+              <Link key={l.label} href={l.href} className="block text-sm text-gray-400 hover:text-white mb-2 transition-colors">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+
           {/* Contact */}
           <div>
             <h4 className="font-display font-bold text-sm mb-4">Contacto</h4>
