@@ -11,13 +11,14 @@
 
 # Flujo de Trabajo y Ciclo de Vida del Código
 
-1. **Investigación Obligatoria:** ANTES de hacer u opinar sobre cualquier cambio relacionado con productos, inventario o pedidos, **debes consultar primero la `Documentación API Midocean.md` y luego releer este `CLAUDE.md`**.
+1. **Investigación Obligatoria:** ANTES de hacer u opinar sobre cualquier cambio relacionado con flujos de web, componentes, productos, o pedidos, **debes consultar primero `navigation_map.md`**, luego la `Documentación API Midocean.md` y releer este `CLAUDE.md`.
 2. **Propuesta y Ejecución:** Propón un plan. Una vez aprobado, **escríbelo y aplícalo tú mismo** en las carpetas locales de este ordenador.
 3. **Registro Continuo:** Todo conocimiento nuevo adquirido sobre la arquitectura, Midocean o el proyecto **debe ser documentado inmediatamente en este `CLAUDE.md`**.
 4. **Despliegue Total (End-to-End):** Tú eres responsable de desplegar completamente. Al finalizar una tarea debes:
    - Guardar los cambios localmente en el Mac.
    - Hacer `git add`, `git commit` y `git push` a Github.
    - Desplegar forzadamente en el servidor de producción (vía `ssh` usando herramientas como `expect` para proveer la contraseña o métodos equivalentes), ejecutando `git pull`, `npm run build` y `pm2 restart all`.
+5. **Mantenimiento Estructural:** Siempre que se complete y termine un hilo o una tarea grande, **actualiza este archivo `CLAUDE.md`** y el archivo `navigation_map.md` de la raíz si se ha modificado la arquitectura o descubierto un nuevo conocimiento crítico.
 
 # Estilo de Código
 
