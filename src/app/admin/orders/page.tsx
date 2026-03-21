@@ -12,6 +12,7 @@ interface AdminOrder {
   totalPrice: number; profit: number; profitMarginPct: number;
   createdAt: string; trackingNumber: string | null; forwarder: string | null;
   lineCount: number; hasCustomization: boolean; proofsPending: number;
+  customizations?: { artworkUrl: string; mockupUrl: string }[];
   lastError: string | null; errorCount: number;
 }
 
@@ -97,10 +98,20 @@ export default function AdminOrdersPage() {
                       <span className="font-medium">{o.clientName}</span>
                       {o.clientCompany && <span className="block text-[10px] text-gray-400">{o.clientCompany}</span>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded ${o.hasCustomization ? "bg-purple-50 text-purple-700" : "bg-surface-100 text-gray-500"}`}>
                         {o.hasCustomization ? "MARCAJE" : "NORMAL"}
                       </span>
+                      {o.customizations && o.customizations.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-2">
+                          {o.customizations.map((c, i) => (
+                            <div key={i} className="flex gap-1.5">
+                              {c.artworkUrl && <a href={c.artworkUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded flex items-center gap-1 hover:bg-blue-100"><ExternalLink size={8} /> Arte</a>}
+                              {c.mockupUrl && <a href={c.mockupUrl} target="_blank" rel="noreferrer" className="text-[10px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded flex items-center gap-1 hover:bg-purple-100"><ExternalLink size={8} /> Boceto</a>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 font-semibold">{o.totalPrice.toFixed(2)}€</td>
                     <td className="px-4 py-3">

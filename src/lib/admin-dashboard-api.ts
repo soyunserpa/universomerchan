@@ -28,27 +28,27 @@ export interface DashboardKPIs {
   revenueThisMonth: number;
   revenueLastMonth: number;
   revenueChangePercent: number;
-  
+
   // Orders
   ordersThisMonth: number;
   ordersLastMonth: number;
   ordersChangePercent: number;
-  
+
   // Average ticket
   avgTicketThisMonth: number;
   avgTicketLastMonth: number;
   avgTicketChangePercent: number;
-  
+
   // Conversion (orders / registered users this month)
   conversionRate: number;
   conversionChangePercent: number;
-  
+
   // Active counts
   activeOrders: number;       // Not completed/cancelled
   proofsAwaitingApproval: number;
   pendingErrors: number;      // Unresolved errors
   lowStockAlerts: number;
-  
+
   // Users
   totalCustomers: number;
   newCustomersThisMonth: number;
@@ -323,13 +323,13 @@ export interface AdminOrder {
   statusLabel: string;
   statusColor: string;
   orderType: string;
-  
+
   // Client
   clientName: string;
   clientEmail: string;
   clientCompany: string | null;
   clientId: number;
-  
+
   // Pricing
   subtotalProduct: number;
   subtotalPrint: number;
@@ -338,51 +338,52 @@ export interface AdminOrder {
   discountApplied: number;
   shippingCost: number;
   totalPrice: number;
-  
+
   // Our profit
   totalCostMidocean: number;  // Calculated
   profit: number;
   profitMarginPct: number;
-  
+
   // Dates
   createdAt: string;
   paidAt: string | null;
   shippedAt: string | null;
-  
+
   // Shipping
   trackingNumber: string | null;
   trackingUrl: string | null;
   forwarder: string | null;
   expressShipping: boolean;
   shippingAddress: string;
-  
+
   // Lines count
   lineCount: number;
   hasCustomization: boolean;
   proofsPending: number;
-  
+  customizations: { artworkUrl: string; mockupUrl: string }[];
+
   // Errors
   lastError: string | null;
   errorCount: number;
-  
+
   // Notes
   customerNotes: string | null;
   adminNotes: string | null;
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  draft:            { label: "Borrador",              color: "#9CA3AF" },
-  pending_payment:  { label: "Pendiente pago",        color: "#F59E0B" },
-  paid:             { label: "Pagado",                 color: "#3B82F6" },
-  submitted:        { label: "En Midocean",            color: "#3B82F6" },
-  proof_pending:    { label: "Proof pendiente",        color: "#F59E0B" },
-  proof_approved:   { label: "Proof aprobado",         color: "#22C55E" },
-  proof_rejected:   { label: "Proof rechazado",        color: "#EF4444" },
-  in_production:    { label: "En producción",          color: "#8B5CF6" },
-  shipped:          { label: "Enviado",                color: "#22C55E" },
-  completed:        { label: "Completado",             color: "#6B7280" },
-  cancelled:        { label: "Cancelado",              color: "#EF4444" },
-  error:            { label: "Error",                  color: "#EF4444" },
+  draft: { label: "Borrador", color: "#9CA3AF" },
+  pending_payment: { label: "Pendiente pago", color: "#F59E0B" },
+  paid: { label: "Pagado", color: "#3B82F6" },
+  submitted: { label: "En Midocean", color: "#3B82F6" },
+  proof_pending: { label: "Proof pendiente", color: "#F59E0B" },
+  proof_approved: { label: "Proof aprobado", color: "#22C55E" },
+  proof_rejected: { label: "Proof rechazado", color: "#EF4444" },
+  in_production: { label: "En producción", color: "#8B5CF6" },
+  shipped: { label: "Enviado", color: "#22C55E" },
+  completed: { label: "Completado", color: "#6B7280" },
+  cancelled: { label: "Cancelado", color: "#EF4444" },
+  error: { label: "Error", color: "#EF4444" },
 };
 
 export async function getAdminOrders(params?: {
@@ -448,6 +449,18 @@ export async function getAdminOrders(params?: {
     const proofsPending = lines.filter(l => l.proofStatus === "waiting_approval").length;
     const hasCustomization = order.orderType === "PRINT";
 
+    const customizations: { artworkUrl: string; mockupUrl: string }[] = [];
+    if (hasCustomization) {
+      for (const l of lines) {
+        if (l.artworkUrl || l.mockupUrl) {
+          customizations.push({
+            artworkUrl: l.artworkUrl || "",
+            mockupUrl: l.mockupUrl || ""
+          });
+        }
+      }
+    }
+
     // Estimate Midocean cost (product cost = sell / (1 + margin))
     const marginProd = parseFloat(order.marginProductApplied?.toString() || "40");
     const marginPrint = parseFloat(order.marginPrintApplied?.toString() || "50");
@@ -502,6 +515,7 @@ export async function getAdminOrders(params?: {
       shippingAddress,
       lineCount: lines.length,
       hasCustomization,
+      customizations,
       proofsPending,
       lastError: order.lastError,
       errorCount: order.errorCount || 0,
@@ -966,4 +980,118 @@ export async function getCatalogStats(): Promise<{
       .map(r => ({ category: r.category!, count: Number(r.count) })),
     lastSyncAt: lastSync?.startedAt?.toISOString() || null,
   };
+}
+
+// ============================================================
+// QUOTES MANAGEMENT
+// ============================================================
+
+export interface AdminQuote {
+  id: number;
+  quoteNumber: string;
+  clientName: string;
+  clientEmail: string;
+  totalPrice: number;
+  pdfUrl: string | null;
+  status: "active" | "expired" | "converted";
+  createdAt: string;
+  expiresAt: string | null;
+  convertedToOrderId: number | null;
+  guestEmail: string | null;
+}
+
+export async function getAdminQuotes(params?: {
+  search?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ quotes: AdminQuote[]; total: number }> {
+  const page = params?.page || 1;
+  const limit = params?.limit || 25;
+  const offset = (page - 1) * limit;
+
+  const conditions: any[] = [];
+
+  if (params?.search) {
+    conditions.push(or(
+      ilike(schema.quotes.quoteNumber, `%${params.search}%`),
+      ilike(schema.quotes.guestEmail, `%${params.search}%`)
+    ));
+  }
+
+  const now = new Date();
+
+  if (params?.status) {
+    if (params.status === 'converted') {
+      conditions.push(sql`${schema.quotes.convertedToOrderId} IS NOT NULL`);
+    } else if (params.status === 'expired') {
+      conditions.push(and(
+        sql`${schema.quotes.convertedToOrderId} IS NULL`,
+        sql`${schema.quotes.expiresAt} < ${now}`
+      ));
+    } else if (params.status === 'active') {
+      conditions.push(and(
+        sql`${schema.quotes.convertedToOrderId} IS NULL`,
+        or(sql`${schema.quotes.expiresAt} IS NULL`, sql`${schema.quotes.expiresAt} >= ${now}`)
+      ));
+    }
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.quotes)
+    .where(whereClause);
+  const total = Number(countResult[0].count);
+
+  const quotesList = await db.query.quotes.findMany({
+    where: whereClause,
+    orderBy: [desc(schema.quotes.createdAt)],
+    limit,
+    offset,
+  });
+
+  const enriched: AdminQuote[] = [];
+
+  for (const q of quotesList) {
+    let status: "active" | "expired" | "converted" = "active";
+    if (q.convertedToOrderId) {
+      status = "converted";
+    } else if (q.expiresAt && new Date(q.expiresAt) < now) {
+      status = "expired";
+    }
+
+    // Try to get client string
+    let clientName = "Guest";
+    let clientEmail = q.guestEmail || "";
+    if (q.userId) {
+      const user = await db.query.users.findFirst({ where: eq(schema.users.id, q.userId) });
+      if (user) {
+        clientName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Cliente Registrado";
+        clientEmail = user.email;
+      }
+    } else {
+      // Might be in the cart_snapshot
+      const snap = q.cartSnapshot as any;
+      if (snap?.clientName) clientName = snap.clientName;
+      if (snap?.clientEmail) clientEmail = snap.clientEmail;
+    }
+
+    enriched.push({
+      id: q.id,
+      quoteNumber: q.quoteNumber,
+      clientName,
+      clientEmail,
+      totalPrice: parseFloat(q.totalPrice?.toString() || "0"),
+      pdfUrl: q.pdfUrl,
+      status,
+      createdAt: q.createdAt.toISOString(),
+      expiresAt: q.expiresAt?.toISOString() || null,
+      convertedToOrderId: q.convertedToOrderId,
+      guestEmail: q.guestEmail,
+    });
+  }
+
+  return { quotes: enriched, total };
 }

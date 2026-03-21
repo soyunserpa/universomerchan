@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Gift, BarChart3, Package, ShoppingCart, Users, Settings, RefreshCw,
-  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X,
+  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X, FileText
 } from "lucide-react";
 
 // ── Admin Auth Context ──────────────────────────────────────
@@ -44,7 +44,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       const t = localStorage.getItem(ADMIN_TOKEN_KEY);
       const u = localStorage.getItem(ADMIN_USER_KEY);
       if (t && u) { setToken(t); setUser(JSON.parse(u)); }
-    } catch {}
+    } catch { }
     setIsLoading(false);
   }, []);
 
@@ -104,6 +104,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const navItems = [
     { href: "/admin/dashboard", icon: BarChart3, label: "Dashboard" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
+    { href: "/admin/quotes", icon: FileText, label: "Presupuestos" },
     { href: "/admin/products", icon: Package, label: "Productos" },
     { href: "/admin/clients", icon: Users, label: "Clientes" },
     { href: "/admin/settings", icon: Percent, label: "Márgenes" },
@@ -127,11 +128,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
               key={item.href}
               href={item.href}
               onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                pathname.startsWith(item.href)
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith(item.href)
                   ? "bg-brand-red text-white"
                   : "text-gray-400 hover:text-white hover:bg-gray-800"
-              }`}
+                }`}
             >
               <item.icon size={16} /> {item.label}
             </Link>

@@ -12,20 +12,18 @@
 //   Every 24h:     Check for low stock on popular products
 // ============================================================
 
-import cron from "node-cron";
-import { syncStock, syncProducts, syncPricelist, syncPrintPricelist, syncPrintData, syncActiveOrders } from "./sync-engine";
-import { checkAbandonedCarts } from "./abandoned-cart";
 import { db } from "./database";
 import { sql } from "drizzle-orm";
 import * as schema from "./schema";
 import { notifyAdminLowStock } from "./email-service";
+import { checkPendingProofs } from "./proof-reminders";
 
 let isInitialized = false;
 
 export function startCronJobs() {
   if (isInitialized) return;
   isInitialized = true;
-  
+
   console.log("[Cron] Starting background job scheduler...");
 
   // ── Stock sync: every 30 minutes ──────────────────────────
@@ -61,13 +59,14 @@ export function startCronJobs() {
     }
   });
 
-  // ── Abandoned cart emails: every hour ─────────────────────
+  // ── Abandoned cart emails & Proof reminders: every hour ──────
   cron.schedule("0 * * * *", async () => {
-    console.log("[Cron] Checking abandoned carts...");
+    console.log("[Cron] Checking abandoned carts and proof reminders...");
     try {
       await checkAbandonedCarts();
+      await checkPendingProofs();
     } catch (error: any) {
-      console.error("[Cron] Abandoned cart check failed:", error.message);
+      console.error("[Cron] Hourly check failed:", error.message);
     }
   });
 
