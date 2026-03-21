@@ -10,7 +10,7 @@
 // ============================================================
 
 import { db } from "./database";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import * as schema from "./schema";
 import { handleProofApproval } from "./cart-checkout";
 import {
@@ -53,12 +53,12 @@ export interface CustomerOrderLine {
   unitPrice: number;
   lineTotal: number;
   productImage: string | null;
-  
+
   // Customization
   hasCustomization: boolean;
   customizationSummary: string | null;
   techniqueNames: string[];
-  
+
   // Proof
   proofStatus: string;
   proofStatusLabel: string;
@@ -67,7 +67,7 @@ export interface CustomerOrderLine {
   proofApprovedAt: string | null;
   proofRejectedAt: string | null;
   proofRejectionReason: string | null;
-  
+
   // Artwork
   artworkUrl: string | null;
   mockupUrl: string | null;
@@ -93,27 +93,27 @@ export interface CustomerQuote {
 // ============================================================
 
 const ORDER_STATUS_MAP: Record<string, { label: string; color: string }> = {
-  draft:            { label: "Borrador",              color: "#9CA3AF" },
-  pending_payment:  { label: "Pendiente de pago",     color: "#F59E0B" },
-  paid:             { label: "Pagado",                 color: "#3B82F6" },
-  submitted:        { label: "Enviado a producción",   color: "#3B82F6" },
-  proof_pending:    { label: "Boceto pendiente",       color: "#F59E0B" },
-  proof_approved:   { label: "Boceto aprobado",        color: "#22C55E" },
-  proof_rejected:   { label: "Boceto rechazado",       color: "#EF4444" },
-  in_production:    { label: "En producción",          color: "#8B5CF6" },
-  shipped:          { label: "Enviado",                color: "#22C55E" },
-  completed:        { label: "Entregado",              color: "#6B7280" },
-  cancelled:        { label: "Cancelado",              color: "#EF4444" },
-  error:            { label: "Error",                  color: "#EF4444" },
+  draft: { label: "Borrador", color: "#9CA3AF" },
+  pending_payment: { label: "Pendiente de pago", color: "#F59E0B" },
+  paid: { label: "Pagado", color: "#3B82F6" },
+  submitted: { label: "Enviado a producción", color: "#3B82F6" },
+  proof_pending: { label: "Boceto pendiente", color: "#F59E0B" },
+  proof_approved: { label: "Boceto aprobado", color: "#22C55E" },
+  proof_rejected: { label: "Boceto rechazado", color: "#EF4444" },
+  in_production: { label: "En producción", color: "#8B5CF6" },
+  shipped: { label: "Enviado", color: "#22C55E" },
+  completed: { label: "Entregado", color: "#6B7280" },
+  cancelled: { label: "Cancelado", color: "#EF4444" },
+  error: { label: "Error", color: "#EF4444" },
 };
 
 const PROOF_STATUS_MAP: Record<string, { label: string; color: string }> = {
-  not_applicable:   { label: "Sin marcaje",            color: "#9CA3AF" },
-  in_progress:      { label: "Preparando boceto",      color: "#3B82F6" },
-  artwork_required: { label: "Artwork requerido",      color: "#F59E0B" },
-  waiting_approval: { label: "Pendiente aprobación",   color: "#F59E0B" },
-  approved:         { label: "Aprobado",               color: "#22C55E" },
-  rejected:         { label: "Rechazado",              color: "#EF4444" },
+  not_applicable: { label: "Sin marcaje", color: "#9CA3AF" },
+  in_progress: { label: "Preparando boceto", color: "#3B82F6" },
+  artwork_required: { label: "Artwork requerido", color: "#F59E0B" },
+  waiting_approval: { label: "Pendiente aprobación", color: "#F59E0B" },
+  approved: { label: "Aprobado", color: "#22C55E" },
+  rejected: { label: "Rechazado", color: "#EF4444" },
 };
 
 // ============================================================
@@ -130,7 +130,12 @@ export async function getCustomerOrders(
 
   const conditions = [eq(schema.orders.userId, userId)];
   if (params?.status && params.status !== "all") {
-    conditions.push(eq(schema.orders.status, params.status as any));
+    const statuses = params.status.split(",");
+    if (statuses.length > 1) {
+      conditions.push(inArray(schema.orders.status, statuses as any));
+    } else {
+      conditions.push(eq(schema.orders.status, params.status as any));
+    }
   }
 
   // Count
@@ -192,8 +197,7 @@ export async function getCustomerOrders(
           customizationSummary = config.positions
             .map(
               (p: any) =>
-                `${p.positionName}: ${p.techniqueName || p.techniqueId}${
-                  p.numColors ? ` (${p.numColors} col.)` : ""
+                `${p.positionName}: ${p.techniqueName || p.techniqueId}${p.numColors ? ` (${p.numColors} col.)` : ""
                 }`
             )
             .join(" + ");
@@ -314,9 +318,8 @@ export async function customerApproveProof(
   if (line.proofStatus !== "waiting_approval") {
     return {
       success: false,
-      message: `No se puede aprobar: estado actual es "${
-        PROOF_STATUS_MAP[line.proofStatus || ""]?.label || line.proofStatus
-      }"`,
+      message: `No se puede aprobar: estado actual es "${PROOF_STATUS_MAP[line.proofStatus || ""]?.label || line.proofStatus
+        }"`,
     };
   }
 
@@ -366,9 +369,8 @@ export async function customerRejectProof(
   if (line.proofStatus !== "waiting_approval") {
     return {
       success: false,
-      message: `No se puede rechazar: estado actual es "${
-        PROOF_STATUS_MAP[line.proofStatus || ""]?.label || line.proofStatus
-      }"`,
+      message: `No se puede rechazar: estado actual es "${PROOF_STATUS_MAP[line.proofStatus || ""]?.label || line.proofStatus
+        }"`,
     };
   }
 

@@ -112,6 +112,8 @@ export default function AccountOrdersPage() {
 
           {[
             { href: "/account/orders", icon: Package, label: "Mis pedidos", badge: stats?.pendingOrders },
+            { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
+            { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
             { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
             { href: "/account/profile", icon: User, label: "Mi perfil" },
           ].map(item => (
