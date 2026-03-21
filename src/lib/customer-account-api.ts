@@ -447,7 +447,7 @@ export async function getCustomerQuotes(
           ? `${itemSummary} y ${itemsArray.length - 3} más`
           : itemSummary,
       buyUrl: `${SITE_URL}/cart/restore?quote=${q.quoteNumber}`,
-      pdfUrl: `${SITE_URL}/api/quotes/${q.quoteNumber}/pdf`,
+      pdfUrl: `${SITE_URL}/uploads/quotes/${q.quoteNumber}.pdf`,
     };
   });
 }
