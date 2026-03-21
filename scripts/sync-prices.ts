@@ -14,18 +14,35 @@ async function main() {
   const skuPrices = data.price || [];
   console.log(`[Prices] Received ${skuPrices.length} SKU prices`);
 
-  // Add price column if missing
-  try { await sql`ALTER TABLE product_variants ADD COLUMN price DECIMAL(10,2)`; } catch(e) {}
-
-  // Update variant prices
+  // 2. Extraer scales en las variant_prices
   let updated = 0;
   for (const item of skuPrices) {
     if (!item.sku || !item.price) continue;
     const price = parseFloat(item.price.replace(",", "."));
+
+    // Convertir el bloque scale original de la API de Midocean si existe
+    let cleanScales: Array<{ minimum_quantity: number; price: number }> | null = null;
+    if (item.scale && Array.isArray(item.scale)) {
+      cleanScales = item.scale.map((s: any) => ({
+        minimum_quantity: parseInt(s.minimum_quantity) || 1,
+        price: typeof s.price === 'number' ? s.price : parseFloat((s.price as string).replace(",", "."))
+      })).sort((a: any, b: any) => a.minimum_quantity - b.minimum_quantity);
+    }
+
     try {
-      const r = await sql`UPDATE product_variants SET price = ${price} WHERE sku = ${item.sku}`;
+      // 1. Actualizar el basic price (product_variants) antiguo
+      await sql`UPDATE product_variants SET price = ${price} WHERE sku = ${item.sku}`;
+
+      // 2. Actualizar las price_scales correctas en variant_prices
+      const r = await sql`
+        UPDATE variant_prices 
+        SET price = ${price}, 
+            price_scales = ${cleanScales ? JSON.stringify(cleanScales) : null}::jsonb,
+            last_synced_at = NOW()
+        WHERE sku = ${item.sku}
+      `;
       if (r.count > 0) updated++;
-    } catch(e) {}
+    } catch (e) { }
     if (updated % 500 === 0 && updated > 0) console.log(`  ${updated} updated...`);
   }
   console.log(`[Prices] ${updated} variant prices updated`);
@@ -42,15 +59,15 @@ async function main() {
   for (const row of agg) {
     try {
       await sql`INSERT INTO product_prices (master_code, currency, price_scales, last_synced_at)
-        VALUES (${row.master_code}, 'EUR', ${JSON.stringify([{minQuantity:1, price:parseFloat(row.min_price)}])}, NOW())`;
+        VALUES (${row.master_code}, 'EUR', ${JSON.stringify([{ minQuantity: 1, price: parseFloat(row.min_price) }])}, NOW())`;
       inserted++;
-    } catch(e) {}
+    } catch (e) { }
   }
   console.log(`[Prices] ${inserted} product price records created`);
 
   // Add starting_price column if missing
-  try { await sql`ALTER TABLE products ADD COLUMN starting_price DECIMAL(10,2)`; } catch(e) {}
-  
+  try { await sql`ALTER TABLE products ADD COLUMN starting_price DECIMAL(10,2)`; } catch (e) { }
+
   const up = await sql`
     UPDATE products p SET starting_price = sub.min_price
     FROM (SELECT product_id, MIN(price) as min_price FROM product_variants WHERE price > 0 GROUP BY product_id) sub
