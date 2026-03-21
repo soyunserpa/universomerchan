@@ -47,7 +47,7 @@ export default function CheckoutAddressPage() {
     e.preventDefault();
     setError("");
 
-    if (!form.name || !form.street || !form.city || !form.postalCode || !form.email) {
+    if (!form.name || !form.street || !form.city || !form.postalCode || !form.email || !form.phone) {
       setError("Completa todos los campos obligatorios");
       return;
     }
@@ -146,10 +146,10 @@ export default function CheckoutAddressPage() {
               </div>
 
               <div>
-                <label className="text-sm font-semibold mb-1.5 block">Teléfono</label>
+                <label className="text-sm font-semibold mb-1.5 block">Teléfono *</label>
                 <div className="relative">
                   <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="tel" value={form.phone} onChange={e => update("phone", e.target.value)} placeholder="+34 600 000 000" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                  <input type="tel" value={form.phone} onChange={e => update("phone", e.target.value)} required placeholder="+34 600 000 000" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
                 </div>
               </div>
             </div>
