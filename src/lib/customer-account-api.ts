@@ -411,7 +411,11 @@ export async function getCustomerQuotes(
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com";
 
   return quotes.map((q) => {
-    const items = (q.cartSnapshot as any[]) || [];
+    let items = q.cartSnapshot as any;
+    if (typeof items === "string") {
+      try { items = JSON.parse(items); } catch (e) { items = []; }
+    }
+    items = items || [];
     const isExpired = q.expiresAt ? new Date() > new Date(q.expiresAt) : false;
 
     let convertedOrderNumber: string | null = null;

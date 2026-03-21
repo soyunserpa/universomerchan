@@ -13,7 +13,12 @@ export async function GET(req: NextRequest, { params }: { params: { quoteNumber:
         if (quote.expiresAt && new Date() > new Date(quote.expiresAt)) return NextResponse.json({ error: "Este presupuesto ha expirado. Solicita uno nuevo." }, { status: 410 });
         if (quote.convertedToOrderId) return NextResponse.json({ error: "Este presupuesto ya fue convertido en un pedido.", orderNumber: quote.convertedToOrderId }, { status: 409 });
 
-        return NextResponse.json({ success: true, quoteNumber: quote.quoteNumber, items: quote.cartSnapshot, totalPrice: quote.totalPrice, expiresAt: quote.expiresAt });
+        let items = quote.cartSnapshot;
+        if (typeof items === "string") {
+            try { items = JSON.parse(items); } catch (e) { items = []; }
+        }
+
+        return NextResponse.json({ success: true, quoteNumber: quote.quoteNumber, items, totalPrice: quote.totalPrice, expiresAt: quote.expiresAt });
     } catch (error: any) {
         console.error("[API] Quote restore error:", error);
         return NextResponse.json({ error: "Error al recuperar el presupuesto" }, { status: 500 });
