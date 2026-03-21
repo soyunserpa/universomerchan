@@ -22,7 +22,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['"League Spartan"', "sans-serif"],
+        display: ['"Poppins"', "sans-serif"],
         body: ['"Poppins"', "sans-serif"],
       },
       borderRadius: {
