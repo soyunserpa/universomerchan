@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
+import { CookieBanner } from "@/components/layout/CookieBanner";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MiniCart />
             <main className="min-h-[60vh]">{children}</main>
             <Footer />
+            <CookieBanner />
           </CartProvider>
         </AuthProvider>
       </body>
