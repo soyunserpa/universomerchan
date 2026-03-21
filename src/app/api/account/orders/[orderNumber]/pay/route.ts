@@ -21,13 +21,23 @@ export async function POST(
 
         const { orderNumber } = params;
 
-        // Fetch the order and its lines
-        const order = await db.query.orders.findFirst({
-            where: eq(schema.orders.orderNumber, orderNumber),
-            with: {
-                lines: true,
-            },
-        });
+        // Fetch the order
+        const [orderData] = await db
+            .select()
+            .from(schema.orders)
+            .where(eq(schema.orders.orderNumber, orderNumber))
+            .limit(1);
+
+        if (!orderData) {
+            return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
+        }
+
+        const linesData = await db
+            .select()
+            .from(schema.orderLines)
+            .where(eq(schema.orderLines.orderId, orderData.id));
+
+        const order = { ...orderData, lines: linesData };
 
         if (!order) {
             return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
