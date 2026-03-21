@@ -1,6 +1,58 @@
-import { NextRequest } from "next/server";
-import { GET_chart } from "../../routes";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, loginUser } from "@/lib/auth-service";
+import {
+  getDashboardKPIs,
+  getRevenueChart,
+  getTopProducts,
+  getTopTechniques,
+  getAdminOrders,
+  updateOrderAdminNotes,
+  getAdminProducts,
+  toggleProductVisibility,
+  setProductCustomPrice,
+  getAdminClients,
+  setClientDiscount,
+  toggleClientActive,
+  getAdminSettings,
+  updateAdminSetting,
+  updateMargins,
+  getSyncStatus,
+  getErrorLog,
+  resolveError,
+  getCatalogStats,
+  getAdminQuotes,
+} from "@/lib/admin-dashboard-api";
+import {
+  syncProducts,
+  syncStock,
+  syncPricelist,
+  syncPrintPricelist,
+  syncPrintData,
+  runFullSync,
+} from "@/lib/sync-engine";
+
+
+async function adminAuth(req: NextRequest) {
+  return requireAuth(req.headers.get("authorization"), "admin");
+}
+
+function unauthorized(auth: { error: string; status: number }) {
+  return NextResponse.json({ error: auth.error }, { status: auth.status });
+}
 
 export async function GET(req: NextRequest) {
-  return GET_chart(req);
+  const auth = await adminAuth(req);
+  if ("error" in auth) return unauthorized(auth);
+
+  const { searchParams } = new URL(req.url);
+  const months = parseInt(searchParams.get("months") || "6");
+
+  try {
+    const data = await getRevenueChart(months);
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
+
+
