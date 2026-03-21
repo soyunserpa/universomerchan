@@ -234,6 +234,35 @@ export const productPrices = pgTable("product_prices", {
 }));
 
 // ============================================================
+// VARIANT PRICES — Per-SKU prices from Midocean Pricelist 2.0
+// One row per SKU. Textiles may have different prices per size.
+// The pricelist API returns { sku, variant_id, price, scale? }
+// ============================================================
+
+export const variantPrices = pgTable("variant_prices", {
+  id: serial("id").primaryKey(),
+  sku: varchar("sku", { length: 30 }).notNull(),
+  variantId: varchar("variant_id", { length: 20 }).notNull(),
+  masterCode: varchar("master_code", { length: 20 }).notNull(),
+
+  // Base price (always present) — stored as decimal, parsed from EU format
+  price: decimal("price", { precision: 10, scale: 4 }).notNull(),
+
+  // Quantity scales (only ~52 SKUs have these; null for the rest)
+  // Format: [{ "minimum_quantity": 1, "price": 3.28 }, { "minimum_quantity": 500, "price": 2.99 }, ...]
+  priceScales: jsonb("price_scales"),
+
+  validUntil: varchar("valid_until", { length: 10 }),
+  currency: varchar("currency", { length: 3 }).default("EUR"),
+
+  lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
+}, (table) => ({
+  skuIdx: uniqueIndex("variant_prices_sku_idx").on(table.sku),
+  variantIdIdx: index("variant_prices_variant_id_idx").on(table.variantId),
+  masterCodeIdx: index("variant_prices_master_code_idx").on(table.masterCode),
+}));
+
+// ============================================================
 // PRINT DATA — From Midocean Print Data 1.0 API
 // Defines what print positions & techniques are available per product
 // ============================================================

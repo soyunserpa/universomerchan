@@ -235,23 +235,32 @@ export async function fetchAllPrintData(): Promise<MidoceanPrintData[]> {
 // Returns prices per product with quantity scales
 // ============================================================
 
-export interface MidoceanPricelist {
-  currency: string;
-  pricelist_valid_from: string;
-  pricelist_valid_until: string;
-  prices: Array<{
-    master_code: string;
-    scales: Array<{
-      minimum_quantity: string;
-      price: string;
-    }>;
+// Real structure from Midocean API pricelist/2.0:
+// { currency, date, price: [{ sku, variant_id, price:"6,90", valid_until, scale? }] }
+// `scale` is optional — only ~52 of 14,382 SKUs have quantity scales.
+// When present: [{ minimum_quantity:"500", price:"2,99" }, ...]
+
+export interface MidoceanPricelistSkuEntry {
+  sku: string;
+  variant_id: string;
+  price: string;          // EU format "6,90" or "1.234,50"
+  valid_until: string;
+  scale?: Array<{
+    minimum_quantity: string;
+    price: string;        // EU format
   }>;
 }
 
-export async function fetchPricelist(): Promise<MidoceanPricelist> {
+export interface MidoceanPricelistRaw {
+  currency: string;
+  date: string;
+  price: MidoceanPricelistSkuEntry[];  // NOT "prices" — the API field is "price"
+}
+
+export async function fetchPricelist(): Promise<MidoceanPricelistRaw> {
   console.log("[Midocean Sync] Fetching product pricelist...");
-  const data = await midoceanGet<MidoceanPricelist>("/pricelist/2.0");
-  console.log(`[Midocean Sync] Received pricelist with ${data.prices?.length} products`);
+  const data = await midoceanGet<MidoceanPricelistRaw>("/pricelist/2.0");
+  console.log(`[Midocean Sync] Received pricelist with ${data.price?.length} SKU prices`);
   return data;
 }
 
@@ -266,8 +275,9 @@ export interface MidoceanPrintPricelist {
   pricelist_valid_from: string;
   pricelist_valid_until: string;
   print_manipulations: Array<{
-    master_code: string;
-    price: string;  // or scales
+    code: string;           // "A", "B", "C", "D", "E", "Z"
+    description: string;    // "Simple", "Medium", "Complex", etc.
+    price: string;          // EU format "0,07"
   }>;
   print_techniques: Array<{
     id: string;

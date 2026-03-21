@@ -4,7 +4,6 @@ import { createElement } from "react";
 import { QuotePDFV2 } from "@/lib/quote-pdf-v2";
 import type { QuoteDataV2 } from "@/lib/quote-pdf-v2";
 import { generateQuoteNumber, generateBuyUrl } from "@/lib/quote-pdf";
-import { uploadMockup } from "@/lib/artwork-upload";
 import { writeFile, mkdir, readFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
@@ -14,27 +13,55 @@ import * as schema from "@/lib/schema";
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "/var/www/universomerchan/uploads";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com";
 
-// Convert a public mockup URL to a base64 data URL by reading from disk
-// This avoids @react-pdf/renderer needing to HTTP-fetch from its own server
-async function mockupUrlToBase64(url: string): Promise<string | undefined> {
+// Convert a local mockup URL to base64 by reading from disk
+// Avoids @react-pdf/renderer doing HTTP self-requests
+async function localUrlToBase64(url: string): Promise<string | undefined> {
   try {
-    // URL like https://universomerchan.com/uploads/mockups/2026/03/mockup_xxx.jpeg
-    // → file path: /var/www/universomerchan/uploads/mockups/2026/03/mockup_xxx.jpeg
     const urlObj = new URL(url);
-    const relativePath = urlObj.pathname; // /uploads/mockups/2026/03/mockup_xxx.jpeg
+    const relativePath = urlObj.pathname; // e.g. /uploads/mockups/2026/03/mockup_xxx.jpg
     const filePath = path.join("/var/www/universomerchan", relativePath);
     if (!existsSync(filePath)) {
-      console.warn("[Quote] Mockup file not found:", filePath);
+      console.warn("[Quote] File not found on disk:", filePath);
       return undefined;
     }
     const buffer = await readFile(filePath);
     const ext = path.extname(filePath).toLowerCase().replace(".", "");
-    const mime = ext === "png" ? "image/png" : "image/jpeg";
+    const mime = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
     return `data:${mime};base64,${buffer.toString("base64")}`;
   } catch (err: any) {
-    console.warn("[Quote] Failed to read mockup from disk:", err.message);
+    console.warn("[Quote] Failed to read file from disk:", err.message);
     return undefined;
   }
+}
+
+// Fetch any external URL (e.g. Midocean CDN) and convert to base64
+// @react-pdf/renderer can fail fetching external URLs; base64 is more reliable
+async function externalUrlToBase64(url: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "UniversoMerchan/1.0", Accept: "image/*" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return undefined;
+    const buffer = Buffer.from(await res.arrayBuffer());
+    let contentType = res.headers.get("content-type") || "";
+    if (!contentType.startsWith("image/")) {
+      const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
+      contentType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+    }
+    return `data:${contentType};base64,${buffer.toString("base64")}`;
+  } catch (err: any) {
+    console.warn("[Quote] Failed to fetch external image:", url, err.message);
+    return undefined;
+  }
+}
+
+// Convert any image URL to base64 — local or external
+async function imageToBase64(url: string | undefined): Promise<string | undefined> {
+  if (!url) return undefined;
+  if (url.startsWith("data:")) return url; // Already base64
+  if (url.includes("universomerchan.com/uploads/")) return localUrlToBase64(url);
+  return externalUrlToBase64(url);
 }
 
 export async function POST(req: NextRequest) {
@@ -50,26 +77,24 @@ export async function POST(req: NextRequest) {
     const validUntil = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const validUntilStr = validUntil.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-    // Process each zone: if mockupUrl provided (already uploaded), read from disk as base64
-    // If mockupDataUrl provided (raw base64), save to disk first then use
+    // Convert product image to base64 (Midocean CDN → base64)
+    const productImageB64 = await imageToBase64(body.product?.imageUrl);
+
+    // Process zones — convert all mockup URLs/dataUrls to base64
     const zonesForPdf: QuoteDataV2["zones"] = [];
     const zonesForDb: any[] = [];
 
     for (const zone of body.zones || []) {
-      let mockupForPdf: string | undefined;
+      let mockupB64: string | undefined;
       let mockupPublicUrl: string | undefined;
 
       if (zone.mockupUrl) {
-        // Already uploaded to server — read from disk as base64 for @react-pdf
+        // Already uploaded — read from disk
         mockupPublicUrl = zone.mockupUrl;
-        mockupForPdf = await mockupUrlToBase64(zone.mockupUrl);
+        mockupB64 = await imageToBase64(zone.mockupUrl);
       } else if (zone.mockupDataUrl) {
-        // Raw base64 — save to disk first
-        const saved = await uploadMockup(zone.mockupDataUrl, quoteNumber + "-" + zone.positionId);
-        if (saved) {
-          mockupPublicUrl = saved;
-          mockupForPdf = zone.mockupDataUrl; // already base64
-        }
+        // Raw base64 passed inline
+        mockupB64 = zone.mockupDataUrl;
       }
 
       zonesForPdf.push({
@@ -80,7 +105,7 @@ export async function POST(req: NextRequest) {
         numColors: zone.numColors || 1,
         printWidthMm: zone.printWidthMm || 0,
         printHeightMm: zone.printHeightMm || 0,
-        mockupDataUrl: mockupForPdf,
+        mockupDataUrl: mockupB64,
       });
 
       zonesForDb.push({
@@ -107,7 +132,7 @@ export async function POST(req: NextRequest) {
         color: body.product?.color || "",
         colorCode: body.product?.colorCode || "",
         size: body.product?.size || undefined,
-        imageUrl: body.product?.imageUrl || undefined,
+        imageUrl: productImageB64 || undefined, // base64, not URL
         quantity: body.product?.quantity || 1,
       },
       pricing: {
@@ -124,7 +149,10 @@ export async function POST(req: NextRequest) {
       zones: zonesForPdf,
     };
 
-    console.log("[Quote] Generating PDF with", zonesForPdf.length, "zones,", zonesForPdf.filter(z => z.mockupDataUrl).length, "with mockups");
+    console.log("[Quote] Generating PDF:", zonesForPdf.length, "zones,",
+      zonesForPdf.filter(z => z.mockupDataUrl).length, "with mockups,",
+      productImageB64 ? "product image OK" : "no product image");
+
     const pdfElement = createElement(QuotePDFV2, { data: quoteData });
     const buffer = await renderToBuffer(pdfElement as any);
 
