@@ -651,42 +651,28 @@ export function ProductConfigurator({ product }: Props) {
                   <label className="text-sm font-semibold block">Cantidades por talla</label>
                   <span className="text-xs bg-surface-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Total: {qty} uds</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {sizesForColor.map((sv) => {
+                <div className="flex flex-col gap-1 border border-surface-200 rounded-xl p-1 bg-white">
+                  {sizesForColor.map((sv, idx) => {
                     const sizeStock = sv.stock;
                     const outOfStock = sizeStock <= 0;
                     const val = sizeQuantities[sv.size!] || 0;
                     return (
-                      <div key={sv.sku} className={`border border-surface-200 rounded-xl overflow-hidden flex flex-col ${outOfStock ? 'opacity-50 grayscale bg-surface-50' : 'bg-white'}`}>
-                        <div className="bg-surface-100 py-1.5 px-2 text-center border-b border-surface-200 flex justify-between items-center">
-                          <span className="text-xs font-bold text-gray-700">{sv.size}</span>
-                          <span className="text-[9px] font-medium text-gray-400" title={`Stock: ${sizeStock}`}>{sizeStock > 0 ? "Stock" : "Agot."}</span>
+                      <div key={sv.sku} className={`flex items-center justify-between outline-none p-2 rounded-lg transition-colors ${outOfStock ? 'opacity-50 grayscale' : 'hover:bg-surface-50'} ${idx !== sizesForColor.length - 1 ? 'border-b border-surface-100' : ''}`}>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gray-800">{sv.size}</span>
+                          <span className="text-[10px] font-medium text-gray-400">
+                            {sizeStock > 0 ? `${sizeStock} disponibles` : "Agotado"}
+                          </span>
                         </div>
-                        <div className="p-2 flex items-center justify-between">
-                          <button
-                            disabled={outOfStock}
-                            onClick={() => setSizeQuantities(prev => ({ ...prev, [sv.size!]: Math.max(0, (prev[sv.size!] || 0) - 10) }))}
-                            className="w-6 h-6 rounded bg-surface-100 flex items-center justify-center text-gray-500 hover:bg-surface-200 disabled:opacity-50 hover:text-gray-900 transition-colors"
-                          >
-                            <Minus size={12} />
-                          </button>
-                          <input
-                            title={`Cantidad talla ${sv.size}`}
-                            placeholder="0"
-                            type="number"
-                            disabled={outOfStock}
-                            value={val === 0 ? '' : val}
-                            onChange={(e) => setSizeQuantities(prev => ({ ...prev, [sv.size!]: Math.max(0, parseInt(e.target.value) || 0) }))}
-                            className="w-10 text-center text-sm font-bold bg-transparent outline-none disabled:cursor-not-allowed text-brand-red"
-                          />
-                          <button
-                            disabled={outOfStock}
-                            onClick={() => setSizeQuantities(prev => ({ ...prev, [sv.size!]: (prev[sv.size!] || 0) + 10 }))}
-                            className="w-6 h-6 rounded bg-surface-100 flex items-center justify-center text-gray-500 hover:bg-surface-200 disabled:opacity-50 hover:text-gray-900 transition-colors"
-                          >
-                            <Plus size={12} />
-                          </button>
-                        </div>
+                        <input
+                          title={`Cantidad talla ${sv.size}`}
+                          placeholder="0"
+                          type="number"
+                          disabled={outOfStock}
+                          value={val === 0 ? '' : val}
+                          onChange={(e) => setSizeQuantities(prev => ({ ...prev, [sv.size!]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                          className="w-20 text-right py-1.5 px-3 text-sm font-bold bg-surface-100 border border-surface-200 rounded-lg outline-none focus:border-brand-red focus:bg-white disabled:cursor-not-allowed text-brand-red placeholder:text-gray-300 transition-all"
+                        />
                       </div>
                     );
                   })}
@@ -722,23 +708,30 @@ export function ProductConfigurator({ product }: Props) {
             )}
 
             {/* Price scales table */}
-            {product.priceScales.length > 1 && (
-              <div className="mb-5">
-                <label className="text-xs text-gray-400 mb-1.5 block">Precio por unidad según cantidad total</label>
-                <div className="flex gap-1.5 flex-wrap">
-                  {product.priceScales.map((s, i) => {
-                    const nextScale = product.priceScales[i + 1];
-                    const isActive = qty >= s.minQuantity && (!nextScale || qty < nextScale.minQuantity);
-                    return (
-                      <button key={s.minQuantity} title={hasSize ? "Ingresa la cantidad en las tallas" : `Sumar ${s.minQuantity} uds`} onClick={() => !hasSize && setBaseQty(s.minQuantity)} disabled={hasSize} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
-                        <div>≥{s.minQuantity}</div>
-                        <div className="font-bold">{s.pricePerUnit}</div>
-                      </button>
-                    );
-                  })}
+            {(() => {
+              const vp = (product as any).variantPrices?.[variant.sku];
+              const displayScales = (vp && vp.scales && vp.scales.length > 0) ? vp.scales : (product.priceScales || []);
+
+              return displayScales.length > 1 ? (
+                <div className="mb-5">
+                  <label className="text-xs text-gray-400 mb-1.5 block">Precio por unidad según cantidad total</label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {displayScales.map((s: any, i: number) => {
+                      const nextScale = displayScales[i + 1];
+                      const isActive = qty >= s.minQuantity && (!nextScale || qty < nextScale.minQuantity);
+                      const priceFormatted = s.pricePerUnit || (s.priceSell ? s.priceSell.toFixed(2) + "€" : "");
+
+                      return (
+                        <button key={s.minQuantity} title={hasSize ? "Ingresa la cantidad en las tallas" : `Sumar ${s.minQuantity} uds`} onClick={() => !hasSize && setBaseQty(s.minQuantity)} disabled={hasSize} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
+                          <div>≥{s.minQuantity}</div>
+                          <div className="font-bold">{priceFormatted}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
 
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} />
 
@@ -891,7 +884,7 @@ export function ProductConfigurator({ product }: Props) {
               <button onClick={async () => {
                 if (canvasEditorRef.current && hasLogos) {
                   const mockups = await canvasEditorRef.current.exportAllMockups();
-                  console.log("[DEBUG] Mockups generated:", Object.keys(mockups).length, Object.values(mockups).map(v => v?.length || 0));
+                  console.log("[DEBUG] Mockups generated:", Object.keys(mockups).length, Object.values(mockups).map(v => (v as string)?.length || 0));
                   setCachedMockups(mockups);
                 } else {
                   console.log("[DEBUG] No canvasEditorRef or no logos", !!canvasEditorRef.current, hasLogos);
