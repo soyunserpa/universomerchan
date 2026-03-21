@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Package, Clock, CheckCircle, Truck, AlertTriangle, Eye, Gift,
-  ShoppingCart, FileText, User, LogOut, ChevronRight, RefreshCw,
+  ShoppingCart, FileText, User, LogOut, ChevronRight, RefreshCw, Trash2,
 } from "lucide-react";
 
 interface Order {
@@ -27,6 +27,32 @@ export default function AccountOrdersPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+
+  const handleDeleteOrder = async (orderNumber: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que se abra la vista de detalle
+    if (!window.confirm("¿Seguro que quieres eliminar este pedido? Esta acción no se puede deshacer.")) return;
+
+    setDeleteLoading(orderNumber);
+    try {
+      const res = await fetch(`/api/account/orders/${orderNumber}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders(prev => prev.filter(o => o.orderNumber !== orderNumber));
+        // Opcional: Recargar estadisticas (stats)
+        const statsRes = await fetch("/api/account/stats", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+        setStats(statsRes);
+      } else {
+        alert(data.error || "No se ha podido eliminar el pedido.");
+      }
+    } catch {
+      alert("Error de conexión al eliminar.");
+    }
+    setDeleteLoading(null);
+  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) { router.push("/auth/login"); return; }
@@ -140,7 +166,11 @@ export default function AccountOrdersPage() {
           ) : (
             <div className="space-y-3">
               {orders.map(order => (
-                <Link key={order.orderNumber} href={`/account/orders/${order.orderNumber}`} className="block bg-white rounded-2xl border border-surface-200 p-5 hover-lift">
+                <div
+                  key={order.orderNumber}
+                  onClick={() => router.push(`/account/orders/${order.orderNumber}`)}
+                  className="block bg-white rounded-2xl border border-surface-200 p-5 hover-lift cursor-pointer relative group"
+                >
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -159,10 +189,23 @@ export default function AccountOrdersPage() {
                         {" · "}{order.itemCount} producto{order.itemCount > 1 ? "s" : ""}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end gap-2">
                       <p className="font-display font-extrabold text-lg">{order.totalPrice.toFixed(2)}€</p>
                       {order.trackingNumber && (
                         <p className="text-xs text-green-600 flex items-center gap-1 justify-end"><Truck size={12} /> {order.forwarder}</p>
+                      )}
+
+                      {/* Botón de eliminar para pedidos no pagados */}
+                      {(order.status === "draft" || order.status === "pending_payment") && (
+                        <button
+                          onClick={(e) => handleDeleteOrder(order.orderNumber, e)}
+                          disabled={deleteLoading === order.orderNumber}
+                          className="bg-red-50 text-red-600 hover:bg-red-100 p-1.5 rounded-lg transition-colors border border-red-100 opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 flex items-center gap-1"
+                          title="Eliminar pedido no pagado"
+                        >
+                          {deleteLoading === order.orderNumber ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                          <span className="text-xs font-medium pr-1 hidden sm:inline">Eliminar</span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -177,7 +220,7 @@ export default function AccountOrdersPage() {
                     {order.lines.length > 4 && <div className="w-12 h-12 rounded-lg bg-surface-100 flex items-center justify-center text-xs text-gray-400 font-semibold">+{order.lines.length - 4}</div>}
                     <div className="flex-1 flex items-center justify-end"><ChevronRight size={16} className="text-gray-300" /></div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
