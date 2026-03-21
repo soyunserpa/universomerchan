@@ -112,11 +112,6 @@ export default function AccountQuotesPage() {
                                             <p className="font-display font-extrabold text-xl">{q.totalPrice.toFixed(2)}€</p>
 
                                             <div className="flex items-center gap-2">
-                                                {q.pdfUrl && (
-                                                    <a href={q.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-200 text-sm font-medium hover:bg-surface-50 transition-colors">
-                                                        <FileText size={14} /> <span className="hidden sm:inline">Ver PDF</span>
-                                                    </a>
-                                                )}
                                                 {!q.isConverted && !q.isExpired && q.buyUrl && (
                                                     <a href={q.buyUrl} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-red text-white text-sm font-medium hover:bg-brand-red-dark transition-colors">
                                                         <ExternalLink size={14} /> Restaurar Carrito

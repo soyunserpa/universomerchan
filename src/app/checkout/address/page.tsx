@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, CreditCard, Truck, Zap, MapPin, User, Building2, Tag,
-  Mail, Phone, ShieldCheck, Lock, Gift, RefreshCw,
+  Mail, Phone, ShieldCheck, Lock, Gift, RefreshCw, Briefcase,
 } from "lucide-react";
 
 export default function CheckoutAddressPage() {
@@ -16,7 +16,7 @@ export default function CheckoutAddressPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    name: "", company: "", street: "", postalCode: "", city: "", country: "ES", email: "", phone: "",
+    name: "", company: "", cif: "", street: "", postalCode: "", city: "", country: "ES", email: "", phone: "",
   });
   const isUnder300 = subtotal < 300;
   const [notes, setNotes] = useState("");
@@ -30,7 +30,12 @@ export default function CheckoutAddressPage() {
         ...prev,
         name: `${user.firstName} ${user.lastName}`.trim() || prev.name,
         company: user.companyName || prev.company,
+        cif: (user as any).cif || prev.cif,
+        phone: (user as any).phone || prev.phone,
         email: user.email || prev.email,
+        street: (user as any).shippingStreet || prev.street,
+        city: (user as any).shippingCity || prev.city,
+        postalCode: (user as any).shippingPostalCode || prev.postalCode,
       }));
     }
   }, [user]);
@@ -114,11 +119,19 @@ export default function CheckoutAddressPage() {
                 </div>
               </div>
 
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-1">
                 <label className="text-sm font-semibold mb-1.5 block">Empresa <span className="text-gray-400 font-normal">(opcional)</span></label>
                 <div className="relative">
                   <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input type="text" value={form.company} onChange={e => update("company", e.target.value)} placeholder="Nombre de empresa" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                </div>
+              </div>
+
+              <div className="sm:col-span-1">
+                <label className="text-sm font-semibold mb-1.5 block">CIF / VAT ID <span className="text-gray-400 font-normal">(opcional)</span></label>
+                <div className="relative">
+                  <Briefcase size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input type="text" value={form.cif} onChange={e => update("cif", e.target.value)} placeholder="B12345678" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm uppercase" />
                 </div>
               </div>
 

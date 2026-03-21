@@ -3,6 +3,7 @@ import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { createOrderFromCart, createCheckoutSession } from "@/lib/cart-checkout";
+import { updateProfile } from "@/lib/auth-service";
 import type { CartItem } from "@/lib/configurator-engine";
 
 export async function POST(req: NextRequest) {
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { items, shippingAddress, expressShipping, customerNotes, userId } = body as {
             items: CartItem[];
-            shippingAddress: { name: string; company?: string; street: string; postalCode: string; city: string; country: string; email: string; phone: string; };
+            shippingAddress: { name: string; company?: string; cif?: string; street: string; postalCode: string; city: string; country: string; email: string; phone: string; };
             expressShipping?: boolean;
             customerNotes?: string;
             userId: number;
@@ -23,6 +24,30 @@ export async function POST(req: NextRequest) {
             const stockEntry = await db.query.stock.findFirst({ where: eq(schema.stock.sku, item.variantSku) });
             if (stockEntry && stockEntry.quantity < item.quantity) {
                 return NextResponse.json({ error: `Stock insuficiente para ${item.productName} (${item.color}). Disponible: ${stockEntry.quantity} uds`, sku: item.variantSku, available: stockEntry.quantity }, { status: 409 });
+            }
+        }
+
+        if (userId) {
+            try {
+                // Background profile update. Splitting full name back.
+                const nameParts = shippingAddress.name.split(" ");
+                const firstName = nameParts[0];
+                const lastName = nameParts.slice(1).join(" ");
+
+                await updateProfile(userId, {
+                    firstName: firstName || undefined,
+                    lastName: lastName || undefined,
+                    phone: shippingAddress.phone || undefined,
+                    companyName: shippingAddress.company || undefined,
+                    cif: shippingAddress.cif || undefined,
+                    shippingStreet: shippingAddress.street || undefined,
+                    shippingPostalCode: shippingAddress.postalCode || undefined,
+                    shippingCity: shippingAddress.city || undefined,
+                    shippingCountry: shippingAddress.country || "ES"
+                });
+            } catch (pErr) {
+                console.error("[API] Checkout background profile update failed:", pErr);
+                // Do not block checkout if profile update somehow fails
             }
         }
 

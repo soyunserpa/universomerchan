@@ -211,21 +211,6 @@ export default function CartPage() {
               <CreditCard size={16} /> {isAuthenticated ? "Continuar al pago" : "Iniciar sesión para comprar"}
             </button>
 
-            {/* Quote button */}
-            <button
-              onClick={handleQuote}
-              disabled={quoteLoading}
-              className="w-full py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center justify-center gap-2 text-gray-500 hover:border-gray-300 transition-colors disabled:opacity-50"
-            >
-              <Download size={14} /> {quoteLoading ? "Generando..." : "Descargar presupuesto PDF"}
-            </button>
-
-            {quoteMessage && (
-              <p className={`text-xs mt-2 text-center ${!quoteMessage.includes("generado") ? "text-red-500" : "text-green-600"}`}>
-                {quoteMessage}
-              </p>
-            )}
-
             {/* Trust badges */}
             <div className="mt-5 pt-4 border-t border-surface-100 space-y-2.5">
               {[
