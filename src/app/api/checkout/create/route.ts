@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
         const { orderId, orderNumber } = await createOrderFromCart({ userId, items, shippingAddress, expressShipping, customerNotes });
         const totalPrice = items.reduce((sum, i) => sum + i.totalPrice, 0);
-        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerEmail: shippingAddress.email, totalPrice, items });
+        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerEmail: shippingAddress.email, totalPrice, items, expressShipping: expressShipping || false });
 
         return NextResponse.json({ success: true, orderNumber, checkoutUrl: sessionUrl, sessionId });
     } catch (error: any) {

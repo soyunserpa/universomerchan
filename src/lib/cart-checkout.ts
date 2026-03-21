@@ -156,8 +156,9 @@ export async function createCheckoutSession(params: {
   customerEmail: string;
   totalPrice: number;
   items: CartItem[];
+  expressShipping: boolean;
 }): Promise<{ sessionUrl: string; sessionId: string }> {
-  const { orderId, orderNumber, customerEmail, totalPrice, items } = params;
+  const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping } = params;
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
     price_data: {
