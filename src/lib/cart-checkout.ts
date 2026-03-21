@@ -204,9 +204,7 @@ export async function createCheckoutSession(params: {
     locale: "es",
 
     // Card = Visa/MC/Amex + Apple Pay + Google Pay
-    // SEPA = Bank transfer (popular for B2B in Spain/EU)
-    // Link = Stripe's 1-click checkout for repeat customers
-    payment_method_types: ["card", "sepa_debit", "link"],
+    payment_method_types: ["card"],
 
     // Auto-generate invoice (useful for B2B clients with CIF)
     invoice_creation: {
