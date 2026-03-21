@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         };
 
         if (!items || items.length === 0) return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 });
-        if (!shippingAddress || !shippingAddress.name || !shippingAddress.street) return NextResponse.json({ error: "Dirección de envío incompleta" }, { status: 400 });
+        if (!shippingAddress || !shippingAddress.name || !shippingAddress.street || !shippingAddress.city || !shippingAddress.postalCode || !shippingAddress.email || !shippingAddress.phone) return NextResponse.json({ error: "Dirección de envío incompleta. El teléfono es obligatorio." }, { status: 400 });
 
         for (const item of items) {
             const stockEntry = await db.query.stock.findFirst({ where: eq(schema.stock.sku, item.variantSku) });
