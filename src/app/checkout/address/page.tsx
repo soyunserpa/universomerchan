@@ -18,7 +18,7 @@ export default function CheckoutAddressPage() {
   const [form, setForm] = useState({
     name: "", company: "", street: "", postalCode: "", city: "", country: "ES", email: "", phone: "",
   });
-  const [express, setExpress] = useState(false);
+  const isUnder300 = subtotal < 300;
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -60,7 +60,7 @@ export default function CheckoutAddressPage() {
         body: JSON.stringify({
           items: state.items,
           shippingAddress: form,
-          expressShipping: express,
+          expressShipping: isUnder300,
           customerNotes: notes || undefined,
           userId: user?.id,
         }),
@@ -85,7 +85,7 @@ export default function CheckoutAddressPage() {
     return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
   }
 
-  const shippingCost = express ? 24.95 : 0;
+  const shippingCost = isUnder300 ? 24.95 : 0;
   const total = subtotal + shippingCost;
 
   return (
@@ -155,36 +155,36 @@ export default function CheckoutAddressPage() {
             </div>
           </div>
 
-          {/* Shipping method */}
+          {/* Shipping method (Midocean Auto) */}
           <div className="bg-white rounded-2xl border border-surface-200 p-6">
             <h2 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
-              <Truck size={18} className="text-brand-red" /> Método de envío
+              <Truck size={18} className="text-brand-red" /> Método de envío Midocean
             </h2>
 
             <div className="space-y-3">
-              <label className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${!express ? "border-brand-red bg-brand-red/5" : "border-surface-200 hover:border-gray-300"}`}>
-                <div className="flex items-center gap-3">
-                  <input type="radio" checked={!express} onChange={() => setExpress(false)} className="accent-brand-red" />
-                  <div>
-                    <p className="text-sm font-semibold">Envío estándar</p>
-                    <p className="text-xs text-gray-400">7-10 días laborables</p>
-                  </div>
-                </div>
-                <span className="font-bold text-sm text-green-600">Gratis</span>
-              </label>
-
-              <label className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${express ? "border-brand-red bg-brand-red/5" : "border-surface-200 hover:border-gray-300"}`}>
-                <div className="flex items-center gap-3">
-                  <input type="radio" checked={express} onChange={() => setExpress(true)} className="accent-brand-red" />
-                  <div className="flex items-center gap-2">
+              {isUnder300 ? (
+                <div className="flex items-center justify-between p-4 rounded-xl border-2 border-brand-red bg-brand-red/5">
+                  <div className="flex items-center gap-3">
+                    <Zap size={20} className="text-amber-500" />
                     <div>
-                      <p className="text-sm font-semibold flex items-center gap-1.5">Envío express <Zap size={12} className="text-amber-500" /></p>
-                      <p className="text-xs text-gray-400">3-5 días laborables</p>
+                      <p className="text-sm font-semibold">Envío Directo (Gestión pequeña)</p>
+                      <p className="text-xs text-gray-400">Aplicado a pedidos menores de 300€</p>
                     </div>
                   </div>
+                  <span className="font-bold text-sm">24,95€</span>
                 </div>
-                <span className="font-bold text-sm">24,95€</span>
-              </label>
+              ) : (
+                <div className="flex items-center justify-between p-4 rounded-xl border-2 border-green-500 bg-green-50">
+                  <div className="flex items-center gap-3">
+                    <Truck size={20} className="text-green-600" />
+                    <div>
+                      <p className="text-sm font-semibold">Envío Estándar</p>
+                      <p className="text-xs text-gray-500">Pedidos mayores a 300€</p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-sm text-green-600">Gratis</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -247,8 +247,8 @@ export default function CheckoutAddressPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Envío</span>
-                <span className={`font-semibold ${express ? "" : "text-green-600"}`}>
-                  {express ? "24,95€" : "Gratis"}
+                <span className={`font-semibold ${isUnder300 ? "" : "text-green-600"}`}>
+                  {isUnder300 ? "24,95€" : "Gratis"}
                 </span>
               </div>
               {user?.discountPercent && user.discountPercent > 0 && (
