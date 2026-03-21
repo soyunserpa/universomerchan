@@ -12,15 +12,22 @@ export default function AccountQuotesPage() {
     const { user, token, isAuthenticated, isLoading, logout } = useAuth();
     const router = useRouter();
     const [stats, setStats] = useState<any>(null);
+    const [quotes, setQuotes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) { router.push("/auth/login"); return; }
         if (!token) return;
 
-        fetch("/api/account/stats", { headers: { Authorization: `Bearer ${token}` } })
-            .then(r => r.json())
-            .then(data => setStats(data))
-            .catch(() => { });
+        const headers = { Authorization: `Bearer ${token}` };
+        Promise.all([
+            fetch("/api/account/quotes", { headers }).then(r => r.json()),
+            fetch("/api/account/stats", { headers }).then(r => r.json()),
+        ]).then(([quotesData, statsData]) => {
+            setQuotes(quotesData.quotes || []);
+            setStats(statsData);
+            setLoading(false);
+        }).catch(() => setLoading(false));
     }, [token, isAuthenticated, isLoading, router]);
 
     if (isLoading || (!isAuthenticated && !isLoading)) return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
@@ -67,14 +74,61 @@ export default function AccountQuotesPage() {
                         <h1 className="font-display font-extrabold text-2xl">Mis Presupuestos</h1>
                     </div>
 
-                    <div className="text-center py-20 bg-white rounded-2xl border border-surface-200">
-                        <FileQuestion size={40} className="text-gray-200 mx-auto mb-4" />
-                        <h3 className="font-display font-bold text-lg mb-1">Aún no tienes presupuestos activos</h3>
-                        <p className="text-gray-400 mb-6 max-w-sm mx-auto text-sm">Los presupuestos solicitados a medida aparecerán aquí para que puedas convertirlos en pedido comercial.</p>
-                        <Link href="/catalog" className="bg-brand-red text-white hover:bg-brand-red-dark px-6 py-2.5 rounded-full font-semibold text-sm transition-colors inline-block">
-                            Generar un Nuevo Presupuesto
-                        </Link>
-                    </div>
+                    {loading ? (
+                        <div className="text-center py-12"><RefreshCw className="animate-spin text-gray-300 mx-auto" /></div>
+                    ) : quotes.length === 0 ? (
+                        <div className="text-center py-20 bg-white rounded-2xl border border-surface-200">
+                            <FileQuestion size={40} className="text-gray-200 mx-auto mb-4" />
+                            <h3 className="font-display font-bold text-lg mb-1">Aún no tienes presupuestos activos</h3>
+                            <p className="text-gray-400 mb-6 max-w-sm mx-auto text-sm">Los presupuestos solicitados a medida aparecerán aquí para que puedas convertirlos en pedido comercial.</p>
+                            <Link href="/catalog" className="bg-brand-red text-white hover:bg-brand-red-dark px-6 py-2.5 rounded-full font-semibold text-sm transition-colors inline-block">
+                                Generar un Nuevo Presupuesto
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {quotes.map((q: any) => (
+                                <div key={q.quoteNumber} className="block bg-white rounded-2xl border border-surface-200 p-5 relative group">
+                                    <div className="flex items-start justify-between items-center sm:items-start flex-col sm:flex-row gap-4 sm:gap-0">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-display font-bold text-brand-red">{q.quoteNumber}</span>
+                                                {q.isConverted ? (
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Convertido a pedido</span>
+                                                ) : q.isExpired ? (
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Caducado</span>
+                                                ) : (
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Válido</span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-400 mb-2">
+                                                {new Date(q.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+                                                {" · "}{q.itemCount} producto{q.itemCount > 1 ? "s" : ""}
+                                                {q.expiresAt && !q.isConverted && !q.isExpired && ` · Válido hasta ${new Date(q.expiresAt).toLocaleDateString("es-ES")}`}
+                                            </p>
+                                            <p className="text-sm text-gray-600 max-w-md">{q.itemSummary}</p>
+                                        </div>
+                                        <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                                            <p className="font-display font-extrabold text-xl">{q.totalPrice.toFixed(2)}€</p>
+
+                                            <div className="flex items-center gap-2">
+                                                {q.pdfUrl && (
+                                                    <a href={q.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-200 text-sm font-medium hover:bg-surface-50 transition-colors">
+                                                        <FileText size={14} /> <span className="hidden sm:inline">Ver PDF</span>
+                                                    </a>
+                                                )}
+                                                {!q.isConverted && !q.isExpired && q.buyUrl && (
+                                                    <a href={q.buyUrl} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-red text-white text-sm font-medium hover:bg-brand-red-dark transition-colors">
+                                                        <ExternalLink size={14} /> Restaurar Carrito
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
             </div>

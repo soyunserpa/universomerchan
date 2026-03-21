@@ -415,16 +415,22 @@ export async function getCustomerQuotes(
     if (typeof items === "string") {
       try { items = JSON.parse(items); } catch (e) { items = []; }
     }
-    items = items || [];
+
+    // Si es un objeto de producto individual (del configurador)
+    const isSingleProduct = items && !Array.isArray(items) && items.product;
+    const itemsArray = isSingleProduct ? [items] : (Array.isArray(items) ? items : []);
+
     const isExpired = q.expiresAt ? new Date() > new Date(q.expiresAt) : false;
 
     let convertedOrderNumber: string | null = null;
     // Would need a join to get this — simplified for now
 
-    const itemSummary = items
-      .slice(0, 3)
-      .map((i: any) => i.productName || "Producto")
-      .join(", ");
+    const itemSummary = isSingleProduct
+      ? (itemsArray[0].product?.name || "Producto Personalizado")
+      : itemsArray
+        .slice(0, 3)
+        .map((i: any) => i.productName || "Producto")
+        .join(", ");
 
     return {
       id: q.id,
@@ -435,10 +441,10 @@ export async function getCustomerQuotes(
       isExpired,
       isConverted: !!q.convertedToOrderId,
       convertedOrderNumber,
-      itemCount: items.length,
+      itemCount: isSingleProduct ? 1 : itemsArray.length,
       itemSummary:
-        items.length > 3
-          ? `${itemSummary} y ${items.length - 3} más`
+        itemsArray.length > 3 && !isSingleProduct
+          ? `${itemSummary} y ${itemsArray.length - 3} más`
           : itemSummary,
       buyUrl: `${SITE_URL}/cart/restore?quote=${q.quoteNumber}`,
       pdfUrl: `${SITE_URL}/api/quotes/${q.quoteNumber}/pdf`,
