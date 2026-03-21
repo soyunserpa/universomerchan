@@ -56,9 +56,10 @@ interface CartContextValue {
   updateQuantity: (index: number, quantity: number) => void;
   clearCart: () => void;
   restoreFromQuote: (quoteNumber: string) => Promise<void>;
+  restoreFromOrder: (orderNumber: string) => Promise<void>;
   toggleCart: (open?: boolean) => void;
   dismissNotification: () => void;
-  
+
   // Computed values
   itemCount: number;
   subtotal: number;
@@ -276,6 +277,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const restoreFromOrder = useCallback(async (orderNumber: string) => {
+    dispatch({ type: "SET_LOADING", loading: true });
+    try {
+      const response = await fetch(`/api/account/orders/${orderNumber}/restore-cart`);
+      if (!response.ok) throw new Error("Pedido no encontrado o inválido");
+      const data = await response.json();
+      dispatch({ type: "RESTORE_CART", items: data.items });
+    } catch (error: any) {
+      dispatch({ type: "SET_ERROR", error: error.message });
+      dispatch({ type: "SET_LOADING", loading: false });
+    }
+  }, []);
+
   const toggleCart = useCallback((open?: boolean) => {
     dispatch({ type: "TOGGLE_CART", open });
   }, []);
@@ -299,6 +313,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         clearCart,
         restoreFromQuote,
+        restoreFromOrder,
         toggleCart,
         dismissNotification,
         itemCount,

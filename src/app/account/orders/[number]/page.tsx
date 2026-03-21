@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-store";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -30,6 +31,7 @@ interface TimelineEvent {
 
 export default function OrderDetailPage() {
   const { token, isAuthenticated, isLoading } = useAuth();
+  const { restoreFromOrder } = useCart();
   const router = useRouter();
   const params = useParams();
   const orderNumber = params.number as string;
@@ -100,6 +102,16 @@ export default function OrderDetailPage() {
       setActionLoading(false);
     }
   };
+  const handleRestoreCart = async () => {
+    setActionLoading(true);
+    try {
+      await restoreFromOrder(orderNumber);
+      router.push("/cart");
+    } catch {
+      alert("Error al reactivar el carrito");
+      setActionLoading(false);
+    }
+  };
 
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
@@ -145,13 +157,24 @@ export default function OrderDetailPage() {
                 <h2 className="font-display font-bold text-brand-red text-lg">Finaliza tu pedido</h2>
                 <p className="text-sm text-brand-red/80">Este pedido está guardado pero pendiente de pago. Finaliza la compra para que empecemos a prepararlo.</p>
               </div>
-              <button
-                onClick={handlePayNow}
-                disabled={actionLoading}
-                className="whitespace-nowrap bg-brand-red text-white px-6 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50"
-              >
-                {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : "Pagar Ahora con Stripe"}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={handleRestoreCart}
+                  disabled={actionLoading}
+                  className="whitespace-nowrap bg-white text-brand-red border border-brand-red px-6 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  title="Devolver al carrito para modificarlo antes de pagar"
+                >
+                  <ShoppingCart size={18} />
+                  Modificar Productos
+                </button>
+                <button
+                  onClick={handlePayNow}
+                  disabled={actionLoading}
+                  className="whitespace-nowrap bg-brand-red text-white px-6 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50"
+                >
+                  {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : "Pagar Ahora con Stripe"}
+                </button>
+              </div>
             </div>
           )}
 
