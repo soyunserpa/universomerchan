@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getCategories, getProductList } from "@/lib/catalog-api";
 import { Search, Palette, ShoppingCart, Truck, Star, Leaf, ArrowRight } from "lucide-react";
+import { AboutSection } from "@/components/home/AboutSection";
+import { ContactSection } from "@/components/home/ContactSection";
 
 export default async function HomePage() {
   // Fetch featured products and categories from DB
@@ -84,6 +86,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ── ABOUT US ──────────────────────────────────────── */}
+      <AboutSection />
+
       {/* ── CATEGORIES ────────────────────────────────────── */}
       <section className="bg-gray-900 py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -134,6 +139,9 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ── CONTACT ───────────────────────────────────────── */}
+      <ContactSection />
 
       {/* ── CTA ───────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
