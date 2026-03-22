@@ -104,3 +104,21 @@ export async function notifyAdminOrderShipped(d: { orderNumber: string; clientNa
 export async function notifyAdminLowStock(d: { productName: string; masterCode: string; sku: string; currentStock: number }) {
   return sendEmail({ to: ADMIN_EMAIL, subject: `📉 Stock bajo: ${d.productName} (${d.currentStock} uds)`, html: T(`<h2>Stock bajo</h2><div class="ab" style="background:#FEF3C7"><p><strong>Producto:</strong> ${d.productName}</p><p><strong>SKU:</strong> ${d.sku}</p><p><strong>Stock:</strong> ${d.currentStock} uds</p></div>`) });
 }
+
+export async function notifyAdminContactForm(d: { name: string; email: string; phone: string; company: string; subject: string; message: string; }) {
+  return sendEmail({ 
+    to: ADMIN_EMAIL, 
+    subject: `📩 Consulta Web: ${d.subject || "Nuevo mensaje"}`, 
+    html: T(`<h2>Nueva Consulta Web</h2>
+    <div class="ab" style="background:#F3F4F6">
+      <p style="margin:4px 0 0"><strong>Nombre:</strong> ${d.name}</p>
+      <p style="margin:4px 0 0"><strong>Email:</strong> ${d.email}</p>
+      <p style="margin:4px 0 0"><strong>Teléfono:</strong> ${d.phone || "-"}</p>
+      <p style="margin:4px 0 0"><strong>Empresa:</strong> ${d.company || "-"}</p>
+    </div>
+    <div style="background:#FFFFFF;border-radius:12px;padding:16px;margin:16px 0;border:1px solid #E5E7EB;">
+      <h3 style="margin-top:0"><strong>Asunto:</strong> ${d.subject}</h3>
+      <p style="color:#444;line-height:1.6;white-space:pre-wrap;">${d.message}</p>
+    </div>`) 
+  });
+}
