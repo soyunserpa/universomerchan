@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, CreditCard, Truck, Zap, MapPin, User, Building2, Tag,
@@ -14,6 +14,8 @@ export default function CheckoutAddressPage() {
   const { state, subtotal, itemCount, clearCart } = useCart();
   const { user, token, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const couponCode = searchParams.get("coupon");
 
   const [form, setForm] = useState({
     name: "", company: "", cif: "", street: "", postalCode: "", city: "", country: "ES", email: "", phone: "",
@@ -68,6 +70,7 @@ export default function CheckoutAddressPage() {
           expressShipping: isUnder300,
           customerNotes: notes || undefined,
           userId: user?.id,
+          couponCode: couponCode || undefined,
         }),
       });
 

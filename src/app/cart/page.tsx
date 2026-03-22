@@ -16,13 +16,51 @@ export default function CartPage() {
   const router = useRouter();
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteMessage, setQuoteMessage] = useState("");
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.type === "percentage") {
+      return subtotal * (appliedCoupon.value / 100);
+    }
+    return Math.min(appliedCoupon.value, subtotal);
+  };
+
+  const discountAmount = calculateDiscount();
+  const finalTotal = Math.max(0, subtotal - discountAmount);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/cart/apply-coupon", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, subtotal })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAppliedCoupon({ code: data.coupon.code, type: data.coupon.discountType, value: data.coupon.discountValue });
+        setCouponCode("");
+      } else {
+        setCouponError(data.error);
+      }
+    } catch { setCouponError("Error de conexión"); }
+    setApplyingCoupon(false);
+  };
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
       router.push("/auth/login?redirect=/cart");
       return;
     }
-    router.push("/checkout/address");
+    const url = appliedCoupon ? `/checkout/address?coupon=${appliedCoupon.code}` : "/checkout/address";
+    router.push(url);
   };
 
   const handleQuote = async () => {
@@ -185,10 +223,55 @@ export default function CartPage() {
             </div>
 
             <div className="border-t border-surface-200 pt-3 mb-1">
+              
+              {/* Coupon Box */}
+              <div className="mb-4">
+                {!appliedCoupon ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Código de descuento"
+                      className="w-full flex-1 px-3 py-2 border rounded-lg text-sm font-mono uppercase focus:ring-1 focus:ring-brand-red focus:border-brand-red outline-none disabled:bg-gray-50"
+                      value={couponCode}
+                      onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                      onKeyDown={e => e.key === "Enter" && handleApplyCoupon()}
+                      disabled={applyingCoupon}
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={applyingCoupon || !couponCode.trim()}
+                      className="bg-gray-900 text-white px-4 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                    >
+                      {applyingCoupon ? "..." : "Aplicar"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2 text-green-700 text-sm">
+                      <Tag size={16} />
+                      <span className="font-bold font-mono">{appliedCoupon.code}</span>
+                      <span>(-{appliedCoupon.type === "percentage" ? `${appliedCoupon.value}%` : `${appliedCoupon.value}€`})</span>
+                    </div>
+                    <button onClick={() => setAppliedCoupon(null)} className="text-gray-400 hover:text-red-500">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
+                {couponError && <p className="text-red-500 text-xs mt-1.5">{couponError}</p>}
+              </div>
+
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-400">Subtotal</span>
-                <span className="font-semibold">{subtotal.toFixed(2)}€</span>
+                <span className="font-semibold text-gray-700">{subtotal.toFixed(2)}€</span>
               </div>
+              
+              {appliedCoupon && (
+                 <div className="flex justify-between text-sm mb-1 text-green-600 font-medium">
+                   <span>Descuento ({appliedCoupon.code})</span>
+                   <span>-{discountAmount.toFixed(2)}€</span>
+                 </div>
+              )}
+
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-400">Envío</span>
                 <span className="text-green-600 font-medium text-xs">Se calcula en el checkout</span>
@@ -198,7 +281,7 @@ export default function CartPage() {
             <div className="border-t-2 border-gray-900 pt-3 mb-5">
               <div className="flex justify-between items-baseline">
                 <span className="font-bold">Total estimado</span>
-                <span className="font-display font-extrabold text-2xl text-brand-red">{subtotal.toFixed(2)}€</span>
+                <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
               <p className="text-[11px] text-gray-400 text-right">IVA no incluido</p>
             </div>
