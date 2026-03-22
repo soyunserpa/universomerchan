@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,7 +10,15 @@ import {
   Mail, Phone, ShieldCheck, Lock, Gift, RefreshCw, Briefcase,
 } from "lucide-react";
 
-export default function CheckoutAddressPage() {
+export default function CheckoutAddressPageWrapper() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>}>
+      <CheckoutAddressPage />
+    </Suspense>
+  );
+}
+
+function CheckoutAddressPage() {
   const { state, subtotal, itemCount, clearCart } = useCart();
   const { user, token, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
