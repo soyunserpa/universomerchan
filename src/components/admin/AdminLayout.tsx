@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Gift, BarChart3, Package, ShoppingCart, Users, Settings, RefreshCw,
-  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X, FileText, Mail
+  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X, FileText, Mail, Tag
 } from "lucide-react";
 
 // ── Admin Auth Context ──────────────────────────────────────
@@ -107,6 +107,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     { href: "/admin/quotes", icon: FileText, label: "Presupuestos" },
     { href: "/admin/products", icon: Package, label: "Productos" },
     { href: "/admin/clients", icon: Users, label: "Clientes" },
+    { href: "/admin/coupons", icon: Tag, label: "Cupones" },
     { href: "/admin/settings", icon: Percent, label: "Márgenes" },
     { href: "/admin/emails", icon: Mail, label: "Emails" },
     { href: "/admin/sync", icon: Database, label: "Sincronización" },

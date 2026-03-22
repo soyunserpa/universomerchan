@@ -57,8 +57,9 @@ export async function createOrderFromCart(params: {
   };
   expressShipping?: boolean;
   customerNotes?: string;
+  couponCode?: string;
 }): Promise<{ orderId: number; orderNumber: string }> {
-  const { userId, items, shippingAddress, expressShipping, customerNotes } = params;
+  const { userId, items, shippingAddress, expressShipping, customerNotes, couponCode } = params;
 
   // Get user for discount
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
@@ -89,7 +90,31 @@ export async function createOrderFromCart(params: {
   }
 
   const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
-  const discountAmount = subtotal * (discountPct / 100);
+  
+  let discountAmount = 0;
+  let finalCouponCode: string | null = null;
+  const userDiscountPct = parseFloat(user?.discountPercent?.toString() || "0");
+
+  if (couponCode) {
+    const coupon = await db.query.coupons.findFirst({ where: eq(schema.coupons.code, couponCode.toUpperCase().trim()) });
+    const isCouponValid = coupon && coupon.isActive && 
+      (!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) && 
+      (!coupon.usageLimit || coupon.usageCount < coupon.usageLimit);
+
+    if (isCouponValid) {
+      finalCouponCode = coupon.code;
+      if (coupon.discountType === "percentage") {
+        discountAmount = subtotal * (parseFloat(coupon.discountValue.toString()) / 100);
+      } else {
+        discountAmount = Math.min(parseFloat(coupon.discountValue.toString()), subtotal);
+      }
+    } else {
+      discountAmount = subtotal * (userDiscountPct / 100);
+    }
+  } else {
+    discountAmount = subtotal * (userDiscountPct / 100);
+  }
+
   const totalPrice = subtotal - discountAmount;
 
   const orderNumber = await generateOrderNumber();
@@ -104,7 +129,8 @@ export async function createOrderFromCart(params: {
     subtotalPrint: String(subtotalPrint),
     marginProductApplied: String(marginProd),
     marginPrintApplied: String(marginPrint),
-    discountApplied: String(discountPct),
+    couponCode: finalCouponCode,
+    discountApplied: String(discountAmount),
     totalPrice: String(totalPrice),
     shippingName: shippingAddress.name,
     shippingCompany: shippingAddress.company || null,
@@ -157,8 +183,9 @@ export async function createCheckoutSession(params: {
   totalPrice: number;
   items: CartItem[];
   expressShipping: boolean;
+  couponCode?: string;
 }): Promise<{ sessionUrl: string; sessionId: string }> {
-  const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping } = params;
+  const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode } = params;
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
     price_data: {
@@ -191,6 +218,30 @@ export async function createCheckoutSession(params: {
   // Google Pay: Enabled automatically, no extra config needed.
   // ────────────────────────────────────────────────────────────
 
+  let stripeCouponId: string | undefined = undefined;
+
+  if (couponCode) {
+    const coupon = await db.query.coupons.findFirst({ where: eq(schema.coupons.code, couponCode.toUpperCase().trim()) });
+    if (coupon) {
+      if (coupon.discountType === "percentage") {
+        const stripeCoupon = await stripe.coupons.create({
+          percent_off: parseFloat(coupon.discountValue.toString()),
+          duration: "once",
+          name: `Cupón: ${coupon.code}`,
+        });
+        stripeCouponId = stripeCoupon.id;
+      } else {
+        const stripeCoupon = await stripe.coupons.create({
+          amount_off: Math.round(parseFloat(coupon.discountValue.toString()) * 100),
+          currency: "eur",
+          duration: "once",
+          name: `Cupón: ${coupon.code}`,
+        });
+        stripeCouponId = stripeCoupon.id;
+      }
+    }
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: customerEmail,
@@ -211,8 +262,11 @@ export async function createCheckoutSession(params: {
       enabled: true,
     },
 
+    // Inject temporary stripe coupon dynamically
+    discounts: stripeCouponId ? [{ coupon: stripeCouponId }] : undefined,
+
     // Allow promo codes if we add them later
-    allow_promotion_codes: true,
+    allow_promotion_codes: !stripeCouponId,
 
     // Collect billing address (needed for invoices)
     billing_address_collection: "required",
@@ -288,6 +342,16 @@ export async function handlePaymentSuccess(
     paidAt: new Date(),
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, order.id));
+
+  // Increment coupon usage if an actual coupon code was stored
+  if (order.couponCode) {
+    const matchingCoupon = await db.query.coupons.findFirst({ where: eq(schema.coupons.code, order.couponCode) });
+    if (matchingCoupon) {
+      await db.update(schema.coupons).set({
+        usageCount: matchingCoupon.usageCount + 1,
+      }).where(eq(schema.coupons.code, order.couponCode));
+    }
+  }
 
   console.log(`[Checkout] Order ${order.orderNumber} paid successfully`);
 

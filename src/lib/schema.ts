@@ -358,7 +358,11 @@ export const orders = pgTable("orders", {
   subtotalPrint: decimal("subtotal_print", { precision: 12, scale: 2 }).default("0"),
   marginProductApplied: decimal("margin_product_applied", { precision: 5, scale: 2 }),  // % that was applied
   marginPrintApplied: decimal("margin_print_applied", { precision: 5, scale: 2 }),      // % that was applied
-  discountApplied: decimal("discount_applied", { precision: 5, scale: 2 }).default("0"),
+  
+  // Coupons / Discounts
+  couponCode: varchar("coupon_code", { length: 50 }),
+  discountApplied: decimal("discount_applied", { precision: 5, scale: 2 }).default("0"), // Either % amount or monetary amount depending on coupon
+  
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }).default("0"),
   totalPrice: decimal("total_price", { precision: 12, scale: 2 }).default("0"),
   
@@ -492,6 +496,33 @@ export const quotes = pgTable("quotes", {
 }, (table) => ({
   quoteNumberIdx: uniqueIndex("quotes_number_idx").on(table.quoteNumber),
   userIdx: index("quotes_user_idx").on(table.userId),
+}));
+
+// ============================================================
+// COUPONS — Generic discount codes for cart
+// ============================================================
+
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  
+  // "percentage" | "fixed"
+  discountType: varchar("discount_type", { length: 20 }).notNull(),
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+  
+  // Rules
+  minOrderValue: decimal("min_order_value", { precision: 10, scale: 2 }),
+  usageLimit: integer("usage_limit"),
+  usageCount: integer("usage_count").default(0).notNull(),
+  
+  isActive: boolean("is_active").default(true).notNull(),
+  expiresAt: timestamp("expires_at"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  codeIdx: uniqueIndex("coupons_code_idx").on(table.code),
+  statusIdx: index("coupons_status_idx").on(table.isActive),
 }));
 
 // ============================================================
