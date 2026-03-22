@@ -14,22 +14,54 @@ export function ContactSection() {
         mensaje: "",
         consentimiento: false,
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.consentimiento) return;
+        if (!formData.consentimiento || isSubmitting) return;
 
-        const subject = encodeURIComponent(formData.asunto || "Nueva consulta desde la web");
-        const body = encodeURIComponent(
-            `Nombre: ${formData.nombre}\n` +
-            `Empresa: ${formData.empresa}\n` +
-            `Teléfono: ${formData.telefono}\n` +
-            `Email: ${formData.email}\n\n` +
-            `Mensaje:\n${formData.mensaje}\n\n` +
-            `[ x ] Consentimiento de Política de Privacidad aceptado.`
-        );
+        setIsSubmitting(true);
+        setErrorMsg("");
+        setIsSuccess(false);
 
-        window.location.href = `mailto:pedidos@universomerchan.com?subject=${subject}&body=${body}`;
+        try {
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await res.json();
+            
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || "Ocurrió un error al enviar el mensaje.");
+            }
+
+            // Exito
+            setIsSuccess(true);
+            setFormData({
+                nombre: "",
+                empresa: "",
+                email: "",
+                telefono: "",
+                asunto: "",
+                mensaje: "",
+                consentimiento: false,
+            });
+
+            // Ocultar exito despues de 5 segundos
+            setTimeout(() => {
+                setIsSuccess(false);
+            }, 5000);
+
+        } catch (error: any) {
+            setErrorMsg(error.message || "Ocurrió un error de red. Intenta nuevamente.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -151,12 +183,24 @@ export function ContactSection() {
                                     </label>
                                 </div>
 
+                                {errorMsg && (
+                                    <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
+                                        {errorMsg}
+                                    </div>
+                                )}
+                                
+                                {isSuccess && (
+                                    <div className="bg-green-50 text-green-700 px-4 py-3 rounded-xl text-sm font-medium border border-green-200 shadow-sm transition-all">
+                                        🎉 ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo en breve.
+                                    </div>
+                                )}
+
                                 <div className="pt-4">
-                                    <button type="submit" disabled={!formData.consentimiento}
+                                    <button type="submit" disabled={!formData.consentimiento || isSubmitting}
                                         className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-brand-red text-white font-bold px-8 py-4 rounded-xl hover:bg-brand-red-dark transition-colors focus:outline-none focus:ring-4 focus:ring-brand-red/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Send size={18} />
-                                        Enviar consulta
+                                        <Send size={18} className={isSubmitting ? "animate-pulse" : ""} />
+                                        {isSubmitting ? "Enviando mensaje..." : "Enviar consulta"}
                                     </button>
                                 </div>
                             </form>
