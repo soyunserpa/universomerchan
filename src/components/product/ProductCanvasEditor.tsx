@@ -222,11 +222,17 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
           const pts = [...zone.points].sort((a, b) => a.sequence_no - b.sequence_no);
           const p = logoPos[positionId] || { x: 0.5, y: 0.5, scale: 0.65 };
 
+          // Dynamic bounding box calc (supports polygons >2 points and any coordinate order)
+          const minXPct = Math.min(...pts.map(p => p.distance_from_left)) / natW;
+          const maxXPct = Math.max(...pts.map(p => p.distance_from_left)) / natW;
+          const minYPct = Math.min(...pts.map(p => p.distance_from_top)) / natH;
+          const maxYPct = Math.max(...pts.map(p => p.distance_from_top)) / natH;
+
           // Same relative % calc as PreviewWithLogo
-          const zoneLeftPct = pts[0].distance_from_left / natW;
-          const zoneTopPct = pts[0].distance_from_top / natH;
-          const zoneWidthPct = Math.abs(pts[1].distance_from_left - pts[0].distance_from_left) / natW;
-          const zoneHeightPct = Math.abs(pts[1].distance_from_top - pts[0].distance_from_top) / natH;
+          const zoneLeftPct = minXPct;
+          const zoneTopPct = minYPct;
+          const zoneWidthPct = maxXPct - minXPct;
+          const zoneHeightPct = maxYPct - minYPct;
 
           // Zone bounding box in pixels (matches PreviewWithLogo's CSS %)
           const zonePxW = zoneWidthPct * natW * p.scale;
@@ -472,10 +478,16 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     if (!activeLogoData || !activeZoneData?.points?.length || activeZoneData.points.length < 2 || !imgNatural) return null;
     const pts = [...activeZoneData.points].sort((a, b) => a.sequence_no - b.sequence_no);
     const imgW = imgNatural.w, imgH = imgNatural.h;
-    const zoneLeft = pts[0].distance_from_left / imgW * 100;
-    const zoneTop = pts[0].distance_from_top / imgH * 100;
-    const zoneWidth = Math.abs(pts[1].distance_from_left - pts[0].distance_from_left) / imgW * 100;
-    const zoneHeight = Math.abs(pts[1].distance_from_top - pts[0].distance_from_top) / imgH * 100;
+    
+    const minX = Math.min(...pts.map(p => p.distance_from_left));
+    const maxX = Math.max(...pts.map(p => p.distance_from_left));
+    const minY = Math.min(...pts.map(p => p.distance_from_top));
+    const maxY = Math.max(...pts.map(p => p.distance_from_top));
+
+    const zoneLeft = (minX / imgW) * 100;
+    const zoneTop = (minY / imgH) * 100;
+    const zoneWidth = ((maxX - minX) / imgW) * 100;
+    const zoneHeight = ((maxY - minY) / imgH) * 100;
     const logoW = zoneWidth * currentLogoPos.scale;
     const logoH = zoneHeight * currentLogoPos.scale;
     const logoLeft = zoneLeft + zoneWidth * currentLogoPos.x - logoW / 2;
