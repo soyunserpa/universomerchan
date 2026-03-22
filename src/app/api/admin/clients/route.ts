@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
 import { requireAuth, loginUser } from "@/lib/auth-service";
 import {
   getDashboardKPIs,

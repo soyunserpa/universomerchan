@@ -31,6 +31,7 @@ interface RegisterData {
   phone?: string;
   companyName?: string;
   cif?: string;
+  website?: string;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);

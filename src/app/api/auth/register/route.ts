@@ -23,6 +23,17 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    
+    // Honeypot check for bots
+    if (body.website) {
+      console.log(`[Auth] Blocked bot registration attempt from email: ${body.email}`);
+      return NextResponse.json({
+        success: true,
+        token: "bot_fake_token",
+        user: { id: 0, email: body.email, role: "customer", firstName: body.firstName, lastName: "", discountPercent: 0 }
+      });
+    }
+
     const result = await registerCustomer(body);
 
     if (!result.success) {
