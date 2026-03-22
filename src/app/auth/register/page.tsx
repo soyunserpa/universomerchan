@@ -9,7 +9,7 @@ import { Gift, Mail, Lock, User, Building2, Phone, FileText, ArrowRight, Eye, Ey
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
-  const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", firstName: "", lastName: "", phone: "", companyName: "", cif: "" });
+  const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", firstName: "", lastName: "", phone: "", companyName: "", cif: "", website: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,6 +28,7 @@ export default function RegisterPage() {
     const result = await register({
       email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName,
       phone: form.phone || undefined, companyName: form.companyName || undefined, cif: form.cif || undefined,
+      website: form.website || undefined
     });
     setLoading(false);
 
@@ -46,6 +47,13 @@ export default function RegisterPage() {
 
         <div className="bg-white rounded-2xl border border-surface-200 p-7">
           <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Honeypot field for bot protection */}
+            <div className="absolute opacity-0 -z-10 pointer-events-none" aria-hidden="true" style={{ top: -9999, left: -9999 }}>
+              <label htmlFor="website">Website</label>
+              <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={e => update("website", e.target.value)} />
+            </div>
+
             {/* Name */}
             <div className="grid grid-cols-2 gap-3">
               <div>
