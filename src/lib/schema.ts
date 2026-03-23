@@ -147,6 +147,9 @@ export const products = pgTable("products", {
   customPrice: decimal("custom_price", { precision: 10, scale: 4 }),  // Override price for specific product
   customDescription: text("custom_description"),         // Override description
   
+  // Handling Cost Base Identifier
+  printManipulation: varchar("print_manipulation", { length: 50 }),
+  
   // Sync metadata
   lastSyncedAt: timestamp("last_synced_at"),
   rawApiData: jsonb("raw_api_data"),                    // Full Midocean API response for this product

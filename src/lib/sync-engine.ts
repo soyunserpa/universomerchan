@@ -438,6 +438,13 @@ export async function syncPrintData(): Promise<{ updated: number }> {
 
         updated++;
       }
+
+      // Update print_manipulation on the product level
+      if (product.print_manipulation) {
+        await db.update(schema.products)
+          .set({ printManipulation: product.print_manipulation })
+          .where(eq(schema.products.masterCode, product.master_code));
+      }
     }
 
     await logSync("print_data", "success", printData.length, updated, 0, Date.now() - startTime);
