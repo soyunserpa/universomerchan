@@ -385,7 +385,7 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
     techniques: ((() => { let at = pos.available_techniques || []; if (typeof at === 'string') { at = JSON.parse(at); } if (typeof at === 'string') { at = JSON.parse(at); } return Array.isArray(at) ? at : []; })() as any[]).map((t: any) => ({
       techniqueId: t.technique_id || t.id,
       name: t.technique_description || t.technique_id || t.id,
-      description: getTechniqueDescription(t.technique_id || t.id),
+      description: getTechniqueDescription(t.technique_id || t.id, t.technique_description || t.technique_name || t.technique_id || t.id),
       pricingType: getTechniquePricingType(t.technique_id || t.id),
       maxColors: t.max_number_of_colors ? parseInt(t.max_number_of_colors) : (t.max_colours ? parseInt(t.max_colours) : undefined),
       pricing: (() => {
@@ -567,7 +567,7 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function getTechniqueDescription(id: string): string {
+function getTechniqueDescription(id: string, midoceanName: string): string {
   const descriptions: Record<string, string> = {
     S2: "Serigrafía — Tintas sólidas, ideal para logos de pocos colores",
     B: "Grabado en relieve — Elegante y duradero",
@@ -586,8 +586,25 @@ function getTechniqueDescription(id: string): string {
     S5: "Serigrafía transfer — Colores sólidos en textil",
     TD1: "Transfer digital DTG — Fotográfico en algodón",
     TR: "Transfer reflectante — Visibilidad nocturna",
+    TT: "Transfer — Acabado profesional en textil",
+    S7: "Serigrafía especial — Acabado de alta resistencia",
+    P7: "Tampografía — Precisión en piezas curvas",
+    TC: "Transfer cerámico — Para tazas y superficies de calor",
+    DO: "Gota de resina (Doming) — Efecto 3D brillante",
   };
-  return descriptions[id] || id;
+
+  if (descriptions[id]) return descriptions[id];
+
+  // Smart prefix fallbacks
+  const cleanName = midoceanName.trim();
+  if (id.startsWith('S')) return `${cleanName} — Colores sólidos vibrantes`;
+  if (id.startsWith('P')) return `${cleanName} — Ideal para pequeños detalles`;
+  if (id.startsWith('L')) return `${cleanName} — Acabado premium e imborrable`;
+  if (id.startsWith('T') || id.startsWith('TD')) return `${cleanName} — Personalización a todo color`;
+  if (id.startsWith('E')) return `${cleanName} — Acabado textil de lujo`;
+  if (id.startsWith('D')) return `${cleanName} — Impresión digital en alta resolución`;
+  
+  return `${cleanName} — Técnica de personalización estándar`;
 }
 
 function getTechniquePricingType(id: string): string {
