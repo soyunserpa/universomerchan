@@ -85,14 +85,14 @@ export const users = pgTable("users", {
   // Customer fields (B2B + B2C)
   firstName: varchar("first_name", { length: 100 }),
   lastName: varchar("last_name", { length: 100 }),
-  phone: varchar("phone", { length: 50 }),
+  phone: varchar("phone", { length: 30 }),
   companyName: varchar("company_name", { length: 200 }),  // Optional for B2C
-  cif: varchar("cif", { length: 50 }),                     // Optional (B2B fills it)
+  cif: varchar("cif", { length: 20 }),                     // Optional (B2B fills it)
   
   // Shipping address (default)
   shippingStreet: varchar("shipping_street", { length: 300 }),
   shippingCity: varchar("shipping_city", { length: 100 }),
-  shippingPostalCode: varchar("shipping_postal_code", { length: 50 }),
+  shippingPostalCode: varchar("shipping_postal_code", { length: 10 }),
   shippingCountry: varchar("shipping_country", { length: 2 }).default("ES"),
   
   // Per-client discount (set by admin from dashboard)
@@ -342,7 +342,7 @@ export const printManipulations = pgTable("print_manipulations", {
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  orderNumber: varchar("order_number", { length: 50 }).notNull().unique(), // UM-2026-XXXX
+  orderNumber: varchar("order_number", { length: 30 }).notNull().unique(), // UM-2026-XXXX
   userId: integer("user_id").notNull().references(() => users.id),
   
   // Status
@@ -350,7 +350,7 @@ export const orders = pgTable("orders", {
   orderType: orderTypeEnum("order_type").default("NORMAL").notNull(),
   
   // Midocean reference (set after Order Entry API call)
-  midoceanOrderNumber: varchar("midocean_order_number", { length: 50 }),
+  midoceanOrderNumber: varchar("midocean_order_number", { length: 30 }),
   midoceanPoNumber: varchar("midocean_po_number", { length: 50 }),
   
   // Pricing breakdown (all in EUR)
@@ -375,11 +375,11 @@ export const orders = pgTable("orders", {
   shippingName: varchar("shipping_name", { length: 200 }),
   shippingCompany: varchar("shipping_company", { length: 200 }),
   shippingStreet: varchar("shipping_street", { length: 300 }),
-  shippingPostalCode: varchar("shipping_postal_code", { length: 50 }),
+  shippingPostalCode: varchar("shipping_postal_code", { length: 10 }),
   shippingCity: varchar("shipping_city", { length: 100 }),
   shippingCountry: varchar("shipping_country", { length: 2 }).default("ES"),
   shippingEmail: varchar("shipping_email", { length: 255 }),
-  shippingPhone: varchar("shipping_phone", { length: 50 }),
+  shippingPhone: varchar("shipping_phone", { length: 30 }),
   expressShipping: boolean("express_shipping").default(false),
   
   // Tracking (from Midocean Order Details API)
@@ -472,7 +472,7 @@ export const orderLines = pgTable("order_lines", {
 
 export const quotes = pgTable("quotes", {
   id: serial("id").primaryKey(),
-  quoteNumber: varchar("quote_number", { length: 50 }).notNull().unique(),  // PRE-2026-XXXX
+  quoteNumber: varchar("quote_number", { length: 30 }).notNull().unique(),  // PRE-2026-XXXX
   userId: integer("user_id").references(() => users.id),
   
   // Can also be for anonymous users (email only)
@@ -581,7 +581,7 @@ export const errorLog = pgTable("error_log", {
   // Types: stock_insufficient, order_api_error, proof_rejected,
   //        artwork_invalid, payment_failed, sync_error
   
-  severity: varchar("severity", { length: 50 }).notNull(), // "low", "medium", "high", "critical"
+  severity: varchar("severity", { length: 10 }).notNull(), // "low", "medium", "high", "critical"
   message: text("message").notNull(),
   context: jsonb("context"),  // Related IDs, details
   
