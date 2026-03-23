@@ -411,12 +411,15 @@ export async function syncPrintData(): Promise<{ updated: number }> {
         const imageBlank = firstImage.print_position_image_blank || null;
         const imageWithArea = firstImage.print_position_image_with_area || null;
 
+        const pWidth = position.max_print_size_width && String(position.max_print_size_width).trim() !== "" ? String(position.max_print_size_width).replace(",", ".") : null;
+        const pHeight = position.max_print_size_height && String(position.max_print_size_height).trim() !== "" ? String(position.max_print_size_height).replace(",", ".") : null;
+
         await db.insert(schema.printPositions).values({
           masterCode: product.master_code,
           positionId: position.position_id,
           positionDescription: position.position_description,
-          maxPrintWidth: position.max_print_size_width,
-          maxPrintHeight: position.max_print_size_height,
+          maxPrintWidth: pWidth,
+          maxPrintHeight: pHeight,
           printPositionImage: imageWithArea || position.print_position_image || null,
           availableTechniques: JSON.stringify(position.printing_techniques || position.techniques || []),
           lastSyncedAt: new Date(),
