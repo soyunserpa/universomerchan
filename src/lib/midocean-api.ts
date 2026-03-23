@@ -134,7 +134,19 @@ export interface MidoceanStockItem {
 
 export async function fetchAllStock(): Promise<MidoceanStockItem[]> {
   console.log("[Midocean Sync] Fetching stock levels...");
-  const data = await midoceanGet<MidoceanStockItem[]>("/stock/2.0");
+  let data = await midoceanGet<any>("/stock/2.0");
+  
+  // Handle case where Midocean wraps the array in an object (e.g., { stock: [...] })
+  if (data && !Array.isArray(data)) {
+    console.log("[Midocean Sync] Stock data is an object, extracting array...", Object.keys(data));
+    data = data.stock || data.items || data.data || data.products || Object.values(data)[0] || [];
+  }
+  
+  if (!Array.isArray(data)) {
+    console.error("[Midocean Sync] Unexpected stock data format. Could not extract array.");
+    data = [];
+  }
+  
   console.log(`[Midocean Sync] Received stock for ${data.length} SKUs`);
   return data;
 }
