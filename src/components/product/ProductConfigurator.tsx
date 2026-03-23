@@ -361,8 +361,8 @@ export function ProductConfigurator({ product }: Props) {
       { distance_from_left: 700, distance_from_top: 700, sequence_no: 2 },
     ],
     imageBlank: pos.positionImageBlank || variant.mainImage || "",
-    imageWithArea: pos.positionImage || variant.mainImage || "",
-    imageVariants: pos.imageVariants || [],
+    imageWithArea: pos.printPositionImage || variant.mainImage || "",
+    imageVariants: (pos as any).positionImageVariants || [],
   })), [product.printPositions, variant.mainImage]);
 
   const hasLogos = logoPlacements.length > 0;

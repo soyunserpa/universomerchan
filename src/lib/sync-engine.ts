@@ -414,6 +414,12 @@ export async function syncPrintData(): Promise<{ updated: number }> {
         const pWidth = position.max_print_size_width && String(position.max_print_size_width).trim() !== "" ? String(position.max_print_size_width).replace(",", ".") : null;
         const pHeight = position.max_print_size_height && String(position.max_print_size_height).trim() !== "" ? String(position.max_print_size_height).replace(",", ".") : null;
 
+        const imageVariantsToSave = images.map((img: any) => ({
+          colorCode: img.variant_color,
+          imageBlank: img.print_position_image_blank,
+          imageWithArea: img.print_position_image_with_area
+        }));
+
         await db.insert(schema.printPositions).values({
           masterCode: product.master_code,
           positionId: position.position_id,
@@ -421,20 +427,12 @@ export async function syncPrintData(): Promise<{ updated: number }> {
           maxPrintWidth: pWidth,
           maxPrintHeight: pHeight,
           printPositionImage: imageWithArea || position.print_position_image || null,
+          positionImageBlank: imageBlank,
+          positionPoints: points.length > 0 ? JSON.stringify(points) : null,
+          positionImageVariants: JSON.stringify(imageVariantsToSave),
           availableTechniques: JSON.stringify(position.printing_techniques || position.techniques || []),
           lastSyncedAt: new Date(),
         });
-
-        // Update canvas columns via raw SQL (not in Drizzle schema)
-        if (points.length > 0 || imageBlank) {
-          await db.execute(sql`
-            UPDATE print_positions
-            SET position_image_blank = ${imageBlank},
-                position_points = ${JSON.stringify(points)}::jsonb
-            WHERE master_code = ${product.master_code}
-              AND position_id = ${position.position_id}
-          `);
-        }
 
         updated++;
       }
