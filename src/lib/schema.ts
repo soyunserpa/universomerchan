@@ -230,7 +230,7 @@ export const productPrices = pgTable("product_prices", {
   
   lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
 }, (table) => ({
-  masterCodeIdx: index("prices_master_code_idx").on(table.masterCode),
+  masterCodeIdx: uniqueIndex("prices_master_code_idx").on(table.masterCode),
 }));
 
 // ============================================================
@@ -316,7 +316,7 @@ export const printPrices = pgTable("print_prices", {
   
   lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
 }, (table) => ({
-  techniqueIdx: index("print_prices_technique_idx").on(table.techniqueId),
+  techniqueIdx: uniqueIndex("print_prices_technique_idx").on(table.techniqueId),
 }));
 
 // ============================================================
@@ -333,7 +333,7 @@ export const printManipulations = pgTable("print_manipulations", {
   
   lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
 }, (table) => ({
-  masterCodeIdx: index("manipulations_master_code_idx").on(table.masterCode),
+  masterCodeIdx: uniqueIndex("manipulations_master_code_idx").on(table.masterCode),
 }));
 
 // ============================================================
