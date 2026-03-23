@@ -6,6 +6,9 @@
 // local PostgreSQL. Takes ~5-10 minutes on first run.
 // ============================================================
 
+import { config } from "dotenv";
+config({ path: ".env" });
+
 import { runFullSync } from "../src/lib/sync-engine";
 
 async function main() {
