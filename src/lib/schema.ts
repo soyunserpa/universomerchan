@@ -85,14 +85,14 @@ export const users = pgTable("users", {
   // Customer fields (B2B + B2C)
   firstName: varchar("first_name", { length: 100 }),
   lastName: varchar("last_name", { length: 100 }),
-  phone: varchar("phone", { length: 30 }),
+  phone: varchar("phone", { length: 50 }),
   companyName: varchar("company_name", { length: 200 }),  // Optional for B2C
-  cif: varchar("cif", { length: 20 }),                     // Optional (B2B fills it)
+  cif: varchar("cif", { length: 50 }),                     // Optional (B2B fills it)
   
   // Shipping address (default)
   shippingStreet: varchar("shipping_street", { length: 300 }),
   shippingCity: varchar("shipping_city", { length: 100 }),
-  shippingPostalCode: varchar("shipping_postal_code", { length: 10 }),
+  shippingPostalCode: varchar("shipping_postal_code", { length: 50 }),
   shippingCountry: varchar("shipping_country", { length: 2 }).default("ES"),
   
   // Per-client discount (set by admin from dashboard)
@@ -115,8 +115,8 @@ export const users = pgTable("users", {
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
-  masterCode: varchar("master_code", { length: 20 }).notNull().unique(),
-  masterId: varchar("master_id", { length: 20 }),
+  masterCode: varchar("master_code", { length: 50 }).notNull().unique(),
+  masterId: varchar("master_id", { length: 50 }),
   
   // Product info
   productName: varchar("product_name", { length: 200 }).notNull(),
@@ -124,7 +124,7 @@ export const products = pgTable("products", {
   longDescription: text("long_description"),
   material: varchar("material", { length: 100 }),
   dimensions: varchar("dimensions", { length: 100 }),
-  commodityCode: varchar("commodity_code", { length: 20 }),
+  commodityCode: varchar("commodity_code", { length: 50 }),
   countryOfOrigin: varchar("country_of_origin", { length: 5 }),
   brand: varchar("brand", { length: 50 }),
   
@@ -168,20 +168,20 @@ export const productVariants = pgTable("product_variants", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   
-  variantId: varchar("variant_id", { length: 20 }).notNull(),  // Midocean variant_id
-  sku: varchar("sku", { length: 30 }).notNull(),
+  variantId: varchar("variant_id", { length: 50 }).notNull(),  // Midocean variant_id
+  sku: varchar("sku", { length: 50 }).notNull(),
   
   colorDescription: varchar("color_description", { length: 50 }),
   colorGroup: varchar("color_group", { length: 50 }),
-  colorCode: varchar("color_code", { length: 10 }),
+  colorCode: varchar("color_code", { length: 50 }),
   colorHex: varchar("color_hex", { length: 7 }),
-  pmsColor: varchar("pms_color", { length: 20 }),
-  size: varchar("size", { length: 20 }),                        // For textiles
+  pmsColor: varchar("pms_color", { length: 50 }),
+  size: varchar("size", { length: 50 }),                        // For textiles
   
-  gtin: varchar("gtin", { length: 20 }),
-  plcStatus: varchar("plc_status", { length: 10 }),
+  gtin: varchar("gtin", { length: 50 }),
+  plcStatus: varchar("plc_status", { length: 50 }),
   plcStatusDescription: varchar("plc_status_description", { length: 50 }),
-  releaseDate: varchar("release_date", { length: 10 }),
+  releaseDate: varchar("release_date", { length: 50 }),
   
   // Images (stored as JSON array)
   digitalAssets: jsonb("digital_assets"),  // Array of { url, url_highres, type, subtype }
@@ -201,7 +201,7 @@ export const productVariants = pgTable("product_variants", {
 
 export const stock = pgTable("stock", {
   id: serial("id").primaryKey(),
-  sku: varchar("sku", { length: 30 }).notNull().unique(),
+  sku: varchar("sku", { length: 50 }).notNull().unique(),
   variantId: integer("variant_id").references(() => productVariants.id),
   
   quantity: integer("quantity").default(0).notNull(),
@@ -218,11 +218,11 @@ export const stock = pgTable("stock", {
 
 export const productPrices = pgTable("product_prices", {
   id: serial("id").primaryKey(),
-  masterCode: varchar("master_code", { length: 20 }).notNull(),
+  masterCode: varchar("master_code", { length: 50 }).notNull(),
   
   currency: varchar("currency", { length: 3 }).default("EUR"),
-  pricelistValidFrom: varchar("pricelist_valid_from", { length: 10 }),
-  pricelistValidUntil: varchar("pricelist_valid_until", { length: 10 }),
+  pricelistValidFrom: varchar("pricelist_valid_from", { length: 50 }),
+  pricelistValidUntil: varchar("pricelist_valid_until", { length: 50 }),
   
   // Scaled prices stored as JSON array: [{ min_qty, price }]
   priceScales: jsonb("price_scales").notNull(),  
@@ -241,9 +241,9 @@ export const productPrices = pgTable("product_prices", {
 
 export const variantPrices = pgTable("variant_prices", {
   id: serial("id").primaryKey(),
-  sku: varchar("sku", { length: 30 }).notNull(),
-  variantId: varchar("variant_id", { length: 20 }).notNull(),
-  masterCode: varchar("master_code", { length: 20 }).notNull(),
+  sku: varchar("sku", { length: 50 }).notNull(),
+  variantId: varchar("variant_id", { length: 50 }).notNull(),
+  masterCode: varchar("master_code", { length: 50 }).notNull(),
 
   // Base price (always present) — stored as decimal, parsed from EU format
   price: decimal("price", { precision: 10, scale: 4 }).notNull(),
@@ -252,7 +252,7 @@ export const variantPrices = pgTable("variant_prices", {
   // Format: [{ "minimum_quantity": 1, "price": 3.28 }, { "minimum_quantity": 500, "price": 2.99 }, ...]
   priceScales: jsonb("price_scales"),
 
-  validUntil: varchar("valid_until", { length: 10 }),
+  validUntil: varchar("valid_until", { length: 50 }),
   currency: varchar("currency", { length: 3 }).default("EUR"),
 
   lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
@@ -269,9 +269,9 @@ export const variantPrices = pgTable("variant_prices", {
 
 export const printPositions = pgTable("print_positions", {
   id: serial("id").primaryKey(),
-  masterCode: varchar("master_code", { length: 20 }).notNull(),
+  masterCode: varchar("master_code", { length: 50 }).notNull(),
   
-  positionId: varchar("position_id", { length: 30 }).notNull(),  // e.g. "FRONT", "BACK"
+  positionId: varchar("position_id", { length: 50 }).notNull(),  // e.g. "FRONT", "BACK"
   positionDescription: varchar("position_description", { length: 100 }),
   
   maxPrintWidth: decimal("max_print_width", { precision: 8, scale: 2 }),   // mm
@@ -298,9 +298,9 @@ export const printPositions = pgTable("print_positions", {
 export const printPrices = pgTable("print_prices", {
   id: serial("id").primaryKey(),
   
-  techniqueId: varchar("technique_id", { length: 10 }).notNull(),  // e.g. "S2", "B", "L3"
+  techniqueId: varchar("technique_id", { length: 50 }).notNull(),  // e.g. "S2", "B", "L3"
   techniqueDescription: varchar("technique_description", { length: 100 }),
-  pricingType: varchar("pricing_type", { length: 30 }).notNull(),   // NumberOfColours, NumberOfPositions, AreaRange, ColourAreaRange
+  pricingType: varchar("pricing_type", { length: 50 }).notNull(),   // NumberOfColours, NumberOfPositions, AreaRange, ColourAreaRange
   
   setup: decimal("setup", { precision: 10, scale: 2 }),
   setupRepeat: decimal("setup_repeat", { precision: 10, scale: 2 }),
@@ -311,8 +311,8 @@ export const printPrices = pgTable("print_prices", {
   varCosts: jsonb("var_costs").notNull(),
   
   currency: varchar("currency", { length: 3 }).default("EUR"),
-  pricelistValidFrom: varchar("pricelist_valid_from", { length: 10 }),
-  pricelistValidUntil: varchar("pricelist_valid_until", { length: 10 }),
+  pricelistValidFrom: varchar("pricelist_valid_from", { length: 50 }),
+  pricelistValidUntil: varchar("pricelist_valid_until", { length: 50 }),
   
   lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
 }, (table) => ({
@@ -325,7 +325,7 @@ export const printPrices = pgTable("print_prices", {
 
 export const printManipulations = pgTable("print_manipulations", {
   id: serial("id").primaryKey(),
-  masterCode: varchar("master_code", { length: 20 }).notNull(),
+  masterCode: varchar("master_code", { length: 50 }).notNull(),
   
   // Handling cost (product-dependent, not print-config-dependent)
   handlingPriceScales: jsonb("handling_price_scales").notNull(),
@@ -342,7 +342,7 @@ export const printManipulations = pgTable("print_manipulations", {
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  orderNumber: varchar("order_number", { length: 30 }).notNull().unique(), // UM-2026-XXXX
+  orderNumber: varchar("order_number", { length: 50 }).notNull().unique(), // UM-2026-XXXX
   userId: integer("user_id").notNull().references(() => users.id),
   
   // Status
@@ -350,7 +350,7 @@ export const orders = pgTable("orders", {
   orderType: orderTypeEnum("order_type").default("NORMAL").notNull(),
   
   // Midocean reference (set after Order Entry API call)
-  midoceanOrderNumber: varchar("midocean_order_number", { length: 30 }),
+  midoceanOrderNumber: varchar("midocean_order_number", { length: 50 }),
   midoceanPoNumber: varchar("midocean_po_number", { length: 50 }),
   
   // Pricing breakdown (all in EUR)
@@ -375,11 +375,11 @@ export const orders = pgTable("orders", {
   shippingName: varchar("shipping_name", { length: 200 }),
   shippingCompany: varchar("shipping_company", { length: 200 }),
   shippingStreet: varchar("shipping_street", { length: 300 }),
-  shippingPostalCode: varchar("shipping_postal_code", { length: 10 }),
+  shippingPostalCode: varchar("shipping_postal_code", { length: 50 }),
   shippingCity: varchar("shipping_city", { length: 100 }),
   shippingCountry: varchar("shipping_country", { length: 2 }).default("ES"),
   shippingEmail: varchar("shipping_email", { length: 255 }),
-  shippingPhone: varchar("shipping_phone", { length: 30 }),
+  shippingPhone: varchar("shipping_phone", { length: 50 }),
   expressShipping: boolean("express_shipping").default(false),
   
   // Tracking (from Midocean Order Details API)
@@ -415,12 +415,12 @@ export const orderLines = pgTable("order_lines", {
   lineNumber: integer("line_number").notNull(),
   
   // Product reference
-  masterCode: varchar("master_code", { length: 20 }).notNull(),
-  sku: varchar("sku", { length: 30 }),
-  variantId: varchar("variant_id", { length: 20 }),
+  masterCode: varchar("master_code", { length: 50 }).notNull(),
+  sku: varchar("sku", { length: 50 }),
+  variantId: varchar("variant_id", { length: 50 }),
   productName: varchar("product_name", { length: 200 }),
   colorDescription: varchar("color_description", { length: 50 }),
-  size: varchar("size", { length: 20 }),
+  size: varchar("size", { length: 50 }),
   
   quantity: integer("quantity").notNull(),
   unitPriceMidocean: decimal("unit_price_midocean", { precision: 10, scale: 4 }),  // Cost from Midocean
@@ -472,7 +472,7 @@ export const orderLines = pgTable("order_lines", {
 
 export const quotes = pgTable("quotes", {
   id: serial("id").primaryKey(),
-  quoteNumber: varchar("quote_number", { length: 30 }).notNull().unique(),  // PRE-2026-XXXX
+  quoteNumber: varchar("quote_number", { length: 50 }).notNull().unique(),  // PRE-2026-XXXX
   userId: integer("user_id").references(() => users.id),
   
   // Can also be for anonymous users (email only)
@@ -507,7 +507,7 @@ export const coupons = pgTable("coupons", {
   code: varchar("code", { length: 50 }).notNull().unique(),
   
   // "percentage" | "fixed"
-  discountType: varchar("discount_type", { length: 20 }).notNull(),
+  discountType: varchar("discount_type", { length: 50 }).notNull(),
   discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
   
   // Rules
@@ -533,7 +533,7 @@ export const emailLog = pgTable("email_log", {
   id: serial("id").primaryKey(),
   
   recipientEmail: varchar("recipient_email", { length: 255 }).notNull(),
-  recipientType: varchar("recipient_type", { length: 20 }).notNull(), // "customer" or "admin"
+  recipientType: varchar("recipient_type", { length: 50 }).notNull(), // "customer" or "admin"
   
   emailType: varchar("email_type", { length: 50 }).notNull(),
   // Types: welcome, order_confirmation, proof_ready, proof_approved, 
@@ -545,7 +545,7 @@ export const emailLog = pgTable("email_log", {
   orderId: integer("order_id").references(() => orders.id),
   
   sentAt: timestamp("sent_at").defaultNow().notNull(),
-  deliveryStatus: varchar("delivery_status", { length: 20 }).default("sent"),
+  deliveryStatus: varchar("delivery_status", { length: 50 }).default("sent"),
 });
 
 // ============================================================
@@ -555,10 +555,10 @@ export const emailLog = pgTable("email_log", {
 export const syncLog = pgTable("sync_log", {
   id: serial("id").primaryKey(),
   
-  syncType: varchar("sync_type", { length: 30 }).notNull(),
+  syncType: varchar("sync_type", { length: 50 }).notNull(),
   // Types: products, stock, pricelist, print_pricelist, print_data
   
-  status: varchar("status", { length: 20 }).notNull(), // "success", "error", "partial"
+  status: varchar("status", { length: 50 }).notNull(), // "success", "error", "partial"
   recordsProcessed: integer("records_processed").default(0),
   recordsUpdated: integer("records_updated").default(0),
   recordsCreated: integer("records_created").default(0),
@@ -581,7 +581,7 @@ export const errorLog = pgTable("error_log", {
   // Types: stock_insufficient, order_api_error, proof_rejected,
   //        artwork_invalid, payment_failed, sync_error
   
-  severity: varchar("severity", { length: 10 }).notNull(), // "low", "medium", "high", "critical"
+  severity: varchar("severity", { length: 50 }).notNull(), // "low", "medium", "high", "critical"
   message: text("message").notNull(),
   context: jsonb("context"),  // Related IDs, details
   
