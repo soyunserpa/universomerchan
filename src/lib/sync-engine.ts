@@ -462,13 +462,16 @@ export async function syncPrintPricelist(): Promise<{ updated: number }> {
 
     // Sync techniques
     for (const technique of printPricelist.print_techniques || []) {
+      const parsedSetup = technique.setup && technique.setup.trim() !== "" ? technique.setup.replace(",", ".") : null;
+      const parsedSetupRepeat = technique.setup_repeat && technique.setup_repeat.trim() !== "" ? technique.setup_repeat.replace(",", ".") : null;
+
       await db.insert(schema.printPrices)
         .values({
           techniqueId: technique.id,
           techniqueDescription: technique.description,
           pricingType: technique.pricing_type,
-          setup: technique.setup?.replace(",", "."),
-          setupRepeat: technique.setup_repeat?.replace(",", "."),
+          setup: parsedSetup,
+          setupRepeat: parsedSetupRepeat,
           nextColourCostIndicator: technique.next_colour_cost_indicator === "true" || technique.next_colour_cost_indicator === "X",
           varCosts: technique.var_costs,
           currency: printPricelist.currency,
@@ -481,8 +484,8 @@ export async function syncPrintPricelist(): Promise<{ updated: number }> {
           set: {
             techniqueDescription: technique.description,
             pricingType: technique.pricing_type,
-            setup: technique.setup?.replace(",", "."),
-            setupRepeat: technique.setup_repeat?.replace(",", "."),
+            setup: parsedSetup,
+            setupRepeat: parsedSetupRepeat,
             nextColourCostIndicator: technique.next_colour_cost_indicator === "true" || technique.next_colour_cost_indicator === "X",
             varCosts: technique.var_costs,
             lastSyncedAt: new Date(),
