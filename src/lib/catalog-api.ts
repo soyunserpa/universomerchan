@@ -533,26 +533,29 @@ export interface PriceCalculationRequest {
 
 function colorGroupToHex(colorGroup: string): string {
   const map: Record<string, string> = {
-    black: "#222222",
-    white: "#F8F8F8",
-    blue: "#1E40AF",
-    red: "#DC2626",
-    green: "#15803D",
-    yellow: "#EAB308",
-    orange: "#EA580C",
-    pink: "#EC4899",
-    purple: "#7C3AED",
-    grey: "#6B7280",
-    gray: "#6B7280",
-    brown: "#78350F",
-    navy: "#1E3A5F",
-    silver: "#C0C0C0",
-    gold: "#D4A017",
-    natural: "#F5F0E6",
-    beige: "#F5F5DC",
-    transparent: "#E8E8E8",
+    // English
+    black: "#222222", white: "#F8F8F8", blue: "#1E40AF", red: "#DC2626",
+    green: "#15803D", yellow: "#EAB308", orange: "#EA580C", pink: "#EC4899",
+    purple: "#7C3AED", grey: "#6B7280", gray: "#6B7280", brown: "#78350F",
+    navy: "#1E3A5F", silver: "#C0C0C0", gold: "#D4A017", natural: "#F5F0E6",
+    beige: "#F5F5DC", transparent: "#E8E8E8",
+    // Spanish Standard
+    negro: "#222222", blanco: "#F8F8F8", azul: "#1E40AF", rojo: "#DC2626",
+    verde: "#15803D", amarillo: "#EAB308", naranja: "#EA580C", rosa: "#EC4899",
+    morado: "#7C3AED", purpura: "#7C3AED", gris: "#6B7280", marron: "#78350F",
+    marino: "#1E3A5F", plata: "#C0C0C0", oro: "#D4A017", dorado: "#D4A017",
+    transparente: "#E8E8E8",
+    // Midocean specifics
+    ceniza: "#D1D5DB", azul_claro: "#60A5FA", azul_oscuro: "#1E3A8A",
+    azul_rey: "#2563EB", azul_marino: "#1E3A8A", celeste: "#38BDF8",
+    verde_claro: "#86EFAC", verde_oscuro: "#064E3B", verde_manzana: "#84CC16",
+    verde_lima: "#A3E635", naranja_claro: "#FDBA74", burdeos: "#9F1239",
+    fucsia: "#C026D3", turquesa: "#0D9488", amarillo_fluor: "#D9F99D",
+    verde_fluor: "#86EFAC", naranja_fluor: "#FFEDD5", rosa_fluor: "#FBCFE8",
+    magenta: "#D946EF", cian: "#06B6D4", multicolor: "#A855F7", surtido: "#A855F7"
   };
-  return map[colorGroup.toLowerCase()] || "#9CA3AF";
+  const key = colorGroup.toLowerCase().trim().replace(/\s+/g, "_");
+  return map[key] || "#9CA3AF";
 }
 
 function slugify(text: string): string {

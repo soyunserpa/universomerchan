@@ -288,6 +288,8 @@ export const printPositions = pgTable("print_positions", {
   positionImageVariants: jsonb("position_image_variants"),
   positionPoints: jsonb("position_points"),
   
+  lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
+  
   // Available techniques for this position (stored as JSON)
   // Array of { technique_id, technique_description, max_colors }
   availableTechniques: jsonb("available_techniques").notNull(),
