@@ -21,7 +21,6 @@ if (!API_KEY) {
 const headers = {
   "x-Gateway-APIKey": API_KEY,
   "Accept": "text/json",
-  "Content-Type": "application/json",
 };
 
 // ============================================================
@@ -48,7 +47,7 @@ async function midoceanPost<T>(endpoint: string, body: any): Promise<T> {
 
   const response = await fetch(url, {
     method: "POST",
-    headers,
+    headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
