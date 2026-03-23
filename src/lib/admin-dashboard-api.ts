@@ -786,6 +786,11 @@ export async function toggleClientActive(
   }).where(eq(schema.users.id, clientId));
 }
 
+// Delete client
+export async function deleteClient(clientId: number): Promise<void> {
+  await db.delete(schema.users).where(eq(schema.users.id, clientId));
+}
+
 // ============================================================
 // 5. MARGIN & SETTINGS
 // ============================================================

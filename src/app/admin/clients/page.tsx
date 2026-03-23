@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/components/admin/AdminLayout";
-import { Search, RefreshCw, Users, ShoppingCart, UserCheck, UserX } from "lucide-react";
+import { Search, RefreshCw, Users, ShoppingCart, UserCheck, UserX, Trash2 } from "lucide-react";
 
 interface Client {
   id: number; email: string; firstName: string; lastName: string;
@@ -43,6 +43,28 @@ export default function AdminClientsPage() {
     setClients(prev => prev.map(c => c.id === id ? { ...c, discountPercent: discount } : c));
   };
 
+  const handleDelete = async (id: number, name: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente a "${name}"?\nSe borrarán sus datos de acceso. Sus pedidos anteriores seguirán existiendo en el historial, pero sin enlace al usuario.`)) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/clients/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        setClients(prev => prev.filter(c => c.id !== id));
+        setTotal(prev => prev - 1);
+      } else {
+        alert("Error al eliminar el cliente.");
+      }
+    } catch (e) {
+      alert("Error de conexión al eliminar el cliente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -65,8 +87,8 @@ export default function AdminClientsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-surface-200 text-left">
-                  {["Estado", "Cliente", "Empresa", "Pedidos", "Total gastado", "Último pedido", "Descuento", "Desde"].map(h => (
-                    <th key={h} className="px-3 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
+                  {["Estado", "Cliente", "Empresa", "Pedidos", "Total gastado", "Último pedido", "Descuento", "Desde", ""].map((h, i) => (
+                    <th key={i} className="px-3 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -105,6 +127,11 @@ export default function AdminClientsPage() {
                     </td>
                     <td className="px-3 py-3 text-[11px] text-gray-400">
                       {new Date(c.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "2-digit" })}
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <button onClick={() => handleDelete(c.id, `${c.firstName} ${c.lastName}`)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors" title="Eliminar cliente">
+                        <Trash2 size={14} />
+                      </button>
                     </td>
                   </tr>
                 ))}
