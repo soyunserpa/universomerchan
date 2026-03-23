@@ -40,6 +40,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
+    // WEBHOOK: Backup the client info onto the User's Google Sheet
+    if (process.env.APPS_SCRIPT_EMAIL_URL) {
+      fetch(process.env.APPS_SCRIPT_EMAIL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveClient",
+          client: { ...body, id: result.user?.id }
+        })
+      }).catch(err => console.error("[GoogleSheets Webhook] Fail:", err));
+    }
+
     return NextResponse.json({
       success: true,
       token: result.token,

@@ -46,6 +46,37 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     
+    // Verificar la acción solicitada
+    if (data.action === "saveClient") {
+      var clientSheetName = "Universo Merchan - Clientes Registrados";
+      var files = DriveApp.getFilesByName(clientSheetName);
+      var ss;
+      
+      if (files.hasNext()) {
+        ss = SpreadsheetApp.open(files.next());
+      } else {
+        ss = SpreadsheetApp.create(clientSheetName);
+        var sheet = ss.getActiveSheet();
+        sheet.appendRow(["Fecha de Registro", "Email", "Nombre", "Apellidos", "Teléfono", "Empresa", "CIF", "Cliente ID"]);
+        sheet.getRange(1, 1, 1, 8).setFontWeight("bold");
+        sheet.setFrozenRows(1);
+      }
+      
+      var sheet = ss.getActiveSheet();
+      sheet.appendRow([
+        new Date().toLocaleString("es-ES"),
+        data.client.email || "",
+        data.client.firstName || "",
+        data.client.lastName || "",
+        data.client.phone || "",
+        data.client.companyName || "",
+        data.client.cif || "",
+        data.client.id || ""
+      ]);
+      
+      return jsonResponse({ success: true, message: "Cliente guardado exitosamente en Google Sheets" });
+    }
+
     // Verificar que la acción es enviar email
     if (data.action !== "sendEmail") {
       return jsonResponse({ success: false, error: "Acción no válida" });
