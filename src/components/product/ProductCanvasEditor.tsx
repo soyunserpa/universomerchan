@@ -114,7 +114,9 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         });
         if (match) return proxyUrl(match.imageWithArea || match.imageBlank);
       }
-      return proxyUrl(activeZoneData.imageWithArea || activeZoneData.imageBlank);
+      
+      // Fallback: Use the product's main color image FIRST before the uncolored generic mock area
+      return proxyUrl(productImage || activeZoneData.imageWithArea || activeZoneData.imageBlank);
     })();
 
     // Emit placements when logos change
@@ -195,7 +197,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
       if (!zone || !logo) return null;
       try {
         // Load product image (color-matched) — same logic as previewUrl
-        let imgSrc = zone.imageWithArea || zone.imageBlank;
+        let imgSrc = productImage || zone.imageWithArea || zone.imageBlank;
         if (selectedColorCode && zone.imageVariants?.length) {
           const match = zone.imageVariants.find(v => {
             if (!v.colorCode || !selectedColorCode) return false;

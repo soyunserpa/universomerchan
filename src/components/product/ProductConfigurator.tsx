@@ -963,7 +963,7 @@ export function ProductConfigurator({ product }: Props) {
                     });
                     if (match) { const u = match.imageWithArea || match.imageBlank || ""; return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; }
                   }
-                  const img = zone.imageWithArea || zone.imageBlank || "";
+                  const img = variant.mainImage || zone.imageWithArea || zone.imageBlank || "";
                   return img.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(img) : img;
                 };
                 return (
