@@ -836,6 +836,15 @@ export function ProductConfigurator({ product }: Props) {
                   {positionData?.techniques.map(tech => {
                     const isSelected = selectedTechnique === tech.techniqueId;
                     const indicative = getTechIndicativePrice(tech);
+                    
+                    let displayTitle = tech.name;
+                    let displaySubtitle = tech.description;
+                    if (tech.description && tech.description.includes(" — ")) {
+                      const parts = tech.description.split(" — ");
+                      displayTitle = parts[0];
+                      displaySubtitle = parts.slice(1).join(" — ");
+                    }
+
                     return (
                       <button
                         key={tech.techniqueId}
@@ -843,15 +852,15 @@ export function ProductConfigurator({ product }: Props) {
                         className={`w-full p-3.5 rounded-xl border-2 text-left flex justify-between items-center transition-all ${isSelected ? "border-brand-red bg-brand-red/[0.05]" : "border-surface-200 hover:border-gray-300"}`}
                       >
                         <div>
-                          <div className={`text-sm font-semibold ${isSelected ? "text-brand-red" : ""}`}>{tech.name}</div>
-                          <div className="text-xs text-gray-400">{tech.description}</div>
+                          <div className={`text-sm font-semibold ${isSelected ? "text-brand-red" : "text-gray-900"}`}>{displayTitle}</div>
+                          <div className="text-xs text-gray-800 mt-0.5">{displaySubtitle}</div>
                           {indicative && (
-                            <div className="text-[10px] text-gray-300 mt-1">
+                            <div className="text-[10px] text-gray-400 mt-1">
                               Setup: {indicative.setup.toFixed(0)}€ · Desde {indicative.perUnit.toFixed(2)}€/ud
                             </div>
                           )}
                           {!indicative && (
-                            <div className="text-[10px] text-gray-300 mt-1">Precio bajo consulta</div>
+                            <div className="text-[10px] text-gray-400 mt-1">Precio bajo consulta</div>
                           )}
                         </div>
                         {isSelected && <Check size={18} className="text-brand-red flex-shrink-0" />}
@@ -980,7 +989,7 @@ export function ProductConfigurator({ product }: Props) {
                 ["Precio/ud producto", `${unitProductPrice.toFixed(2)}€`],
                 ...(selectedTechnique ? [
                   ["Posición", positionData?.description || ""],
-                  ["Técnica", techniqueData?.name || ""],
+                  ["Técnica", techniqueData?.description?.split(" — ")[0] || techniqueData?.name || ""],
                   ...(isColorBased ? [["Colores logo", String(numColors)]] : []),
                   ["Manipulación", `${handlingInfo?.description || "Estándar"} (${round(handlingCostPerUnit * printMarginMultiplier).toFixed(2)}€/ud)`],
                   ...(hasLogos ? logoPlacements.map(lp => [`Logo (${printZones.find(z => z.positionId === lp.positionId)?.positionName || ""})`, lp.logoFileName]) : []),
