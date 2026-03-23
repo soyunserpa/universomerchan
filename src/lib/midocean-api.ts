@@ -103,6 +103,7 @@ export interface MidoceanProduct {
     color_code: string;
     pms_color: string;
     size?: string;
+    size_textile?: string;
     digital_assets: Array<{
       url: string;
       url_highress: string;

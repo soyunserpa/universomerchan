@@ -97,7 +97,7 @@ export async function syncProducts(): Promise<{ created: number; updated: number
               colorGroup: variant.color_group,
               colorCode: variant.color_code,
               pmsColor: variant.pms_color,
-              size: variant.size || null,
+              size: variant.size || variant.size_textile || null,
               gtin: variant.gtin,
               plcStatus: variant.plc_status,
               plcStatusDescription: variant.plc_status_description,
