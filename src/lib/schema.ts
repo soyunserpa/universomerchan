@@ -280,6 +280,11 @@ export const printPositions = pgTable("print_positions", {
   // Image showing the print zone on the product
   printPositionImage: text("print_position_image"),
   
+  // Canvas V2: Additional images and point coordinates
+  positionImageBlank: text("position_image_blank"),
+  positionImageVariants: jsonb("position_image_variants"),
+  positionPoints: jsonb("position_points"),
+  
   // Available techniques for this position (stored as JSON)
   // Array of { technique_id, technique_description, max_colors }
   availableTechniques: jsonb("available_techniques").notNull(),
