@@ -403,7 +403,7 @@ export async function syncPrintData(): Promise<{ updated: number }> {
       await db.delete(schema.printPositions)
         .where(eq(schema.printPositions.masterCode, product.master_code));
 
-      for (const position of product.print_positions || []) {
+      for (const position of product.printing_positions || []) {
         // Canvas V2: Extract points and blank images from Midocean data
         const points = (position as any).points || [];
         const images = (position as any).images || [];
