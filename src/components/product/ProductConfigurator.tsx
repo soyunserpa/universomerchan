@@ -955,7 +955,12 @@ export function ProductConfigurator({ product }: Props) {
                 const getUrl = () => {
                   if (!zone) return variant.mainImage || "";
                   if (variant.colorCode && zone.imageVariants?.length) {
-                    const match = zone.imageVariants.find(v => v.colorCode.toUpperCase() === variant.colorCode.toUpperCase());
+                    const match = zone.imageVariants.find(v => {
+                      if (!v.colorCode || !variant.colorCode) return false;
+                      const c = v.colorCode.toUpperCase();
+                      const t = variant.colorCode.toUpperCase();
+                      return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+                    });
                     if (match) { const u = match.imageWithArea || match.imageBlank || ""; return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; }
                   }
                   const img = zone.imageWithArea || zone.imageBlank || "";

@@ -106,9 +106,12 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     const previewUrl = (() => {
       if (!activeZoneData) return "";
       if (selectedColorCode && activeZoneData.imageVariants?.length) {
-        const match = activeZoneData.imageVariants.find(
-          v => v.colorCode.toUpperCase() === selectedColorCode.toUpperCase()
-        );
+        const match = activeZoneData.imageVariants.find(v => {
+          if (!v.colorCode || !selectedColorCode) return false;
+          const c = v.colorCode.toUpperCase();
+          const t = selectedColorCode.toUpperCase();
+          return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+        });
         if (match) return proxyUrl(match.imageWithArea || match.imageBlank);
       }
       return proxyUrl(activeZoneData.imageWithArea || activeZoneData.imageBlank);
@@ -194,7 +197,12 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         // Load product image (color-matched) — same logic as previewUrl
         let imgSrc = zone.imageWithArea || zone.imageBlank;
         if (selectedColorCode && zone.imageVariants?.length) {
-          const match = zone.imageVariants.find(v => v.colorCode.toUpperCase() === selectedColorCode.toUpperCase());
+          const match = zone.imageVariants.find(v => {
+            if (!v.colorCode || !selectedColorCode) return false;
+            const c = v.colorCode.toUpperCase();
+            const t = selectedColorCode.toUpperCase();
+            return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+          });
           if (match) imgSrc = match.imageWithArea || match.imageBlank || imgSrc;
         }
         const productImg = await loadImage(proxyUrl(imgSrc));
