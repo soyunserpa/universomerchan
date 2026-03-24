@@ -8,7 +8,7 @@ import { useAdminAuth } from "@/components/admin/AdminLayout";
 
 export default function AdminBlogEditor({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { authHeaders } = useAdminAuth();
+  const { authHeaders, logout } = useAdminAuth();
   const isNew = params.id === "new";
   
   const [loading, setLoading] = useState(!isNew);
@@ -117,7 +117,13 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
       if (data.success) {
         setFormData((prev) => ({ ...prev, featuredImageUrl: data.imageUrl }));
       } else {
-        alert(data.error || "Error al subir la imagen");
+        if (data.error?.toLowerCase().includes("token") || res.status === 401) {
+          alert("Tu sesión ha caducado por seguridad. Por favor, vuelve a iniciar sesión.");
+          logout();
+          router.push("/admin/login");
+        } else {
+          alert(data.error || "Error al subir la imagen");
+        }
       }
     } catch (error: any) {
       console.error(error);

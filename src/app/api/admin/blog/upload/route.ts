@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
       buffer,
       `blog-${Date.now()}-${file.name}`,
       file.type,
-      auth.user.id
+      auth.user.id,
+      "blog-portadas"
     );
 
     if (!result.success) {
