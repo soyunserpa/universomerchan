@@ -33,7 +33,7 @@ function T(content: string, preheader: string = ""): string {
   return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>body{margin:0;padding:0;background:#F5F5F5;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#111}.container{max-width:600px;margin:0 auto;background:#FFF}.header{background:#DE0121;padding:24px 32px;text-align:center}.header h1{color:#fff;font-size:20px;font-weight:800;margin:0}.header p{color:rgba(255,255,255,.7);font-size:11px;margin:4px 0 0}.body{padding:32px}.footer{background:#111;color:#999;padding:24px 32px;text-align:center;font-size:11px}.footer a{color:#DE0121;text-decoration:none}.btn{display:inline-block;background:#DE0121;color:#fff!important;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;font-size:14px;margin:16px 0}.btn-dark{background:#111!important}.price-box{background:#111;color:#fff;border-radius:12px;padding:20px;margin:16px 0}.price-total{font-size:28px;font-weight:800;color:#DE0121}.ab{border-radius:12px;padding:16px;margin:16px 0}</style></head>
 <body><span style="display:none;max-height:0;overflow:hidden">${preheader}</span>
-<div class="container"><div class="header"><h1>🎁 Universo Merchan</h1><p>#GeneraEmociones</p></div>
+<div class="container"><div class="header"><h1>Universo Merchan</h1><p>#GeneraEmociones</p></div>
 <div class="body">${content}</div>
 <div class="footer"><p>Universo Merchan · Madrid, España</p><p><a href="${SITE_URL}">universomerchan.com</a> · pedidos@universomerchan.com</p><p style="margin-top:12px;color:#666">Producción 80% europea · Entrega &lt;10 días</p></div></div></body></html>`;
 }
@@ -108,7 +108,7 @@ export async function notifyAdminLowStock(d: { productName: string; masterCode: 
 export async function notifyAdminContactForm(d: { name: string; email: string; phone: string; company: string; subject: string; message: string; }) {
   return sendEmail({ 
     to: ADMIN_EMAIL, 
-    subject: `📩 Consulta Web: ${d.subject || "Nuevo mensaje"}`, 
+    subject: `Consulta Web: ${d.subject || "Nuevo mensaje"}`, 
     html: T(`<h2>Nueva Consulta Web</h2>
     <div class="ab" style="background:#F3F4F6">
       <p style="margin:4px 0 0"><strong>Nombre:</strong> ${d.name}</p>
