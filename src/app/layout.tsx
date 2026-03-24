@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
+import { GoogleTagManager } from "@next/third-parties/google";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
@@ -20,11 +21,15 @@ export const metadata: Metadata = {
     locale: "es_ES",
     type: "website",
   },
+  verification: {
+    google: "mVS8J7HnqcunvWp4QbzZXuasi0ETBhRQS6mV5wT3-sI",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
+      <GoogleTagManager gtmId="GTM-K7XX7K68" />
       <body className="bg-surface-50 text-gray-900 min-h-screen">
         <AuthProvider>
           <CartProvider>

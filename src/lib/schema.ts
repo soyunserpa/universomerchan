@@ -605,3 +605,20 @@ export const errorLog = pgTable("error_log", {
   typeIdx: index("errors_type_idx").on(table.errorType),
   resolvedIdx: index("errors_resolved_idx").on(table.resolved),
 }));
+
+// ============================================================
+// BLOG ENGINE — Content Management System for SEO articles
+// ============================================================
+
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").unique().notNull(), // e.g. "tendencias-merchandising-2026"
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(), // HTML content
+  coverImage: text("cover_image"),
+  authorName: text("author_name").default("Universo Merchan"),
+  isPublished: boolean("is_published").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
