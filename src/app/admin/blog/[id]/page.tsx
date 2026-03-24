@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Image as ImageIcon, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useAdminAuth } from "@/components/admin/AdminLayout";
 
 export default function AdminBlogEditor({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { authHeaders } = useAdminAuth();
   const isNew = params.id === "new";
   
   const [loading, setLoading] = useState(!isNew);
