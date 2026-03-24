@@ -612,13 +612,37 @@ export const errorLog = pgTable("error_log", {
 
 export const blogPosts = pgTable("blog_posts", {
   id: serial("id").primaryKey(),
-  slug: text("slug").unique().notNull(), // e.g. "tendencias-merchandising-2026"
-  title: text("title").notNull(),
-  excerpt: text("excerpt").notNull(),
-  content: text("content").notNull(), // HTML content
-  coverImage: text("cover_image"),
-  authorName: text("author_name").default("Universo Merchan"),
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  title: varchar("title", { length: 300 }).notNull(),
+  excerpt: text("excerpt"),               // Short description for cards
+  body: text("body").notNull(),           // Full HTML/markdown content
+  featuredImageUrl: text("featured_image_url"),  // Uploaded by admin
+  
+  // SEO
+  metaTitle: varchar("meta_title", { length: 200 }),
+  metaDescription: varchar("meta_description", { length: 300 }),
+  
+  // Status
   isPublished: boolean("is_published").default(false),
+  publishedAt: timestamp("published_at"),
+  
+  // Author (admin user)
+  authorId: integer("author_id"),
+  authorName: varchar("author_name", { length: 100 }),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  slugIdx: index("blog_slug_idx").on(table.slug),
+  publishedIdx: index("blog_published_idx").on(table.isPublished),
+}));
+
+export const staticPages = pgTable("static_pages", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  title: varchar("title", { length: 200 }).notNull(),
+  body: text("body").notNull(),           // HTML content
+  metaTitle: varchar("meta_title", { length: 200 }),
+  metaDescription: varchar("meta_description", { length: 300 }),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

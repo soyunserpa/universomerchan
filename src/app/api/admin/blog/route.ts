@@ -13,6 +13,20 @@ import {
 import { uploadArtwork, formatFileSize } from "@/lib/artwork-upload";
 
 
+export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req.headers.get("authorization"), "admin");
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  try {
+    const posts = await getAdminPosts();
+    return NextResponse.json({ success: true, posts });
+  } catch (error) {
+    return NextResponse.json({ error: "No se pudieron cargar los artículos" }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req.headers.get("authorization"), "admin");
   if ("error" in auth) {
