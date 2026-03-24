@@ -511,6 +511,7 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgNatural, setImgNatural] = useState<{ w: number; h: number } | null>(null);
+  const [currentSrc, setCurrentSrc] = useState(previewUrl);
 
   const handleImageLoad = useCallback(() => {
     if (imgRef.current) {
@@ -518,8 +519,26 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     }
   }, []);
 
-  // Reset dimensions when URL changes
-  useEffect(() => { setImgNatural(null); }, [previewUrl]);
+  const handleImageError = useCallback(() => {
+    // If forged URL fails, fallback to the un-forged base mock area image
+    const fallbackSrc = proxyUrl(activeZoneData?.imageWithArea || activeZoneData?.imageBlank || "");
+    if (fallbackSrc && currentSrc !== fallbackSrc) {
+      setCurrentSrc(fallbackSrc);
+    }
+  }, [activeZoneData, currentSrc]);
+
+  // Reset dimensions and source when URL changes
+  useEffect(() => { 
+    setImgNatural(null); 
+    setCurrentSrc(previewUrl);
+  }, [previewUrl]);
+
+  // Ensure image dimensions are captured even if loaded from cache
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0 && !imgNatural) {
+      handleImageLoad();
+    }
+  }, [currentSrc, handleImageLoad, imgNatural]);
 
   const logoOverlay = (() => {
     if (!activeLogoData || !activeZoneData?.points?.length || activeZoneData.points.length < 2 || !imgNatural) return null;
@@ -539,6 +558,7 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     const logoH = zoneHeight * currentLogoPos.scale;
     const logoLeft = zoneLeft + zoneWidth * currentLogoPos.x - logoW / 2;
     const logoTop = zoneTop + zoneHeight * currentLogoPos.y - logoH / 2;
+    
     return (
       <img
         src={activeLogoData.dataUrl}
@@ -561,15 +581,16 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
 
   return (
     <div className="rounded-xl border border-surface-200 bg-surface-50 overflow-hidden relative">
-      {previewUrl ? (
+      {currentSrc ? (
         <>
           <img
             ref={imgRef}
-            src={previewUrl}
+            src={currentSrc}
             alt={productName}
             className="w-full h-auto block"
             draggable={false}
             onLoad={handleImageLoad}
+            onError={handleImageError}
           />
           {logoOverlay}
         </>
