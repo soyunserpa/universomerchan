@@ -269,13 +269,11 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
           const pts = [...zone.points].sort((a, b) => a.sequence_no - b.sequence_no);
           const p = logoPos[positionId] || { x: 0.5, y: 0.5, scale: 0.65 };
 
-          const imgW = natW; // Renamed for clarity as per instruction
-          const imgH = natH; // Renamed for clarity as per instruction
-          // The true fix: the day before yesterday we derived minXPct from the actual target image width!
-          const minXPct = Math.min(...pts.map(p => p.distance_from_left)) / imgW;
-          const maxXPct = Math.max(...pts.map(p => p.distance_from_left)) / imgW;
-          const minYPct = Math.min(...pts.map(p => p.distance_from_top)) / imgH;
-          const maxYPct = Math.max(...pts.map(p => p.distance_from_top)) / imgH;
+          // Dynamic bounding box calc (supports polygons >2 points and any coordinate order)
+          const minXPct = Math.min(...pts.map(p => p.distance_from_left)) / natW;
+          const maxXPct = Math.max(...pts.map(p => p.distance_from_left)) / natW;
+          const minYPct = Math.min(...pts.map(p => p.distance_from_top)) / natH;
+          const maxYPct = Math.max(...pts.map(p => p.distance_from_top)) / natH;
 
           // Same relative % calc as PreviewWithLogo
           const zoneLeftPct = minXPct;
@@ -533,29 +531,14 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     const minY = Math.min(...pts.map(p => p.distance_from_top));
     const maxY = Math.max(...pts.map(p => p.distance_from_top));
 
-    // Restoring EXACT logic from the day before yesterday
-    const isS3Proxy = previewUrl.includes("s3.eu-south");
-    let zoneLeft, zoneTop, zoneWidth, zoneHeight;
-
-    if (isS3Proxy) {
-        // S3 proxies are cropped and resize violently; points are meaningless. Fallback centered.
-        zoneLeft = (350 / 1200) * 100;
-        zoneTop = (400 / 1200) * 100;
-        zoneWidth = (500 / 1200) * 100;
-        zoneHeight = (400 / 1200) * 100;
-    } else {
-        // Pure Midocean URLs dynamically pair pixels 1:1 against their natural resolution
-        zoneLeft = (minX / imgW) * 100;
-        zoneTop = (minY / imgH) * 100;
-        zoneWidth = ((maxX - minX) / imgW) * 100;
-        zoneHeight = ((maxY - minY) / imgH) * 100;
-    }
-    
+    const zoneLeft = (minX / imgW) * 100;
+    const zoneTop = (minY / imgH) * 100;
+    const zoneWidth = ((maxX - minX) / imgW) * 100;
+    const zoneHeight = ((maxY - minY) / imgH) * 100;
     const logoW = zoneWidth * currentLogoPos.scale;
     const logoH = zoneHeight * currentLogoPos.scale;
     const logoLeft = zoneLeft + zoneWidth * currentLogoPos.x - logoW / 2;
     const logoTop = zoneTop + zoneHeight * currentLogoPos.y - logoH / 2;
-    
     return (
       <img
         src={activeLogoData.dataUrl}
