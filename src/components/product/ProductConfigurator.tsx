@@ -795,6 +795,8 @@ export function ProductConfigurator({ product }: Props) {
                 productImage={variant.mainImage || ""}
                 productName={product.name}
                 selectedColorCode={variant.colorCode}
+                productSku={variant.sku}
+                productMasterCode={product.masterCode}
                 onPlacementsChange={setLogoPlacements}
                 activeZoneId={selectedPosition}
                 onActiveZoneChange={handleCanvasZoneChange}
@@ -954,16 +956,28 @@ export function ProductConfigurator({ product }: Props) {
                 const zone = lp ? printZones.find(z => z.positionId === lp.positionId) : printZones[0];
                 const getUrl = () => {
                   if (!zone) return variant.mainImage || "";
-                  if (variant.colorCode && zone.imageVariants?.length) {
-                    const match = zone.imageVariants.find(v => {
-                      if (!v.colorCode || !variant.colorCode) return false;
-                      const c = v.colorCode.toUpperCase();
-                      const t = variant.colorCode.toUpperCase();
-                      return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
-                    });
-                    if (match) { const u = match.imageWithArea || match.imageBlank || ""; return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; }
+                  let img = zone.imageWithArea || zone.imageBlank || "";
+                  if (variant.colorCode) {
+                    if (zone.imageVariants?.length) {
+                      const match = zone.imageVariants.find(v => {
+                        if (!v.colorCode || !variant.colorCode) return false;
+                        const c = v.colorCode.toUpperCase();
+                        const t = variant.colorCode.toUpperCase();
+                        return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+                      });
+                      if (match) { 
+                        const u = match.imageWithArea || match.imageBlank || ""; 
+                        return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; 
+                      }
+                    } else if (img && variant.sku && product.masterCode) {
+                      const regex = new RegExp(`(${product.masterCode}-)([A-Za-z0-9]+)`, 'i');
+                      if (regex.test(img) && variant.sku.toUpperCase() !== product.masterCode.toUpperCase()) {
+                          img = img.replace(regex, variant.sku.toUpperCase());
+                      }
+                    }
                   }
-                  const img = variant.mainImage || zone.imageWithArea || zone.imageBlank || "";
+                  
+                  if (!img) img = variant.mainImage || "";
                   return img.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(img) : img;
                 };
                 return (
