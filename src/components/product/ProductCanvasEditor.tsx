@@ -120,10 +120,11 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         }
         
         // Forge S3 URL for missing variants
-        if (baseMock && productSku && productMasterCode) {
+        if (baseMock && selectedColorCode && productMasterCode) {
             const regex = new RegExp(`(${productMasterCode}-)([A-Za-z0-9]+)`, 'i');
-            if (regex.test(baseMock) && productSku.toUpperCase() !== productMasterCode.toUpperCase()) {
-                return proxyUrl(baseMock.replace(regex, productSku.toUpperCase()));
+            if (regex.test(baseMock)) {
+                const targetSyntax = `${productMasterCode}-${selectedColorCode}`.toUpperCase();
+                return proxyUrl(baseMock.replace(regex, targetSyntax));
             }
         }
       }
@@ -220,11 +221,12 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
               return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
             });
             if (match) imgSrc = match.imageWithArea || match.imageBlank || imgSrc;
-          } else if (imgSrc && productSku && productMasterCode) {
+          } else if (imgSrc && selectedColorCode && productMasterCode) {
             // Forge URL
             const regex = new RegExp(`(${productMasterCode}-)([A-Za-z0-9]+)`, 'i');
-            if (regex.test(imgSrc) && productSku.toUpperCase() !== productMasterCode.toUpperCase()) {
-                imgSrc = imgSrc.replace(regex, productSku.toUpperCase());
+            if (regex.test(imgSrc)) {
+                const targetSyntax = `${productMasterCode}-${selectedColorCode}`.toUpperCase();
+                imgSrc = imgSrc.replace(regex, targetSyntax);
                 isForged = true;
             }
           }
