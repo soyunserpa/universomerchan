@@ -177,6 +177,7 @@ export function ProductConfigurator({ product }: Props) {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cachedMockups, setCachedMockups] = useState<Record<string, string>>({});
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
   const hasSize = product.hasSize;
@@ -356,10 +357,22 @@ export function ProductConfigurator({ product }: Props) {
     positionName: pos.description,
     maxWidthMm: pos.maxWidth || 100,
     maxHeightMm: pos.maxHeight || 100,
-    points: pos.points || [
-      { distance_from_left: 300, distance_from_top: 300, sequence_no: 1 },
-      { distance_from_left: 700, distance_from_top: 700, sequence_no: 2 },
-    ],
+    points: (() => {
+      const defaultPts = [
+        { distance_from_left: 350, distance_from_top: 400, sequence_no: 1 },
+        { distance_from_left: 650, distance_from_top: 700, sequence_no: 2 },
+      ];
+      if (!pos.points || !Array.isArray(pos.points) || pos.points.length < 2) return defaultPts;
+      
+      const minX = Math.min(...pos.points.map(p => p.distance_from_left || 0));
+      const maxX = Math.max(...pos.points.map(p => p.distance_from_left || 0));
+      const minY = Math.min(...pos.points.map(p => p.distance_from_top || 0));
+      const maxY = Math.max(...pos.points.map(p => p.distance_from_top || 0));
+      
+      if (maxX - minX < 10 || maxY - minY < 10) return defaultPts;
+      
+      return pos.points;
+    })(),
     imageBlank: pos.positionImageBlank || variant.mainImage || "",
     imageWithArea: (pos as any).positionImage || variant.mainImage || "",
     imageVariants: (pos as any).positionImageVariants || [],
@@ -627,12 +640,38 @@ export function ProductConfigurator({ product }: Props) {
           {/* Product info */}
           <div>
             <div className="flex gap-2 mb-3">
-              {product.isGreen && <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"><Leaf size={11} /> Sostenible</span>}
+              {product.isGreen && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"><Leaf size={11} /> Sostenible</span>
+                  {product.documents?.find(d => d.subtype === "declaration_of_sustainability") && (
+                    <a href={product.documents.find(d => d.subtype === "declaration_of_sustainability")?.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 bg-surface-100 text-gray-500 hover:bg-surface-200 text-xs font-medium px-2 py-0.5 rounded-full transition-colors">
+                      <Download size={10} /> Certificado de fábrica
+                    </a>
+                  )}
+                </div>
+              )}
               <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">REF: {product.masterCode}</span>
             </div>
 
             <h1 className="font-display font-extrabold text-3xl mb-2">{product.name} {product.shortDescription}</h1>
-            {product.longDescription && <p className="text-xs text-gray-400 leading-relaxed mb-6">{product.longDescription}</p>}
+            
+            {product.longDescription && (
+              <div className="mb-6">
+                <p className="text-sm text-gray-900 font-medium leading-relaxed">
+                  {isDescExpanded || product.longDescription.length <= 160
+                    ? product.longDescription
+                    : `${product.longDescription.substring(0, 160)}...`}
+                </p>
+                {product.longDescription.length > 160 && (
+                  <button
+                    onClick={() => setIsDescExpanded(!isDescExpanded)}
+                    className="text-brand-red text-xs font-semibold hover:underline mt-1.5 transition-all"
+                  >
+                    {isDescExpanded ? "Leer menos" : "Leer más"}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Color selector */}
             <div className="mb-5">
@@ -795,6 +834,8 @@ export function ProductConfigurator({ product }: Props) {
                 productImage={variant.mainImage || ""}
                 productName={product.name}
                 selectedColorCode={variant.colorCode}
+                productSku={variant.sku}
+                productMasterCode={product.masterCode}
                 onPlacementsChange={setLogoPlacements}
                 activeZoneId={selectedPosition}
                 onActiveZoneChange={handleCanvasZoneChange}
@@ -954,16 +995,29 @@ export function ProductConfigurator({ product }: Props) {
                 const zone = lp ? printZones.find(z => z.positionId === lp.positionId) : printZones[0];
                 const getUrl = () => {
                   if (!zone) return variant.mainImage || "";
-                  if (variant.colorCode && zone.imageVariants?.length) {
-                    const match = zone.imageVariants.find(v => {
-                      if (!v.colorCode || !variant.colorCode) return false;
-                      const c = v.colorCode.toUpperCase();
-                      const t = variant.colorCode.toUpperCase();
-                      return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
-                    });
-                    if (match) { const u = match.imageWithArea || match.imageBlank || ""; return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; }
+                  let img = zone.imageWithArea || zone.imageBlank || "";
+                  if (variant.colorCode) {
+                    if (zone.imageVariants?.length) {
+                      const match = zone.imageVariants.find(v => {
+                        if (!v.colorCode || !variant.colorCode) return false;
+                        const c = v.colorCode.toUpperCase();
+                        const t = variant.colorCode.toUpperCase();
+                        return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+                      });
+                      if (match) { 
+                        const u = match.imageWithArea || match.imageBlank || ""; 
+                        return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; 
+                      }
+                    } else if (img && variant.colorCode && product.masterCode) {
+                      const regex = new RegExp(`(${product.masterCode}-)([A-Za-z0-9]+)`, 'i');
+                      if (regex.test(img)) {
+                          const targetSyntax = `${product.masterCode}-${variant.colorCode}`.toUpperCase();
+                          img = img.replace(regex, targetSyntax);
+                      }
+                    }
                   }
-                  const img = zone.imageWithArea || zone.imageBlank || "";
+                  
+                  if (!img) img = variant.mainImage || "";
                   return img.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(img) : img;
                 };
                 return (
