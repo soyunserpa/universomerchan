@@ -265,8 +265,14 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
 
         // Draw logo using IDENTICAL math to PreviewWithLogo's logoOverlay
         const logoImg = await loadImage(logo.dataUrl);
-        if (logoImg && zone.points?.length >= 2) {
-          const pts = [...zone.points].sort((a, b) => a.sequence_no - b.sequence_no);
+        let parsedPoints = zone.points;
+        if (typeof parsedPoints === "string") {
+          try { parsedPoints = JSON.parse(parsedPoints); } catch(e) { parsedPoints = []; }
+        }
+        if (!Array.isArray(parsedPoints)) parsedPoints = [];
+
+        if (logoImg && parsedPoints.length >= 2) {
+          const pts = [...parsedPoints].sort((a: any, b: any) => a.sequence_no - b.sequence_no);
           const p = logoPos[positionId] || { x: 0.5, y: 0.5, scale: 0.65 };
 
           // Dynamic bounding box calc (supports polygons >2 points and any coordinate order)
@@ -522,8 +528,14 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
   useEffect(() => { setImgNatural(null); }, [previewUrl]);
 
   const logoOverlay = (() => {
-    if (!activeLogoData || !activeZoneData?.points?.length || activeZoneData.points.length < 2 || !imgNatural) return null;
-    const pts = [...activeZoneData.points].sort((a, b) => a.sequence_no - b.sequence_no);
+    if (!activeLogoData || !activeZoneData?.points || !imgNatural) return null;
+    let parsedPoints = activeZoneData.points;
+    if (typeof parsedPoints === "string") {
+      try { parsedPoints = JSON.parse(parsedPoints); } catch(e) { parsedPoints = []; }
+    }
+    if (!Array.isArray(parsedPoints) || parsedPoints.length < 2) return null;
+
+    const pts = [...parsedPoints].sort((a: any, b: any) => a.sequence_no - b.sequence_no);
     const imgW = imgNatural.w, imgH = imgNatural.h;
     
     const minX = Math.min(...pts.map(p => p.distance_from_left));
