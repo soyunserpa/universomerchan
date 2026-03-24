@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Edit2, Eye, EyeOff, LayoutTemplate } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAdminAuth } from "@/components/admin/AdminLayout";
 
 type BlogPost = {
   id: number;
@@ -20,11 +21,12 @@ export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { authHeaders } = useAdminAuth();
 
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/blog");
+      const res = await fetch("/api/admin/blog", { headers: authHeaders() });
       const data = await res.json();
       if (data.posts) {
         setPosts(data.posts);
@@ -42,7 +44,10 @@ export default function AdminBlogPage() {
   const handleDelete = async (id: number) => {
     if (!confirm("¿Seguro que quieres eliminar este artículo permanentemente?")) return;
     try {
-      const res = await fetch(`/api/admin/blog/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/blog/${id}`, { 
+        method: "DELETE",
+        headers: authHeaders()
+      });
       if (res.ok) fetchPosts();
     } catch (error) {
       alert("Error al eliminar el artículo");

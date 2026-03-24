@@ -34,7 +34,7 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
 
   const fetchPost = async () => {
     try {
-      const res = await fetch(`/api/admin/blog/${params.id}`);
+      const res = await fetch(`/api/admin/blog/${params.id}`, { headers: authHeaders() });
       const data = await res.json();
       if (data.post) {
         setFormData({
@@ -68,7 +68,7 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
       
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(payload),
       });
       
@@ -105,15 +105,23 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
         headers: authHeaders(),
         body: formPayload,
       });
-      const data = await res.json();
+      
+      let data;
+      const textResponse = await res.text();
+      try {
+        data = JSON.parse(textResponse);
+      } catch (e) {
+        throw new Error(`Fallo del Servidor HTTP ${res.status}: ${textResponse.substring(0, 150)}`);
+      }
+      
       if (data.success) {
         setFormData((prev) => ({ ...prev, featuredImageUrl: data.imageUrl }));
       } else {
         alert(data.error || "Error al subir la imagen");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Error de red al subir la imagen");
+      alert(error.message || "Error al subir la imagen");
     }
     setUploadingImage(false);
   };
