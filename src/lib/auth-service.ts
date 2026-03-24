@@ -238,7 +238,8 @@ export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, AUTH_SECRET);
     return payload as unknown as TokenPayload;
-  } catch {
+  } catch (e: any) {
+    if (token) console.error("[JWT Verify Error] Failed to parse Bearer token payload:", e.message || String(e));
     return null;
   }
 }

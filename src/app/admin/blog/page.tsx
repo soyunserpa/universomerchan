@@ -28,8 +28,8 @@ export default function AdminBlogPage() {
     try {
       const res = await fetch("/api/admin/blog", { headers: authHeaders() });
       const data = await res.json();
-      if (data.posts) {
-        setPosts(data.posts);
+      if (data && data.posts) {
+        setPosts(Array.isArray(data.posts) ? data.posts : []);
       }
     } catch (e) {
       console.error(e);
