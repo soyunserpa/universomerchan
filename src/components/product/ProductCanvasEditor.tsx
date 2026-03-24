@@ -482,6 +482,13 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
   // Reset dimensions when URL changes
   useEffect(() => { setImgNatural(null); }, [previewUrl]);
 
+  // Ensure image dimensions are captured even if loaded from cache
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0 && !imgNatural) {
+      handleImageLoad();
+    }
+  }, [previewUrl, handleImageLoad, imgNatural]);
+
   const logoOverlay = (() => {
     if (!activeLogoData || !activeZoneData?.points?.length || activeZoneData.points.length < 2 || !imgNatural) return null;
     const pts = [...activeZoneData.points].sort((a, b) => a.sequence_no - b.sequence_no);

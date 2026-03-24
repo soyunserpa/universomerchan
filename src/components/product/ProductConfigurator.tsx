@@ -356,7 +356,7 @@ export function ProductConfigurator({ product }: Props) {
     positionName: pos.description,
     maxWidthMm: pos.maxWidth || 100,
     maxHeightMm: pos.maxHeight || 100,
-    points: pos.points || [
+    points: pos.points && pos.points.length >= 2 ? pos.points : [
       { distance_from_left: 300, distance_from_top: 300, sequence_no: 1 },
       { distance_from_left: 700, distance_from_top: 700, sequence_no: 2 },
     ],
