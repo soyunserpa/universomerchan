@@ -35,6 +35,11 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
   const fetchPost = async () => {
     try {
       const res = await fetch(`/api/admin/blog/${params.id}`, { headers: authHeaders() });
+      if (res.status === 401) {
+        logout();
+        router.push("/admin/login?expired=1");
+        return;
+      }
       const data = await res.json();
       if (data.post) {
         setFormData({
@@ -68,9 +73,18 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
       
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: {
+          ...authHeaders(),
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
+
+      if (res.status === 401) {
+        logout();
+        router.push("/admin/login?expired=1");
+        return;
+      }
       
       const data = await res.json();
       if (data.success || data.post || data.id) {
