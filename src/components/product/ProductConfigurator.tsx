@@ -177,6 +177,7 @@ export function ProductConfigurator({ product }: Props) {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cachedMockups, setCachedMockups] = useState<Record<string, string>>({});
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
   const hasSize = product.hasSize;
@@ -627,12 +628,38 @@ export function ProductConfigurator({ product }: Props) {
           {/* Product info */}
           <div>
             <div className="flex gap-2 mb-3">
-              {product.isGreen && <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"><Leaf size={11} /> Sostenible</span>}
+              {product.isGreen && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"><Leaf size={11} /> Sostenible</span>
+                  {product.documents?.find(d => d.subtype === "declaration_of_sustainability") && (
+                    <a href={product.documents.find(d => d.subtype === "declaration_of_sustainability")?.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 bg-surface-100 text-gray-500 hover:bg-surface-200 text-xs font-medium px-2 py-0.5 rounded-full transition-colors">
+                      <Download size={10} /> Certificado de fábrica
+                    </a>
+                  )}
+                </div>
+              )}
               <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">REF: {product.masterCode}</span>
             </div>
 
             <h1 className="font-display font-extrabold text-3xl mb-2">{product.name} {product.shortDescription}</h1>
-            {product.longDescription && <p className="text-xs text-gray-400 leading-relaxed mb-6">{product.longDescription}</p>}
+            
+            {product.longDescription && (
+              <div className="mb-6">
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  {isDescExpanded || product.longDescription.length <= 160
+                    ? product.longDescription
+                    : `${product.longDescription.substring(0, 160)}...`}
+                </p>
+                {product.longDescription.length > 160 && (
+                  <button
+                    onClick={() => setIsDescExpanded(!isDescExpanded)}
+                    className="text-brand-red text-xs font-semibold hover:underline mt-1.5 transition-all"
+                  >
+                    {isDescExpanded ? "Leer menos" : "Leer más"}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Color selector */}
             <div className="mb-5">
