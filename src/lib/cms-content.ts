@@ -12,59 +12,8 @@
 
 import { db } from "./database";
 import { eq, desc, and, sql, ilike } from "drizzle-orm";
-import {
-  pgTable,
-  serial,
-  varchar,
-  text,
-  boolean,
-  timestamp,
-  integer,
-  jsonb,
-  index,
-} from "drizzle-orm/pg-core";
-
-// ============================================================
-// ADDITIONAL SCHEMA — Blog Posts & Static Pages
-// Add these to your existing schema.ts
-// ============================================================
-
-export const blogPosts = pgTable("blog_posts", {
-  id: serial("id").primaryKey(),
-  slug: varchar("slug", { length: 200 }).notNull().unique(),
-  title: varchar("title", { length: 300 }).notNull(),
-  excerpt: text("excerpt"),               // Short description for cards
-  body: text("body").notNull(),           // Full HTML/markdown content
-  featuredImageUrl: text("featured_image_url"),  // Uploaded by admin
-  
-  // SEO
-  metaTitle: varchar("meta_title", { length: 200 }),
-  metaDescription: varchar("meta_description", { length: 300 }),
-  
-  // Status
-  isPublished: boolean("is_published").default(false),
-  publishedAt: timestamp("published_at"),
-  
-  // Author (admin user)
-  authorId: integer("author_id"),
-  authorName: varchar("author_name", { length: 100 }),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => ({
-  slugIdx: index("blog_slug_idx").on(table.slug),
-  publishedIdx: index("blog_published_idx").on(table.isPublished),
-}));
-
-export const staticPages = pgTable("static_pages", {
-  id: serial("id").primaryKey(),
-  slug: varchar("slug", { length: 100 }).notNull().unique(),
-  title: varchar("title", { length: 200 }).notNull(),
-  body: text("body").notNull(),           // HTML content
-  metaTitle: varchar("meta_title", { length: 200 }),
-  metaDescription: varchar("meta_description", { length: 300 }),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+import { blogPosts, staticPages } from "./schema";
+export { blogPosts, staticPages };
 
 // ============================================================
 // CONSTANTS — Social & Contact
