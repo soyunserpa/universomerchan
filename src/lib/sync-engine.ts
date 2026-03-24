@@ -55,7 +55,7 @@ export async function syncProducts(): Promise<{ created: number; updated: number
         categoryLevel2: product.variants?.[0]?.category_level2 || "",
         categoryLevel3: product.variants?.[0]?.category_level3 || "",
         printable: product.printable === "yes",
-        isGreen: product.green === "yes",
+        isGreen: product.green === "yes" || (Array.isArray(product.digital_assets) && product.digital_assets.some((a: any) => a.subtype === "declaration_of_sustainability")),
         numberOfPrintPositions: parseInt(product.number_of_print_positions) || 0,
         digitalAssets: product.digital_assets,
         lastSyncedAt: new Date(),
