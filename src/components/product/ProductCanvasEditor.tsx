@@ -40,8 +40,6 @@ interface Props {
   productName: string;
   onPlacementsChange?: (placements: LogoPlacement[]) => void;
   selectedColorCode?: string;
-  productSku?: string;
-  productMasterCode?: string;
   activeZoneId?: string | null;
   onActiveZoneChange?: (zoneId: string) => void;
   // Bug 2 fix: allow parent to own logo state so it survives unmount/remount
@@ -49,7 +47,6 @@ interface Props {
   initialLogoPos?: Record<string, { x: number; y: number; scale: number }>;
   onLogosChange?: (logos: Record<string, { dataUrl: string; fileName: string }>) => void;
   onLogoPosChange?: (pos: Record<string, { x: number; y: number; scale: number }>) => void;
-  disabled?: boolean;
 }
 
 function proxyUrl(url: string | null | undefined): string {
@@ -67,7 +64,7 @@ function proxyUrl(url: string | null | undefined): string {
 
 export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
   function ProductCanvasEditor(
-    { printZones, productImage, productName, onPlacementsChange, selectedColorCode, productSku, productMasterCode, activeZoneId, onActiveZoneChange, disabled,
+    { printZones, productImage, productName, onPlacementsChange, selectedColorCode, activeZoneId, onActiveZoneChange,
       initialLogos, initialLogoPos, onLogosChange, onLogoPosChange },
     ref
   ) {
@@ -105,30 +102,19 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     const activeLogoData = logos[activeZone];
     const currentLogoPos = logoPos[activeZone] || { x: 0.5, y: 0.5, scale: 0.65 };
 
+    // Preview image: color-matched
     const previewUrl = (() => {
       if (!activeZoneData) return "";
-      const baseMock = activeZoneData.imageWithArea || activeZoneData.imageBlank;
-      if (selectedColorCode) {
-        if (activeZoneData.imageVariants?.length) {
-          const match = activeZoneData.imageVariants.find(v => {
-            if (!v.colorCode || !selectedColorCode) return false;
-            const c = v.colorCode.toUpperCase();
-            const t = selectedColorCode.toUpperCase();
-            return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
-          });
-          if (match) return proxyUrl(match.imageWithArea || match.imageBlank);
-        }
-        
-        // Forge S3 URL for missing variants
-        if (baseMock && selectedColorCode && productMasterCode) {
-            const regex = new RegExp(`(${productMasterCode}-)([A-Za-z0-9]+)`, 'i');
-            if (regex.test(baseMock)) {
-                const targetSyntax = `${productMasterCode}-${selectedColorCode}`.toUpperCase();
-                return proxyUrl(baseMock.replace(regex, targetSyntax));
-            }
-        }
+      if (selectedColorCode && activeZoneData.imageVariants?.length) {
+        const match = activeZoneData.imageVariants.find(v => {
+          if (!v.colorCode || !selectedColorCode) return false;
+          const c = v.colorCode.toUpperCase();
+          const t = selectedColorCode.toUpperCase();
+          return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+        });
+        if (match) return proxyUrl(match.imageWithArea || match.imageBlank);
       }
-      return proxyUrl(baseMock || productImage);
+      return proxyUrl(activeZoneData.imageWithArea || activeZoneData.imageBlank);
     })();
 
     // Emit placements when logos change
@@ -210,41 +196,16 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
       try {
         // Load product image (color-matched) — same logic as previewUrl
         let imgSrc = zone.imageWithArea || zone.imageBlank;
-        let isForged = false;
-        
-        if (selectedColorCode) {
-          if (zone.imageVariants?.length) {
-            const match = zone.imageVariants.find(v => {
-              if (!v.colorCode || !selectedColorCode) return false;
-              const c = v.colorCode.toUpperCase();
-              const t = selectedColorCode.toUpperCase();
-              return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
-            });
-            if (match) imgSrc = match.imageWithArea || match.imageBlank || imgSrc;
-          } else if (imgSrc && selectedColorCode && productMasterCode) {
-            // Forge URL
-            const regex = new RegExp(`(${productMasterCode}-)([A-Za-z0-9]+)`, 'i');
-            if (regex.test(imgSrc)) {
-                const targetSyntax = `${productMasterCode}-${selectedColorCode}`.toUpperCase();
-                imgSrc = imgSrc.replace(regex, targetSyntax);
-                isForged = true;
-            }
-          }
+        if (selectedColorCode && zone.imageVariants?.length) {
+          const match = zone.imageVariants.find(v => {
+            if (!v.colorCode || !selectedColorCode) return false;
+            const c = v.colorCode.toUpperCase();
+            const t = selectedColorCode.toUpperCase();
+            return c === t || c.endsWith(`-${t}`) || t.endsWith(`-${c}`);
+          });
+          if (match) imgSrc = match.imageWithArea || match.imageBlank || imgSrc;
         }
-        
-        if (!imgSrc) imgSrc = productImage;
-        
-        let productImg;
-        try {
-          productImg = await loadImage(proxyUrl(imgSrc));
-        } catch (err) {
-          if (isForged) {
-             console.log("[Canvas Export] Forged URL failed 404, falling back to base mock", zone.imageWithArea);
-             productImg = await loadImage(proxyUrl(zone.imageWithArea || productImage));
-          } else {
-             throw err;
-          }
-        }
+        const productImg = await loadImage(proxyUrl(imgSrc));
         if (!productImg) return null;
 
         // Use NATURAL dimensions — matches how PreviewWithLogo renders the <img>
@@ -511,7 +472,6 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgNatural, setImgNatural] = useState<{ w: number; h: number } | null>(null);
-  const [currentSrc, setCurrentSrc] = useState(previewUrl);
 
   const handleImageLoad = useCallback(() => {
     if (imgRef.current) {
@@ -519,26 +479,8 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     }
   }, []);
 
-  const handleImageError = useCallback(() => {
-    // If forged URL fails, fallback to the un-forged base mock area image
-    const fallbackSrc = proxyUrl(activeZoneData?.imageWithArea || activeZoneData?.imageBlank || "");
-    if (fallbackSrc && currentSrc !== fallbackSrc) {
-      setCurrentSrc(fallbackSrc);
-    }
-  }, [activeZoneData, currentSrc]);
-
-  // Reset dimensions and source when URL changes
-  useEffect(() => { 
-    setImgNatural(null); 
-    setCurrentSrc(previewUrl);
-  }, [previewUrl]);
-
-  // Ensure image dimensions are captured even if loaded from cache
-  useEffect(() => {
-    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0 && !imgNatural) {
-      handleImageLoad();
-    }
-  }, [currentSrc, handleImageLoad, imgNatural]);
+  // Reset dimensions when URL changes
+  useEffect(() => { setImgNatural(null); }, [previewUrl]);
 
   const logoOverlay = (() => {
     if (!activeLogoData || !activeZoneData?.points?.length || activeZoneData.points.length < 2 || !imgNatural) return null;
@@ -558,7 +500,6 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     const logoH = zoneHeight * currentLogoPos.scale;
     const logoLeft = zoneLeft + zoneWidth * currentLogoPos.x - logoW / 2;
     const logoTop = zoneTop + zoneHeight * currentLogoPos.y - logoH / 2;
-    
     return (
       <img
         src={activeLogoData.dataUrl}
@@ -581,16 +522,15 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
 
   return (
     <div className="rounded-xl border border-surface-200 bg-surface-50 overflow-hidden relative">
-      {currentSrc ? (
+      {previewUrl ? (
         <>
           <img
             ref={imgRef}
-            src={currentSrc}
+            src={previewUrl}
             alt={productName}
             className="w-full h-auto block"
             draggable={false}
             onLoad={handleImageLoad}
-            onError={handleImageError}
           />
           {logoOverlay}
         </>
