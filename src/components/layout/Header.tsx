@@ -15,10 +15,10 @@ export function Header() {
 
   const navLinks = [
     { href: "/catalog", label: "Catálogo" },
-    { href: "/blog", label: "Blog" },
     { href: "/#sobre-nosotros", label: "Sobre nosotros" },
     { href: "/#como-funciona", label: "Cómo funciona" },
     { href: "/#contacto", label: "Contacto" },
+    { href: "/blog", label: "Blog" },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
