@@ -645,7 +645,7 @@ export function ProductConfigurator({ product }: Props) {
             
             {product.longDescription && (
               <div className="mb-6">
-                <p className="text-xs text-gray-400 leading-relaxed">
+                <p className="text-sm text-gray-900 font-medium leading-relaxed">
                   {isDescExpanded || product.longDescription.length <= 160
                     ? product.longDescription
                     : `${product.longDescription.substring(0, 160)}...`}
