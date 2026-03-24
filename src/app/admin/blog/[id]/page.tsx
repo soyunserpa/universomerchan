@@ -100,6 +100,7 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
     try {
       const res = await fetch("/api/admin/blog/upload", {
         method: "POST",
+        headers: authHeaders(),
         body: formPayload,
       });
       const data = await res.json();
