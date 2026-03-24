@@ -225,8 +225,8 @@ export async function getAdminPosts(params?: {
       isPublished: p.isPublished,
       publishedAt: p.publishedAt?.toISOString(),
       authorName: p.authorName,
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
+      createdAt: new Date(p.createdAt).toISOString(),
+      updatedAt: new Date(p.updatedAt).toISOString(),
     })),
     total: Number(countResult[0].count),
   };
@@ -245,7 +245,8 @@ export async function createBlogPost(data: {
   metaTitle?: string;
   metaDescription?: string;
 }): Promise<{ id: number; slug: string }> {
-  const slug = data.slug || generateSlug(data.title);
+  const rawSlug = data.slug || generateSlug(data.title);
+  const slug = rawSlug.replace(/^\/+/, "").trim();
 
   const [post] = await db.insert(blogPosts).values({
     slug,
@@ -280,6 +281,9 @@ export async function updateBlogPost(
     metaDescription: string;
   }>
 ): Promise<boolean> {
+  if (data.slug) {
+    data.slug = data.slug.replace(/^\/+/, "").trim();
+  }
   const updateData: any = { ...data, updatedAt: new Date() };
 
   // If publishing for first time, set publishedAt

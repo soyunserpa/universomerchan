@@ -117,6 +117,7 @@ export async function uploadArtwork(
   fileName: string,
   fileType: string,
   userId?: number,
+  subfolder: string = "artworks"
 ): Promise<UploadResult> {
   try {
     // Validate
@@ -133,10 +134,10 @@ export async function uploadArtwork(
     const ext = path.extname(fileName).toLowerCase();
     const safeName = `artwork_${Date.now()}_${hash}${ext}`;
     
-    // Create directory structure: /uploads/artworks/YYYY/MM/
+    // Create directory structure: /uploads/[subfolder]/YYYY/MM/
     const now = new Date();
     const yearMonth = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const dir = path.join(UPLOAD_DIR, "artworks", yearMonth);
+    const dir = path.join(UPLOAD_DIR, subfolder, yearMonth);
     
     if (!existsSync(dir)) {
       await mkdir(dir, { recursive: true });
@@ -147,7 +148,7 @@ export async function uploadArtwork(
     await writeFile(filePath, fileBuffer);
     
     // Generate public URL
-    const relativePath = `/uploads/artworks/${yearMonth}/${safeName}`;
+    const relativePath = `/uploads/${subfolder}/${yearMonth}/${safeName}`;
     const fileUrl = `${SITE_URL}${relativePath}`;
     
     console.log(`[Artwork] Uploaded: ${fileName} → ${filePath} (${Math.round(fileBuffer.length / 1024)}KB)`);
