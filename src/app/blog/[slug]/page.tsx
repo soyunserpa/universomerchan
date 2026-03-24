@@ -81,7 +81,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
       {/* Featured Image */}
       {post.featuredImage && (
-        <div className="container-custom max-w-5xl mx-auto -mt-12 md:-mt-24 relative z-20 mb-16">
+        <div className="container-custom max-w-4xl mx-auto -mt-12 md:-mt-24 relative z-20 mb-16">
           <div className="aspect-[21/9] w-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 border-4 border-white">
             <img 
               src={post.featuredImage} 
@@ -93,9 +93,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       )}
 
       {/* Article Content */}
-      <div className={`container-custom max-w-3xl mx-auto ${!post.featuredImage ? 'mt-16' : ''}`}>
+      <div className={`container-custom max-w-4xl mx-auto ${!post.featuredImage ? 'mt-16' : ''}`}>
         <div 
-          className="prose prose-lg prose-red max-w-none prose-headings:font-display prose-headings:font-bold prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-brand-red prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-sm"
+          className="prose prose-lg md:prose-xl prose-red max-w-none prose-headings:font-display prose-headings:font-bold prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-brand-red prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-sm"
           dangerouslySetInnerHTML={{ __html: post.body }}
         />
         
