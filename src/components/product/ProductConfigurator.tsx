@@ -969,10 +969,11 @@ export function ProductConfigurator({ product }: Props) {
                         const u = match.imageWithArea || match.imageBlank || ""; 
                         return u.includes("midocean.com") ? "/api/image-proxy?url=" + encodeURIComponent(u) : u; 
                       }
-                    } else if (img && variant.sku && product.masterCode) {
+                    } else if (img && variant.colorCode && product.masterCode) {
                       const regex = new RegExp(`(${product.masterCode}-)([A-Za-z0-9]+)`, 'i');
-                      if (regex.test(img) && variant.sku.toUpperCase() !== product.masterCode.toUpperCase()) {
-                          img = img.replace(regex, variant.sku.toUpperCase());
+                      if (regex.test(img)) {
+                          const targetSyntax = `${product.masterCode}-${variant.colorCode}`.toUpperCase();
+                          img = img.replace(regex, targetSyntax);
                       }
                     }
                   }
