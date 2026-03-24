@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-service";
 import {
   getPublishedPosts,
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       authorName: `${auth.user.firstName} ${auth.user.lastName}`.trim(),
     });
 
+    revalidatePath("/blog", "layout");
     return NextResponse.json({ success: true, ...result });
   } catch (error: any) {
     if (error.message?.includes("unique")) {
