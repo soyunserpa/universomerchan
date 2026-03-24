@@ -21,12 +21,18 @@ export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { authHeaders } = useAdminAuth();
+  const { authHeaders, logout } = useAdminAuth();
 
   const fetchPosts = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/blog", { headers: authHeaders() });
+      if (res.status === 401) {
+        logout();
+        router.push("/admin/login?expired=1");
+        return;
+      }
+      
       const data = await res.json();
       if (data && data.posts) {
         setPosts(Array.isArray(data.posts) ? data.posts : []);
@@ -48,6 +54,11 @@ export default function AdminBlogPage() {
         method: "DELETE",
         headers: authHeaders()
       });
+      if (res.status === 401) {
+        logout();
+        router.push("/admin/login?expired=1");
+        return;
+      }
       if (res.ok) fetchPosts();
     } catch (error) {
       alert("Error al eliminar el artículo");
