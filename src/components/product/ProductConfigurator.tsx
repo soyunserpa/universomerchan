@@ -359,8 +359,8 @@ export function ProductConfigurator({ product }: Props) {
     maxHeightMm: pos.maxHeight || 100,
     points: (() => {
       const defaultPts = [
-        { distance_from_left: 200, distance_from_top: 200, sequence_no: 1 },
-        { distance_from_left: 800, distance_from_top: 800, sequence_no: 2 },
+        { distance_from_left: 350, distance_from_top: 400, sequence_no: 1 },
+        { distance_from_left: 650, distance_from_top: 700, sequence_no: 2 },
       ];
       if (!pos.points || !Array.isArray(pos.points) || pos.points.length < 2) return defaultPts;
       
