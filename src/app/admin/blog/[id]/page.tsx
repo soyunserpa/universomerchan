@@ -11,6 +11,7 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
   
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -86,6 +87,32 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
     }
     
     setSaving(false);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    const formPayload = new FormData();
+    formPayload.append("image", file);
+
+    try {
+      const res = await fetch("/api/admin/blog/upload", {
+        method: "POST",
+        body: formPayload,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFormData((prev) => ({ ...prev, featuredImageUrl: data.imageUrl }));
+      } else {
+        alert(data.error || "Error al subir la imagen");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error de red al subir la imagen");
+    }
+    setUploadingImage(false);
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Cargando editor...</div>;
@@ -190,7 +217,7 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Imagen de Portada (URL)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5">Imagen de Portada</label>
               {formData.featuredImageUrl ? (
                 <div className="mb-2 relative rounded-md overflow-hidden bg-gray-100 aspect-video flex items-center justify-center">
                   <img src={formData.featuredImageUrl} alt="Portada" className="w-full h-full object-cover" />
@@ -200,13 +227,28 @@ export default function AdminBlogEditor({ params }: { params: { id: string } }) 
                   <ImageIcon size={24} />
                 </div>
               )}
-              <input 
-                type="text" 
-                value={formData.featuredImageUrl} 
-                onChange={e => setFormData({...formData, featuredImageUrl: e.target.value})}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:ring-2"
-              />
+              
+              <div className="flex flex-col gap-2">
+                <input 
+                  type="text" 
+                  value={formData.featuredImageUrl} 
+                  onChange={e => setFormData({...formData, featuredImageUrl: e.target.value})}
+                  placeholder="URL de la imagen (o súbela debajo)"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:ring-2"
+                />
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                  />
+                  <div className={`w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-center font-semibold transition-colors ${uploadingImage ? 'bg-gray-100 text-gray-400' : 'bg-white text-brand-red hover:bg-red-50'}`}>
+                    {uploadingImage ? "Subiendo..." : "Subir desde PC"}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
