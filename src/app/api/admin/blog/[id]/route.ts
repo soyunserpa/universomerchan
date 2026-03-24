@@ -6,6 +6,8 @@ import {
   deleteBlogPost,
 } from "@/lib/cms-content";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireAuth(req.headers.get("authorization"), "admin");
   if ("error" in auth) {
