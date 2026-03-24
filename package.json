@@ -16,6 +16,7 @@
     "sync:full": "tsx --env-file=.env scripts/initial-sync.ts",
     "sync:stock": "tsx --env-file=.env scripts/sync-stock.ts",
     "sync:orders": "tsx --env-file=.env scripts/sync-orders.ts",
+    "sync:print": "tsx --env-file=.env src/scripts/sync-print.ts",
     "admin:create": "tsx --env-file=.env scripts/create-admin.ts",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"

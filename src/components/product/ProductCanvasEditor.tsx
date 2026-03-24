@@ -531,10 +531,14 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     const minY = Math.min(...pts.map(p => p.distance_from_top));
     const maxY = Math.max(...pts.map(p => p.distance_from_top));
 
-    const zoneLeft = (minX / imgW) * 100;
-    const zoneTop = (minY / imgH) * 100;
-    const zoneWidth = ((maxX - minX) / imgW) * 100;
-    const zoneHeight = ((maxY - minY) / imgH) * 100;
+    // Midocean master images and print coordinate systems are uniformly 1200x1200px.
+    // By dividing against the master size directly instead of the browser rendered image natural width,
+    // we bypass any resizing, cropping, or resolution anomalies from S3 proxying.
+    const MASTER_SIZE = 1200;
+    const zoneLeft = (minX / MASTER_SIZE) * 100;
+    const zoneTop = (minY / MASTER_SIZE) * 100;
+    const zoneWidth = ((maxX - minX) / MASTER_SIZE) * 100;
+    const zoneHeight = ((maxY - minY) / MASTER_SIZE) * 100;
     
     return (
       <div
