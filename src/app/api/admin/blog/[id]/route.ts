@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-service";
 import {
   getAdminPostById,
@@ -34,6 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   try {
     const body = await req.json();
     await updateBlogPost(parseInt(params.id), body);
+    revalidatePath("/blog", "layout");
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: "Error al actualizar el artículo" }, { status: 500 });
@@ -48,6 +50,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
     await deleteBlogPost(parseInt(params.id));
+    revalidatePath("/blog", "layout");
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: "Error al eliminar el artículo" }, { status: 500 });
