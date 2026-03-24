@@ -267,6 +267,31 @@ export async function createBlogPost(data: {
   return { id: post.id, slug: post.slug };
 }
 
+// GET — Single post by ID (admin)
+export async function getAdminPostById(postId: number): Promise<any | null> {
+  const post = await db.query.blogPosts?.findFirst?.({
+    where: eq(blogPosts.id, postId),
+  }) || (await db.select().from(blogPosts).where(eq(blogPosts.id, postId)).limit(1))[0];
+
+  if (!post) return null;
+
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    body: post.body,
+    excerpt: post.excerpt || "",
+    featuredImageUrl: post.featuredImageUrl || "",
+    isPublished: post.isPublished || false,
+    publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString() : null,
+    authorName: post.authorName,
+    metaTitle: post.metaTitle || "",
+    metaDescription: post.metaDescription || "",
+    createdAt: new Date(post.createdAt).toISOString(),
+    updatedAt: new Date(post.updatedAt).toISOString(),
+  };
+}
+
 // UPDATE — Edit post (admin)
 export async function updateBlogPost(
   postId: number,
