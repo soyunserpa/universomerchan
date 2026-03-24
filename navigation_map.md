@@ -25,9 +25,10 @@ Este documento mapea la relación bidireccional entre los diferentes módulos de
 
 ## 4. Módulo de Fabricación y Despacho Automatizado a Fábrica (Order Entry)
 
-- **Rutas Principales:** Conectores POST de creación en Midocean (`/src/lib/midocean/orders...` en plan futuro o actual).
+- **Rutas Principales:** Módulo conector API (`/src/lib/midocean-api.ts`), Controladores de checkout (`/src/lib/cart-checkout.ts`) y Trabajadores en Sandbox (`/scripts/sync-orders.ts`).
+- **Autonomía 100% (Bucle Zero-Touch):** Actualmente integrado y validado con los 10 endpoints obligatorios de Midocean. El flujo transaccional fluye independientemente sin intervención del administrador de *Universo Merchan*: **(1)** Checkout genera OrderLine, **(2)** `cart-checkout.ts` hace ping a API `/order/2.1/create` y envía diseño vectorial mediante API `/proof/1.0/addartwork`, **(3)** Daemons VPS externos de Linux en `crontab` leen silenciosamente API API `/order/2.1/detail` cada 15m, **(4)** Si el boceto está listo, el server notifica al cliente, **(5)** El cliente aprueba desde UI disparando API `/proof/1.0/approve`, **(6)** El daemon capta el despache 2 días después actualizando el Tracking Number en Postgres y cerrando la venta al enviar el último e-mail automágico al comprador.
 - **Regla Oro Midocean:** En pedidos de textiles multisize (ej. 10 tipo S y 20 tipo M), **se deben unificar** los arrays de tallas en un solo `order_line` con `print_items` anidados, o Midocean cobrará el "Setup Cost" tantas veces como renglones haya, arruinando los márgenes comerciales.
-- **Riesgo Operativo:** Cambios mal informados de la "Order Entry API V.1.11+" pueden resultar en JSON rebotados (Error 400 Bad Request) si faltan campos declarados como obligatorios.
+- **Riesgo Operativo:** Desactivar o corromper el `crontab` interno de Linux asfixiará permanentemente las actualizaciones de envío (Stuck Status). Del mismo modo, cambios mal informados de la "Order Entry API V.1.11+" pueden resultar en JSON rebotados (Error 400).
 
 ---
 
