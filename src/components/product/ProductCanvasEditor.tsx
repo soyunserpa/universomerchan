@@ -551,35 +551,28 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
         zoneHeight = ((maxY - minY) / imgH) * 100;
     }
     
+    const logoW = zoneWidth * currentLogoPos.scale;
+    const logoH = zoneHeight * currentLogoPos.scale;
+    const logoLeft = zoneLeft + zoneWidth * currentLogoPos.x - logoW / 2;
+    const logoTop = zoneTop + zoneHeight * currentLogoPos.y - logoH / 2;
+    
     return (
-      <div
+      <img
+        src={activeLogoData.dataUrl}
+        alt="Logo preview"
+        className="pointer-events-none select-none"
         style={{
           position: "absolute",
-          left: `${zoneLeft}%`,
-          top: `${zoneTop}%`,
-          width: `${zoneWidth}%`,
-          height: `${zoneHeight}%`,
-          overflow: "hidden",
+          left: `${logoLeft}%`,
+          top: `${logoTop}%`,
+          width: `${logoW}%`,
+          height: `${logoH}%`,
+          objectFit: "contain",
+          opacity: 0.92,
+          filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))",
         }}
-      >
-        <img
-          src={activeLogoData.dataUrl}
-          alt="Logo preview"
-          className="pointer-events-none select-none max-w-none"
-          style={{
-            position: "absolute",
-            left: `${currentLogoPos.x * 100}%`,
-            top: `${currentLogoPos.y * 100}%`,
-            transform: "translate(-50%, -50%)",
-            width: `${currentLogoPos.scale * 100}%`,
-            height: "auto",
-            objectFit: "contain",
-            opacity: 0.92,
-            filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))",
-          }}
-          draggable={false}
-        />
-      </div>
+        draggable={false}
+      />
     );
   })();
 
