@@ -18,7 +18,13 @@ export default function AdminSyncPage() {
 
   const fetchLogs = () => {
     fetch("/api/admin/sync/status", { headers: authHeaders() })
-      .then(r => r.json()).then(setLogs).catch(() => {}).finally(() => setLoading(false));
+      .then(r => {
+        if (!r.ok) throw new Error("Auth/Network Error");
+        return r.json();
+      })
+      .then(data => setLogs(Array.isArray(data) ? data : (data.logs || [])))
+      .catch(() => setLogs([]))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => { fetchLogs(); }, []);
@@ -41,7 +47,10 @@ export default function AdminSyncPage() {
     { type: "full", label: "Sincronización completa", icon: Zap, desc: "Todo a la vez" },
   ];
 
-  const lastSyncByType = (type: string) => logs.find(l => l.syncType === type);
+  const lastSyncByType = (type: string) => {
+    if (!Array.isArray(logs)) return undefined;
+    return logs.find(l => l.syncType === type);
+  };
 
   return (
     <div>
