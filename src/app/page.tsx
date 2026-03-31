@@ -1,15 +1,53 @@
 import Link from "next/link";
-import { getCategories, getProductList } from "@/lib/catalog-api";
+import { getCategories } from "@/lib/catalog-api";
 import { Search, Palette, ShoppingCart, Truck, Star, Leaf, ArrowRight } from "lucide-react";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ContactSection } from "@/components/home/ContactSection";
+import { db } from "@/lib/database";
+import { products, productVariants } from "@/lib/schema";
+import { eq, or, and, ilike } from "drizzle-orm";
 
 export default async function HomePage() {
-  // Fetch featured products and categories from DB
-  const [featured, categories] = await Promise.all([
-    getProductList({ limit: 4, sort: "stock" }),
-    getCategories(),
-  ]);
+  // Fetch categories
+  const categories = await getCategories();
+
+  // Explicitly fetch the exact 4 black products requested for the Hero
+  const targetSkus = [
+    { code: 'MO2051', color: '%negro%' },          // Roll-up Backpack (Black)
+    { code: 'S11380', color: '%negro profundo%' }, // Sol's Regent (Current "Hoodie" slot)
+    { code: 'MO9800', color: '%negro%' },          // Aspen Glass Thermos (Black)
+    { code: 'IT3780', color: '%negro%' },          // Cartoon Notebook + Pen (Black)
+  ];
+
+  const featuredList = [];
+  for (const t of targetSkus) {
+    const product = await db
+      .select({
+        masterCode: products.masterCode,
+        name: products.productName,
+        startingPrice: products.customPrice,
+        digitalAssets: productVariants.digitalAssets,
+      })
+      .from(products)
+      .leftJoin(productVariants, eq(products.id, productVariants.productId))
+      .where(
+        and(
+          eq(products.masterCode, t.code),
+          ilike(productVariants.colorDescription, t.color)
+        )
+      )
+      .limit(1);
+
+    if (product.length > 0) {
+      const p = product[0];
+      let mainImage = null;
+      if (p.digitalAssets && Array.isArray(p.digitalAssets) && p.digitalAssets.length > 0) {
+        const item = (p.digitalAssets as any[]).find(a => a.type === "IMAGE" && a.subtype === "MAIN_WEB");
+        mainImage = item ? item.url : (p.digitalAssets[0] as any).url;
+      }
+      featuredList.push({ ...p, mainImage });
+    }
+  }
 
   return (
     <div>
@@ -40,21 +78,23 @@ export default async function HomePage() {
 
           {/* Featured products grid */}
           <div className="grid grid-cols-2 gap-3 animate-slide-up delay-2">
-            {featured.products.slice(0, 4).map((p, i) => (
+            {featuredList.map((p, i) => (
               <Link
                 key={p.masterCode}
                 href={`/product/${p.masterCode}`}
                 className={`bg-white rounded-2xl p-3 hover-lift ${i % 2 === 1 ? "translate-y-4" : ""}`}
               >
-                <div className="w-full aspect-square bg-surface-50 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
+                <div className="w-full aspect-square bg-surface-50 rounded-xl flex items-center justify-center mb-2 overflow-hidden relative">
                   {p.mainImage ? (
-                    <img src={p.mainImage} alt={p.name} className="w-[78%] h-[78%] object-contain" loading="lazy" />
+                    <img src={p.mainImage} alt={p.name} className="w-[85%] h-[85%] object-contain drop-shadow-lg" loading="lazy" />
                   ) : (
                     <div className="text-gray-200"><Palette size={32} /></div>
                   )}
                 </div>
                 <p className="text-xs font-semibold text-gray-900 truncate">{p.name}</p>
-                <p className="text-sm font-bold text-brand-red">{p.startingPrice}</p>
+                <p className="text-sm font-bold text-brand-red">
+                  {p.startingPrice ? `${Number(p.startingPrice).toFixed(2)} €` : "Desde 0.00 €"}
+                </p>
               </Link>
             ))}
           </div>
