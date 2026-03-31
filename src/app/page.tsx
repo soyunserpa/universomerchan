@@ -1,52 +1,71 @@
 import Link from "next/link";
-import { getCategories } from "@/lib/catalog-api";
+import { getCategories, getProductDetail } from "@/lib/catalog-api";
 import { Search, Palette, ShoppingCart, Truck, Star, Leaf, ArrowRight } from "lucide-react";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ContactSection } from "@/components/home/ContactSection";
-import { db } from "@/lib/database";
-import { products, productVariants } from "@/lib/schema";
-import { eq, or, and, ilike } from "drizzle-orm";
 
 export default async function HomePage() {
   // Fetch categories
   const categories = await getCategories();
 
-  // Explicitly fetch the exact 4 black products requested for the Hero
+  // Create collections of our dark/black variants
+  const backpacks = [
+    { code: 'MO2051', colorMatch: 'negro' },
+    { code: 'MO6146', colorMatch: 'negro' },
+    { code: 'MO9601', colorMatch: 'negro' }
+  ];
+  
+  const textiles = [
+    { code: 'S11380', colorMatch: 'negro' },
+    { code: 'S11500', colorMatch: 'negro' },
+    { code: 'S11970', colorMatch: 'negro' }
+  ];
+  
+  const bottles = [
+    { code: 'MO9800', colorMatch: 'negro' },
+    { code: 'MO6931', colorMatch: 'negro' }, // Namib has a dark variant
+    { code: 'MO7490', colorMatch: 'negro' }
+  ];
+  
+  const notebooks = [
+    { code: 'IT3780', colorMatch: 'negro' },
+    { code: 'MO6225', colorMatch: 'negro' },
+    { code: 'MO1332', colorMatch: 'negro' }
+  ];
+
+  // Calculate the current week of the year
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const diff = now.getTime() - start.getTime();
+  const oneWeek = 1000 * 60 * 60 * 24 * 7;
+  const currentWeekIndex = Math.floor(diff / oneWeek);
+
+  // Rotate items based on the week index modulus the length of each list
   const targetSkus = [
-    { code: 'MO2051', color: '%negro%' },          // Roll-up Backpack (Black)
-    { code: 'S11380', color: '%negro profundo%' }, // Sol's Regent (Current "Hoodie" slot)
-    { code: 'MO9800', color: '%negro%' },          // Aspen Glass Thermos (Black)
-    { code: 'IT3780', color: '%negro%' },          // Cartoon Notebook + Pen (Black)
+    backpacks[currentWeekIndex % backpacks.length],
+    textiles[currentWeekIndex % textiles.length],
+    bottles[currentWeekIndex % bottles.length],
+    notebooks[currentWeekIndex % notebooks.length]
   ];
 
   const featuredList = [];
+  
+  // Use the native API method so all Price Margins are calculated accurately
   for (const t of targetSkus) {
-    const product = await db
-      .select({
-        masterCode: products.masterCode,
-        name: products.productName,
-        startingPrice: products.customPrice,
-        digitalAssets: productVariants.digitalAssets,
-      })
-      .from(products)
-      .leftJoin(productVariants, eq(products.id, productVariants.productId))
-      .where(
-        and(
-          eq(products.masterCode, t.code),
-          ilike(productVariants.colorDescription, t.color)
-        )
-      )
-      .limit(1);
-
-    if (product.length > 0) {
-      const p = product[0];
-      let mainImage = null;
-      if (p.digitalAssets && Array.isArray(p.digitalAssets) && p.digitalAssets.length > 0) {
-        const item = (p.digitalAssets as any[]).find(a => a.type === "IMAGE" && a.subtype === "MAIN_WEB");
-        mainImage = item ? item.url : (p.digitalAssets[0] as any).url;
+    try {
+      const p = await getProductDetail(t.code);
+      if (p) {
+        // Enforce the Black main image explicitly from variants if possible
+        let mainImage = p.mainImage; // Fallback to whatever getProductByMasterCode computed
+        if (p.variants && p.variants.length > 0) {
+          const darkVariant = p.variants.find(v => v.color.toLowerCase().includes(t.colorMatch));
+          if (darkVariant && darkVariant.mainImage) {
+            mainImage = darkVariant.mainImage;
+          }
+        }
+        featuredList.push({ ...p, mainImage });
       }
-      featuredList.push({ ...p, mainImage });
-    }
+    } catch(e) { /* silently skip over invalid SKUs */ }
   }
 
   return (
@@ -93,7 +112,7 @@ export default async function HomePage() {
                 </div>
                 <p className="text-xs font-semibold text-gray-900 truncate">{p.name}</p>
                 <p className="text-sm font-bold text-brand-red">
-                  {p.startingPrice ? `${Number(p.startingPrice).toFixed(2)} €` : "Desde 0.00 €"}
+                  {p.startingPrice || "Desde 0.00 €"}
                 </p>
               </Link>
             ))}
