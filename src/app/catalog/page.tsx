@@ -41,6 +41,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
       {/* Search bar */}
       <div className="flex gap-4 items-center mb-5">
+        {/* Search is always global — navigates to /catalog?search=X without category scope */}
         <form action="/catalog" method="GET" className="flex-1 relative">
           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
             <Search size={17} />
@@ -52,8 +53,6 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             placeholder="Buscar productos, materiales, categorías..."
             className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-full text-sm font-body"
           />
-          {category !== "Todos" && <input type="hidden" name="category" value={category} />}
-          {subcategory !== "Todas" && <input type="hidden" name="subcategory" value={subcategory} />}
         </form>
         <span className="text-sm text-gray-400 hidden sm:block">{result.total} productos</span>
       </div>
