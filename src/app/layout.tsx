@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   verification: {
     google: "mVS8J7HnqcunvWp4QbzZXuasi0ETBhRQS6mV5wT3-sI",
   },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com"),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

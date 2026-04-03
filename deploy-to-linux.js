@@ -20,7 +20,15 @@ conn.on('ready', () => {
             
             console.log("Found project at:", projectDir);
             const filesToSync = [
-                "src/lib/email-service.ts"
+                "src/app/robots.ts",
+                "src/app/sitemap.ts",
+                "src/app/layout.tsx",
+                "src/app/product/[code]/page.tsx",
+                "src/app/blog/[slug]/page.tsx",
+                "src/app/page.tsx",
+                "src/components/catalog/ProductCard.tsx",
+                "src/components/home/AboutSection.tsx",
+                "public/images/about-us-hero-new.jpeg"
             ];
             
             let uploaded = 0;

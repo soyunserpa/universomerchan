@@ -107,6 +107,33 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           </button>
         </div>
       </div>
+
+      {/* JSON-LD Schema for rich snippets */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: post.title,
+            image: post.featuredImage ? [post.featuredImage] : undefined,
+            datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+            dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : (post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined),
+            author: {
+              "@type": "Organization",
+              name: "Universo Merchan",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Universo Merchan",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://universomerchan.com/images/logo.png"
+              }
+            }
+          })
+        }}
+      />
     </article>
   );
 }

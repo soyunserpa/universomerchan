@@ -13,7 +13,7 @@ export function AboutSection() {
 
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                         <img
-                            src="/images/about-us-hero.png"
+                            src="/images/about-us-hero-new.jpeg"
                             alt="Regalos corporativos premium Universo Merchan"
                             className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700"
                         />

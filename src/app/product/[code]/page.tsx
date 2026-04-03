@@ -8,7 +8,9 @@ interface ProductPageProps {
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductDetail(params.code);
+  // El slug puede ser "MO9222-botella-de-aluminio". Extraemos solo el Master Code.
+  const masterCode = params.code.split('-')[0].toUpperCase();
+  const product = await getProductDetail(masterCode);
   if (!product) return notFound();
 
   // Fetch related products
@@ -65,17 +67,51 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
       )}
+
+      {/* JSON-LD Schema for rich snippets */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            image: product.mainImage,
+            description: product.shortDescription || product.longDescription,
+            sku: product.masterCode,
+            brand: {
+              "@type": "Brand",
+              name: "Universo Merchan",
+            },
+            offers: {
+              "@type": "AggregateOffer",
+              url: `https://universomerchan.com/product/${product.masterCode}`,
+              priceCurrency: "EUR",
+              lowPrice: product.startingPriceRaw || 0,
+              availability: "https://schema.org/InStock",
+              seller: {
+                "@type": "Organization",
+                name: "Universo Merchan"
+              }
+            }
+          }),
+        }}
+      />
     </div>
   );
 }
 
 export async function generateMetadata({ params }: ProductPageProps) {
-  const product = await getProductDetail(params.code);
+  const masterCode = params.code.split('-')[0].toUpperCase();
+  const product = await getProductDetail(masterCode);
   if (!product) return { title: "Producto no encontrado" };
 
   return {
     title: `${product.name} — Universo Merchan`,
     description: product.shortDescription,
+    alternates: {
+      canonical: `/product/${params.code.toLowerCase()}`
+    },
     openGraph: {
       title: `${product.name} — Personalízalo con tu marca`,
       description: product.shortDescription,
