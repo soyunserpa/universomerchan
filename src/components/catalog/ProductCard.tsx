@@ -9,9 +9,19 @@ export function ProductCard({ product, index }: { product: CatalogProductRespons
     .filter((v, i, arr) => arr.findIndex((x) => x.color === v.color) === i)
     .slice(0, 5);
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove accents
+      .replace(/[^a-z0-9]+/g, "-")    // Replace invalid characters with dash
+      .replace(/(^-|-$)+/g, "");      // Trim dashes
+  };
+  const productSlug = `${product.masterCode.toLowerCase()}-${generateSlug(product.name)}`;
+
   return (
     <Link
-      href={`/product/${product.masterCode}`}
+      href={`/product/${productSlug}`}
       className={`bg-white rounded-2xl border border-surface-200 overflow-hidden hover-lift animate-slide-up`}
       style={{ animationDelay: `${index * 0.04}s` }}
     >

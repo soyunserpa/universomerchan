@@ -65,10 +65,13 @@ export default async function HomePage() {
 
           {/* Featured products grid */}
           <div className="grid grid-cols-2 gap-3 animate-slide-up delay-2">
-            {featuredList.map((p, i) => (
+            {featuredList.map((p, i) => {
+              const slug = p.name ? p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : "";
+              const productUrl = `/product/${p.masterCode.toLowerCase()}-${slug}`;
+              return (
               <Link
                 key={p.masterCode}
-                href={`/product/${p.masterCode}`}
+                href={productUrl}
                 className={`bg-white rounded-2xl p-3 hover-lift ${i % 2 === 1 ? "translate-y-4" : ""}`}
               >
                 <div className="w-full aspect-square bg-surface-50 rounded-xl flex items-center justify-center mb-2 overflow-hidden relative">
@@ -83,7 +86,7 @@ export default async function HomePage() {
                   {p.startingPrice || "Desde 0.00 €"}
                 </p>
               </Link>
-            ))}
+            )})}
           </div>
         </div>
       </section>
