@@ -1,4 +1,5 @@
 import { Heart, Sparkles, Target } from "lucide-react";
+import Image from "next/image";
 
 export function AboutSection() {
     return (
@@ -11,11 +12,13 @@ export function AboutSection() {
                     <div className="absolute -top-10 -left-10 w-64 h-64 bg-brand-red/5 rounded-full blur-3xl"></div>
                     <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-gray-900/5 rounded-full blur-3xl"></div>
 
-                    <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                        <img
+                    <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[600px] w-full">
+                        <Image
                             src="/images/about-us-hero-new.jpeg"
                             alt="Regalos corporativos premium Universo Merchan"
-                            className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700"
+                            fill
+                            className="object-cover transform hover:scale-105 transition-transform duration-700"
+                            sizes="(max-width: 768px) 100vw, 50vw"
                         />
                     </div>
 
