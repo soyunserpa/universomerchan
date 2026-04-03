@@ -53,6 +53,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-full text-sm font-body"
           />
           {category !== "Todos" && <input type="hidden" name="category" value={category} />}
+          {subcategory !== "Todas" && <input type="hidden" name="subcategory" value={subcategory} />}
         </form>
         <span className="text-sm text-gray-400 hidden sm:block">{result.total} productos</span>
       </div>
@@ -92,6 +93,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           {Array.from({ length: Math.min(result.pages, 10) }, (_, i) => i + 1).map((p) => {
             const params = new URLSearchParams();
             if (category !== "Todos") params.set("category", category);
+            if (subcategory !== "Todas") params.set("subcategory", subcategory);
             if (search) params.set("search", search);
             if (sort !== "name") params.set("sort", sort);
             if (color !== "Todos") params.set("color", color);
