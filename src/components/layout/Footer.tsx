@@ -20,9 +20,16 @@ export function Footer() {
           {/* Catalog */}
           <div>
             <h4 className="font-display font-bold text-sm mb-4">Catálogo</h4>
-            {["Botellas y termos", "Libretas y blocs", "Textil", "Bolsas", "Tazas y vasos", "Escritura"].map((c) => (
-              <Link key={c} href={`/catalog?category=${encodeURIComponent(c)}`} className="block text-sm text-gray-400 hover:text-white mb-2 transition-colors">
-                {c}
+            {[
+              { label: "Botellas y termos", search: "botella" },
+              { label: "Libretas y blocs", search: "libreta" },
+              { label: "Textil", search: "camiseta" },
+              { label: "Bolsas", search: "bolsa" },
+              { label: "Tazas y vasos", search: "taza" },
+              { label: "Escritura", search: "bolígrafo" }
+            ].map((c) => (
+              <Link key={c.label} href={`/catalog?search=${encodeURIComponent(c.search)}`} className="block text-sm text-gray-400 hover:text-white mb-2 transition-colors">
+                {c.label}
               </Link>
             ))}
           </div>

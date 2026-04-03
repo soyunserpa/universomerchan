@@ -78,6 +78,10 @@ export default function AccountOrdersPage() {
       fetch(`/api/account/orders?status=${filter}`, { headers }).then(r => r.json()),
       fetch("/api/account/stats", { headers }).then(r => r.json()),
     ]).then(([ordersData, statsData]) => {
+      if (ordersData.error || statsData.error) {
+        logout();
+        return;
+      }
       setOrders(ordersData.orders || []);
       setStats(statsData);
       setLoading(false);

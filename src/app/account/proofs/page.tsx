@@ -58,6 +58,10 @@ export default function AccountProofsPage() {
             fetch(`/api/account/proofs`, { headers }).then(r => r.json()),
             fetch("/api/account/stats", { headers }).then(r => r.json()),
         ]).then(([proofsData, statsData]) => {
+            if (proofsData.error || statsData.error) {
+                logout();
+                return;
+            }
             setProofs(proofsData.proofs || []);
             setStats(statsData);
             setLoading(false);

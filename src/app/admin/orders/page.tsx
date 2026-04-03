@@ -17,7 +17,7 @@ interface AdminOrder {
 }
 
 export default function AdminOrdersPage() {
-  const { authHeaders } = useAdminAuth();
+  const { authHeaders, logout } = useAdminAuth();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,13 @@ export default function AdminOrdersPage() {
     params.set("page", String(page));
     fetch(`/api/admin/orders?${params}`, { headers: authHeaders() })
       .then(r => r.json())
-      .then(data => { setOrders(data.orders || []); setTotal(data.total || 0); setLoading(false); })
+      .then(data => { 
+        if (data.error) {
+           logout();
+           return;
+        }
+        setOrders(data.orders || []); setTotal(data.total || 0); setLoading(false); 
+      })
       .catch(() => setLoading(false));
   };
 
