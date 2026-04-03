@@ -1,24 +1,32 @@
 import Link from "next/link";
-import { getProductList, getCategories } from "@/lib/catalog-api";
+import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { Search } from "lucide-react";
 
 interface CatalogPageProps {
-  searchParams: { category?: string; search?: string; page?: string; sort?: string; green?: string; color?: string };
+  searchParams: { category?: string; subcategory?: string; search?: string; page?: string; sort?: string; green?: string; color?: string };
 }
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const category = searchParams.category || "Todos";
+  const subcategory = searchParams.subcategory || "Todas";
   const search = searchParams.search || "";
   const page = parseInt(searchParams.page || "1");
   const sort = (searchParams.sort || "name") as any;
   const greenOnly = searchParams.green === "true";
   const color = searchParams.color || "Todos";
 
-  const [result, categories] = await Promise.all([
-    getProductList({ category: category === "Todos" ? undefined : category, search, page, sort, greenOnly, color: color === "Todos" ? undefined : color, limit: 24 }),
+  const [result, categories, subcategories] = await Promise.all([
+    getProductList({
+      category: category === "Todos" ? undefined : category,
+      subcategory: subcategory === "Todas" ? undefined : subcategory,
+      search, page, sort, greenOnly,
+      color: color === "Todos" ? undefined : color,
+      limit: 24,
+    }),
     getCategories(),
+    category !== "Todos" ? getSubcategories(category) : Promise.resolve([]),
   ]);
 
   const allCategories = [{ name: "Todos", slug: "todos", productCount: 0 }, ...categories];
@@ -52,7 +60,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       {/* Filters */}
       <CatalogFilters
         categories={allCategories}
+        subcategories={subcategories}
         currentCategory={category}
+        currentSubcategory={subcategory}
         currentSort={sort}
         currentColor={color}
         greenOnly={greenOnly}

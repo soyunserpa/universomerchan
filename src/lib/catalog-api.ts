@@ -72,6 +72,7 @@ export interface CatalogProductResponse {
 
 export async function getProductList(params: {
   category?: string;
+  subcategory?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -79,13 +80,17 @@ export async function getProductList(params: {
   greenOnly?: boolean;
   color?: string;
 }): Promise<{ products: CatalogProductResponse[]; total: number; pages: number }> {
-  const { category, search, page = 1, limit = 24, sort = "name", greenOnly, color } = params;
-  
+  const { category, subcategory, search, page = 1, limit = 24, sort = "name", greenOnly, color } = params;
+
   // Build where conditions
   const conditions = [eq(schema.products.isVisible, true)];
-  
+
   if (category && category !== "Todos") {
     conditions.push(eq(schema.products.categoryLevel1, category));
+  }
+
+  if (subcategory && subcategory !== "Todas") {
+    conditions.push(eq(schema.products.categoryLevel2, subcategory));
   }
   
   if (search) {
@@ -540,6 +545,36 @@ export async function getCategories(): Promise<CategoryResponse[]> {
     .from(schema.products)
     .where(eq(schema.products.isVisible, true))
     .groupBy(schema.products.categoryLevel1)
+    .orderBy(desc(sql`count(*)`));
+
+  return result
+    .filter(r => r.category)
+    .map(r => ({
+      name: r.category!,
+      slug: slugify(r.category!),
+      productCount: Number(r.count),
+    }));
+}
+
+// ============================================================
+// GET /api/catalog/subcategories?category=X
+// Returns level 2 subcategories for a given level 1 category
+// ============================================================
+
+export async function getSubcategories(category: string): Promise<CategoryResponse[]> {
+  const conditions = [
+    eq(schema.products.isVisible, true),
+    eq(schema.products.categoryLevel1, category),
+  ];
+
+  const result = await db
+    .select({
+      category: schema.products.categoryLevel2,
+      count: sql<number>`count(*)`,
+    })
+    .from(schema.products)
+    .where(and(...conditions))
+    .groupBy(schema.products.categoryLevel2)
     .orderBy(desc(sql`count(*)`));
 
   return result
