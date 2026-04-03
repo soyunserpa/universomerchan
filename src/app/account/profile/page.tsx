@@ -61,7 +61,13 @@ export default function AccountProfilePage() {
 
         fetch("/api/account/stats", { headers: { Authorization: `Bearer ${token}` } })
             .then(r => r.json())
-            .then(data => setStats(data))
+            .then(data => {
+                if (data.error) {
+                    logout();
+                    return;
+                }
+                setStats(data);
+            })
             .catch(() => { });
     }, [token, isAuthenticated, isLoading, router]);
 

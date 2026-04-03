@@ -9,43 +9,11 @@ export default async function HomePage() {
   const categories = await getCategories();
 
   // Create collections of our dark/black variants
-  const backpacks = [
-    { code: 'MO2051', colorMatch: 'negro' },
-    { code: 'MO6146', colorMatch: 'negro' },
-    { code: 'MO9601', colorMatch: 'negro' }
-  ];
-  
-  const textiles = [
-    { code: 'S11380', colorMatch: 'negro' },
-    { code: 'S11500', colorMatch: 'negro' },
-    { code: 'S11970', colorMatch: 'negro' }
-  ];
-  
-  const bottles = [
-    { code: 'MO9800', colorMatch: 'negro' },
-    { code: 'MO6931', colorMatch: 'negro' }, // Namib has a dark variant
-    { code: 'MO7490', colorMatch: 'negro' }
-  ];
-  
-  const notebooks = [
-    { code: 'IT3780', colorMatch: 'negro' },
-    { code: 'MO6225', colorMatch: 'negro' },
-    { code: 'MO1332', colorMatch: 'negro' }
-  ];
-
-  // Calculate the current week of the year
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now.getTime() - start.getTime();
-  const oneWeek = 1000 * 60 * 60 * 24 * 7;
-  const currentWeekIndex = Math.floor(diff / oneWeek);
-
-  // Rotate items based on the week index modulus the length of each list
   const targetSkus = [
-    backpacks[currentWeekIndex % backpacks.length],
-    textiles[currentWeekIndex % textiles.length],
-    bottles[currentWeekIndex % bottles.length],
-    notebooks[currentWeekIndex % notebooks.length]
+    { code: 'MO2230' }, // Valley Roll Up Backpack
+    { code: 'S11500' }, // Imperial T-Shirt
+    { code: 'MO9812' }, // Belo Bottle
+    { code: 'MO8812' }  // Multipen
   ];
 
   const featuredList = [];
@@ -58,7 +26,7 @@ export default async function HomePage() {
         // Enforce the Black main image explicitly from variants if possible
         let mainImage = p.mainImage; // Fallback to whatever getProductByMasterCode computed
         if (p.variants && p.variants.length > 0) {
-          const darkVariant = p.variants.find(v => v.color.toLowerCase().includes(t.colorMatch));
+          const darkVariant = p.variants.find(v => v.color.toLowerCase().includes('negro') || v.color.toLowerCase().includes('black'));
           if (darkVariant && darkVariant.mainImage) {
             mainImage = darkVariant.mainImage;
           }

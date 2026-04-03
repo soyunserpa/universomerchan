@@ -24,6 +24,10 @@ export default function AccountQuotesPage() {
             fetch("/api/account/quotes", { headers }).then(r => r.json()),
             fetch("/api/account/stats", { headers }).then(r => r.json()),
         ]).then(([quotesData, statsData]) => {
+            if (quotesData.error || statsData.error) {
+                logout();
+                return;
+            }
             setQuotes(quotesData.quotes || []);
             setStats(statsData);
             setLoading(false);

@@ -11,7 +11,7 @@
 // Query params: ?category=&search=&page=1&limit=24&sort=name
 
 import { db } from "@/lib/database";
-import { eq, and, like, sql, desc, asc, ilike, or } from "drizzle-orm";
+import { eq, and, like, sql, desc, asc, ilike, or, exists } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { getStartingPrice, formatPriceShort } from "@/lib/price-calculator";
 
@@ -77,8 +77,9 @@ export async function getProductList(params: {
   limit?: number;
   sort?: "name" | "price_asc" | "price_desc" | "newest" | "stock";
   greenOnly?: boolean;
+  color?: string;
 }): Promise<{ products: CatalogProductResponse[]; total: number; pages: number }> {
-  const { category, search, page = 1, limit = 24, sort = "name", greenOnly } = params;
+  const { category, search, page = 1, limit = 24, sort = "name", greenOnly, color } = params;
   
   // Build where conditions
   const conditions = [eq(schema.products.isVisible, true)];
@@ -88,20 +89,65 @@ export async function getProductList(params: {
   }
   
   if (search) {
-    conditions.push(
-      or(
-        ilike(schema.products.productName, `%${search}%`),
-        ilike(schema.products.shortDescription, `%${search}%`),
-        ilike(schema.products.categoryLevel1, `%${search}%`),
-        ilike(schema.products.categoryLevel2, `%${search}%`),
-        ilike(schema.products.masterCode, `%${search}%`),
-        ilike(schema.products.material, `%${search}%`),
-      )!
-    );
+    const terms = search.trim().split(/\s+/);
+    for (const term of terms) {
+      if (!term) continue;
+      conditions.push(
+        or(
+          ilike(schema.products.productName, `%${term}%`),
+          ilike(schema.products.shortDescription, `%${term}%`),
+          ilike(schema.products.categoryLevel1, `%${term}%`),
+          ilike(schema.products.categoryLevel2, `%${term}%`),
+          ilike(schema.products.masterCode, `%${term}%`),
+          ilike(schema.products.material, `%${term}%`),
+        )!
+      );
+    }
   }
   
   if (greenOnly) {
     conditions.push(eq(schema.products.isGreen, true));
+  }
+
+  if (color && color !== "Todos") {
+    // Map Spanish generic colors to common English tags used by Midocean
+    const cLow = color.toLowerCase();
+    const colorMap: Record<string, string[]> = {
+      negro: ["black", "negro", "noir", "schwarz"],
+      blanco: ["white", "blanco", "off white", "ivory", "transparent", "transparente", "clear", "blanc", "weiss"],
+      azul: ["blue", "azul", "navy", "cyan", "aqua", "celeste", "denim", "cobalt", "royal", "bleu", "blau", "marino"],
+      rojo: ["red", "rojo", "burgundy", "crimson", "maroon", "granate", "rouge", "rot", "burdeos", "wine", "vino"],
+      verde: ["green", "verde", "lime", "mint", "olive", "khaki", "kaki", "caqui", "vert", "grün"],
+      amarillo: ["yellow", "amarillo", "gold", "limon", "limón", "mustard", "mostaza", "jaune", "gelb"],
+      naranja: ["orange", "naranja", "terracota", "peach", "melocoton", "melocotón"],
+      rosa: ["pink", "rosa", "fuchsia", "magenta", "fucsia", "rose", "coral", "salmon"],
+      morado: ["purple", "morado", "violet", "lila", "plum", "púrpura", "purpura", "mauve"],
+      gris: ["grey", "gray", "gris", "silver", "plata", "antracita", "ash", "ceniza", "titanio"],
+      madera: ["natural", "wood", "madera", "bamboo", "cork", "corcho", "bambu", "bambú", "kraft"],
+      marron: ["brown", "marron", "marrón", "chocolate", "coffee", "sand", "beige", "arena", "camel", "brun", "braun"],
+    };
+    
+    // We normalize the search terms slightly by splitting out compound names if we want,
+    // but Midocean usually works with exact substring matches inside colorGroup or colorDescription.
+    const terms = colorMap[cLow] || [cLow, cLow.normalize("NFD").replace(/[\u0300-\u036f]/g, "")];
+    
+    const colorOrs = terms.flatMap(term => [
+      ilike(schema.productVariants.colorGroup, `%${term}%`),
+      ilike(schema.productVariants.colorDescription, `%${term}%`)
+    ]);
+
+    conditions.push(
+      exists(
+        db.select({ id: schema.productVariants.id })
+          .from(schema.productVariants)
+          .where(
+            and(
+              eq(schema.productVariants.productId, schema.products.id),
+              or(...colorOrs)
+            )
+          )
+      )
+    );
   }
 
   // Count total
@@ -159,7 +205,7 @@ export async function getProductList(params: {
         color: variant.colorDescription || "",
         colorGroup: variant.colorGroup || "",
         colorCode: variant.colorCode || "",
-        colorHex: variant.colorHex || colorGroupToHex(variant.colorGroup || ""),
+        colorHex: colorGroupToHex(variant.colorDescription || variant.colorGroup || ""),
         size: variant.size || undefined,
         stock: qty,
         mainImage: frontImage?.url || "",
@@ -532,19 +578,22 @@ export interface PriceCalculationRequest {
 // ============================================================
 
 function colorGroupToHex(colorGroup: string): string {
+  if (!colorGroup || typeof colorGroup !== 'string') return "#9CA3AF";
+
   const map: Record<string, string> = {
     // English
     black: "#222222", white: "#F8F8F8", blue: "#1E40AF", red: "#DC2626",
     green: "#15803D", yellow: "#EAB308", orange: "#EA580C", pink: "#EC4899",
     purple: "#7C3AED", grey: "#6B7280", gray: "#6B7280", brown: "#78350F",
     navy: "#1E3A5F", silver: "#C0C0C0", gold: "#D4A017", natural: "#F5F0E6",
-    beige: "#F5F5DC", transparent: "#E8E8E8",
+    beige: "#F5F5DC", transparent: "#E8E8E8", mixed: "linear-gradient(135deg, #A855F7, #EC4899, #FDBA74)",
     // Spanish Standard
     negro: "#222222", blanco: "#F8F8F8", azul: "#1E40AF", rojo: "#DC2626",
     verde: "#15803D", amarillo: "#EAB308", naranja: "#EA580C", rosa: "#EC4899",
     morado: "#7C3AED", purpura: "#7C3AED", gris: "#6B7280", marron: "#78350F",
     marino: "#1E3A5F", plata: "#C0C0C0", oro: "#D4A017", dorado: "#D4A017",
-    transparente: "#E8E8E8",
+    transparente: "#E8E8E8", mixto: "linear-gradient(135deg, #A855F7, #EC4899, #FDBA74)",
+    mezclado: "linear-gradient(135deg, #A855F7, #EC4899, #FDBA74)",
     // Midocean specifics
     ceniza: "#D1D5DB", azul_claro: "#60A5FA", azul_oscuro: "#1E3A8A",
     azul_rey: "#2563EB", azul_marino: "#1E3A8A", celeste: "#38BDF8",
@@ -552,10 +601,60 @@ function colorGroupToHex(colorGroup: string): string {
     verde_lima: "#A3E635", naranja_claro: "#FDBA74", burdeos: "#9F1239",
     fucsia: "#C026D3", turquesa: "#0D9488", amarillo_fluor: "#D9F99D",
     verde_fluor: "#86EFAC", naranja_fluor: "#FFEDD5", rosa_fluor: "#FBCFE8",
-    magenta: "#D946EF", cian: "#06B6D4", multicolor: "#A855F7", surtido: "#A855F7"
+    naranja_neon: "#F97316", verde_neon: "#86EFAC", rosa_neon: "#FBCFE8", amarillo_neon: "#D9F99D",
+    neon: "#A855F7",
+    azul_real: "#1D4ED8", lima: "#A3E635", marino_frances: "#1E3A8A", francia: "#1E3A8A",
+    cuerda: "#D2B48C", aqua: "#00FFFF", dark_blue: "#00008B", frozen_green: "#A8E4A0",
+    caqui_oscuro: "#BDB76B", denim: "#1560BD", madera: "#8B5A2B", french_marino: "#1E3A8A",
+    creamy_green: "#E8F4E5", antracita_mezcla: "#383E42", fuchsia: "#FF00FF", limon: "#FDE910",
+    astral_purple: "#5D3FD3", french_navy: "#1E3A8A", medium_pink: "#FFB6C1", apple_green: "#8DB600",
+    lila: "#C8A2C8", burgundy: "#800020", army: "#4B5320", ribbon_pink: "#FFC0CB",
+    linen_twin: "#FAF0E6", beig: "#F5F5DC", marfil: "#FFFFF0", kaki: "#C3B091", caqui: "#C3B091",
+    folk_pink_twin: "#FF69B4", forest_green: "#228B22", violeta_transparente: "#EE82EE",
+    pool_blue: "#00BFFF", hibisco: "#B43757", violeta: "#EE82EE", folk_red_twin: "#FF0000",
+    sand: "#C2B280", flannel_grey: "#7B8997", tilo: "#98FB98", ice_blue: "#AEEEEE",
+    pop_orange: "#FF4F00", terracota: "#E2725B", chocolate: "#D2691E", denim_jaspeado: "#4682B4",
+    petroleo: "#005F6A", ocre: "#CC7722", ultramarino: "#120A8F", chili_red: "#E23D28",
+    heather_light_green: "#90EE90", deep_charcoal_grey: "#2E3B4E", abyss_blue: "#0F204B",
+    oxblood: "#4A0000", tierra: "#D2B48C", royal: "#4169E1", dark_grey: "#A9A9A9",
+    titanio: "#878681", melocoton: "#FFDAB9", albaricoque: "#FBCEB1", heather_beige: "#F5F5DC",
+    tilo_fluor: "#B2FF66", esmeralda: "#50C878", zinc: "#7D8081", charcoal_grey: "#36454F",
+    cream: "#FFFDD0", metal_grey: "#A8A9AD", caqui_jaspeado: "#C3B091", champagne: "#F7E7CE",
+    cobre: "#B87333", coral: "#FF7F50", aqua_blue: "#00FFFF",
+    magenta: "#D946EF", cian: "#06B6D4", multicolor: "linear-gradient(135deg, #A855F7, #EC4899, #FDBA74)", surtido: "linear-gradient(135deg, #A855F7, #EC4899, #FDBA74)"
   };
-  const key = colorGroup.toLowerCase().trim().replace(/\s+/g, "_");
-  return map[key] || "#9CA3AF";
+
+  // Helper to map a single string token to a color hex
+  const extractSingleColor = (token: string) => {
+    let key = token.toLowerCase().trim()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+      .replace(/\s+/g, "_");
+      
+    // Try exact
+    if (map[key]) return map[key];
+    
+    // Fallbacks (e.g., 'azul_marino_profundo' -> 'azul', 'naranja_neon' -> 'naranja_fluor')
+    const words = key.split('_');
+    if (words.length > 1) {
+      if (map[words[0]]) return map[words[0]];
+    }
+    
+    return "#9CA3AF"; // Grey generic fallback
+  };
+
+  // If it's a combination (e.g. "Azul Marino/naranja Neón" or "Off White| Navy")
+  if (colorGroup.includes('/') || colorGroup.includes('|')) {
+    const divider = colorGroup.includes('|') ? '|' : '/';
+    const parts = colorGroup.split(divider).map(c => extractSingleColor(c));
+    if (parts.length === 2) {
+      return `linear-gradient(135deg, ${parts[0]} 50%, ${parts[1]} 50%)`;
+    } else {
+      const stops = parts.map((c, i) => `${c} ${(i / parts.length) * 100}%, ${c} ${((i + 1) / parts.length) * 100}%`).join(', ');
+      return `linear-gradient(135deg, ${stops})`;
+    }
+  }
+
+  return extractSingleColor(colorGroup);
 }
 
 function slugify(text: string): string {

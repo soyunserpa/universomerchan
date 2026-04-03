@@ -20,7 +20,7 @@ interface ChartPoint { monthLabel: string; revenue: number; orders: number }
 interface TopProduct { productName: string; totalRevenue: number; percentOfTotal: number; orderCount: number }
 
 export default function AdminDashboardPage() {
-  const { authHeaders } = useAdminAuth();
+  const { authHeaders, logout } = useAdminAuth();
   const [kpis, setKpis] = useState<KPIs | null>(null);
   const [chart, setChart] = useState<ChartPoint[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
@@ -33,10 +33,14 @@ export default function AdminDashboardPage() {
       fetch("/api/admin/dashboard/chart?months=6", { headers: h }).then(r => r.json()),
       fetch("/api/admin/dashboard/top-products", { headers: h }).then(r => r.json()),
     ]).then(([k, c, t]) => {
+      if (k.error || c.error || t.error) {
+        logout();
+        return;
+      }
       setKpis(k); setChart(c); setTopProducts(t);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [authHeaders]);
+  }, [authHeaders, logout]);
 
   if (loading) return <div className="flex items-center justify-center h-64"><RefreshCw className="animate-spin text-gray-300" /></div>;
 

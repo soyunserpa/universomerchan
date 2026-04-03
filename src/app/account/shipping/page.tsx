@@ -36,6 +36,10 @@ export default function AccountShippingPage() {
             fetch(`/api/account/orders?status=in_production,shipped,completed`, { headers }).then(r => r.json()),
             fetch("/api/account/stats", { headers }).then(r => r.json()),
         ]).then(([ordersData, statsData]) => {
+            if (ordersData.error || statsData.error) {
+                logout();
+                return;
+            }
             setOrders(ordersData.orders || []);
             setStats(statsData);
             setLoading(false);

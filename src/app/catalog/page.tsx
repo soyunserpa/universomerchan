@@ -5,7 +5,7 @@ import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { Search } from "lucide-react";
 
 interface CatalogPageProps {
-  searchParams: { category?: string; search?: string; page?: string; sort?: string; green?: string };
+  searchParams: { category?: string; search?: string; page?: string; sort?: string; green?: string; color?: string };
 }
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
@@ -14,9 +14,10 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const page = parseInt(searchParams.page || "1");
   const sort = (searchParams.sort || "name") as any;
   const greenOnly = searchParams.green === "true";
+  const color = searchParams.color || "Todos";
 
   const [result, categories] = await Promise.all([
-    getProductList({ category: category === "Todos" ? undefined : category, search, page, sort, greenOnly, limit: 24 }),
+    getProductList({ category: category === "Todos" ? undefined : category, search, page, sort, greenOnly, color: color === "Todos" ? undefined : color, limit: 24 }),
     getCategories(),
   ]);
 
@@ -53,6 +54,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         categories={allCategories}
         currentCategory={category}
         currentSort={sort}
+        currentColor={color}
         greenOnly={greenOnly}
         search={search}
       />
@@ -82,6 +84,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             if (category !== "Todos") params.set("category", category);
             if (search) params.set("search", search);
             if (sort !== "name") params.set("sort", sort);
+            if (color !== "Todos") params.set("color", color);
             params.set("page", String(p));
             return (
               <Link

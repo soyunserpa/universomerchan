@@ -648,7 +648,7 @@ export function ProductConfigurator({ product }: Props) {
                       onClick={() => setVariantIdx(idx)}
                       className="w-8 h-8 rounded-full border-[3px] transition-all"
                       style={{
-                        backgroundColor: v.colorHex,
+                        background: v.colorHex,
                         borderColor: variant.color === v.color ? "#DE0121" : "#E8E8E8",
                         boxShadow: variant.color === v.color ? "0 0 0 2px white, 0 0 0 4px #DE0121" : "none",
                       }}

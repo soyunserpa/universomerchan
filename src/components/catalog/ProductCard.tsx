@@ -54,7 +54,7 @@ export function ProductCard({ product, index }: { product: CatalogProductRespons
               <div
                 key={i}
                 className="w-3.5 h-3.5 rounded-full border-2 border-surface-200"
-                style={{ backgroundColor: v.colorHex }}
+                style={{ background: v.colorHex }}
                 title={v.color}
               />
             ))}

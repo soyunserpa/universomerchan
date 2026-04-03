@@ -30,7 +30,7 @@ interface TimelineEvent {
 }
 
 export default function OrderDetailPage() {
-  const { token, isAuthenticated, isLoading } = useAuth();
+  const { token, isAuthenticated, isLoading, logout } = useAuth();
   const { restoreFromOrder } = useCart();
   const router = useRouter();
   const params = useParams();
@@ -51,6 +51,10 @@ export default function OrderDetailPage() {
     fetch(`/api/account/orders/${orderNumber}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => {
+        if (data.error) {
+          logout();
+          return;
+        }
         setOrder(data.order);
         setTimeline(data.timeline || []);
         setLoading(false);
