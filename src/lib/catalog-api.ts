@@ -101,6 +101,7 @@ export async function getProductList(params: {
         or(
           ilike(schema.products.productName, `%${term}%`),
           ilike(schema.products.shortDescription, `%${term}%`),
+          ilike(schema.products.longDescription, `%${term}%`),
           ilike(schema.products.categoryLevel1, `%${term}%`),
           ilike(schema.products.categoryLevel2, `%${term}%`),
           ilike(schema.products.masterCode, `%${term}%`),
