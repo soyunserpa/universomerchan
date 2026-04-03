@@ -26,8 +26,11 @@ conn.on('ready', () => {
                 "src/app/product/[code]/page.tsx",
                 "src/app/blog/[slug]/page.tsx",
                 "src/app/page.tsx",
+                "src/app/catalog/page.tsx",
                 "src/components/catalog/ProductCard.tsx",
+                "src/components/catalog/CatalogFilters.tsx",
                 "src/components/home/AboutSection.tsx",
+                "src/lib/catalog-api.ts",
                 "public/images/about-us-hero-new.jpeg"
             ];
             

@@ -5,20 +5,23 @@ import { Leaf, ArrowUpDown } from "lucide-react";
 
 interface CatalogFiltersProps {
   categories: Array<{ name: string; slug: string; productCount: number }>;
+  subcategories: Array<{ name: string; slug: string; productCount: number }>;
   currentCategory: string;
+  currentSubcategory: string;
   currentSort: string;
   currentColor?: string;
   greenOnly: boolean;
   search: string;
 }
 
-export function CatalogFilters({ categories, currentCategory, currentSort, currentColor, greenOnly, search }: CatalogFiltersProps) {
+export function CatalogFilters({ categories, subcategories, currentCategory, currentSubcategory, currentSort, currentColor, greenOnly, search }: CatalogFiltersProps) {
   const router = useRouter();
 
   const buildUrl = (overrides: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
     const values: Record<string, string | undefined> = {
       category: currentCategory === "Todos" ? undefined : currentCategory,
+      subcategory: currentSubcategory === "Todas" ? undefined : currentSubcategory,
       sort: currentSort === "name" ? undefined : currentSort,
       color: currentColor === "Todos" ? undefined : currentColor,
       search: search || undefined,
@@ -26,7 +29,7 @@ export function CatalogFilters({ categories, currentCategory, currentSort, curre
       ...overrides,
     };
     Object.entries(values).forEach(([k, v]) => {
-      if (v && v !== "Todos" && v !== "name") params.set(k, v);
+      if (v && v !== "Todos" && v !== "Todas" && v !== "name") params.set(k, v);
     });
     return `/catalog${params.toString() ? `?${params.toString()}` : ""}`;
   };
@@ -38,7 +41,7 @@ export function CatalogFilters({ categories, currentCategory, currentSort, curre
         {categories.map((cat) => (
           <button
             key={cat.name}
-            onClick={() => router.push(buildUrl({ category: cat.name === "Todos" ? undefined : cat.name, page: undefined }))}
+            onClick={() => router.push(buildUrl({ category: cat.name === "Todos" ? undefined : cat.name, subcategory: undefined, page: undefined }))}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               currentCategory === cat.name
                 ? "bg-brand-red text-white"
@@ -49,6 +52,35 @@ export function CatalogFilters({ categories, currentCategory, currentSort, curre
           </button>
         ))}
       </div>
+
+      {/* Subcategory pills — only shown when a category is selected and has subcategories */}
+      {subcategories.length > 1 && (
+        <div className="flex gap-2 flex-wrap pl-1">
+          <button
+            onClick={() => router.push(buildUrl({ subcategory: undefined, page: undefined }))}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              currentSubcategory === "Todas"
+                ? "bg-gray-700 text-white"
+                : "bg-surface-100 text-gray-400 hover:bg-surface-200"
+            }`}
+          >
+            Todas
+          </button>
+          {subcategories.map((sub) => (
+            <button
+              key={sub.name}
+              onClick={() => router.push(buildUrl({ subcategory: sub.name, page: undefined }))}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                currentSubcategory === sub.name
+                  ? "bg-gray-700 text-white"
+                  : "bg-surface-100 text-gray-400 hover:bg-surface-200"
+              }`}
+            >
+              {sub.name} <span className="opacity-60">({sub.productCount})</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex gap-3 items-center flex-wrap">
         <div className="flex items-center gap-1.5 text-gray-400 bg-surface-50 px-3 py-1.5 rounded-full">
