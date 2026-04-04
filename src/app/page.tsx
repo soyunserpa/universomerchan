@@ -44,13 +44,13 @@ export default async function HomePage() {
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-white/[0.03]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative">
           <div className="animate-slide-up">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-semibold px-3 py-1 rounded-full mb-5">
+            <div className="inline-flex items-center gap-1.5 bg-white/15 text-white text-sm font-semibold px-3 py-1 rounded-full mb-5">
               <Star size={11} /> +4.000 productos personalizables
             </div>
             <h1 className="font-display font-black text-4xl sm:text-5xl text-white leading-[1.05] mb-5">
               Consigue que tu marca se recuerde.
             </h1>
-            <p className="text-base text-white/85 leading-relaxed mb-8 max-w-lg">
+            <p className="text-base text-white leading-relaxed mb-8 max-w-lg">
               Regalos corporativos personalizados que generan emociones. Elige, personaliza, visualiza y recibe en menos de 10 días.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -81,7 +81,7 @@ export default async function HomePage() {
                     <div className="text-gray-200"><Palette size={32} /></div>
                   )}
                 </div>
-                <p className="text-xs font-semibold text-gray-900 truncate">{p.name}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{p.name}</p>
                 <p className="text-sm font-bold text-brand-red">
                   {p.startingPrice || "Desde 0.00 €"}
                 </p>
@@ -95,7 +95,7 @@ export default async function HomePage() {
       <section id="como-funciona" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center mb-12">
           <h2 className="font-display font-extrabold text-3xl mb-3">¿Cómo funciona?</h2>
-          <p className="text-gray-400 text-base">En 4 pasos simples, de la idea al producto en tu puerta</p>
+          <p className="text-gray-900 text-base">En 4 pasos simples, de la idea al producto en tu puerta</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
@@ -110,7 +110,7 @@ export default async function HomePage() {
                 <step.Icon size={20} className="text-brand-red" />
               </div>
               <h3 className="font-display font-bold text-lg mb-2">{step.title}</h3>
-              <p className="text-sm text-gray-400 leading-relaxed">{step.desc}</p>
+              <p className="text-sm text-gray-900 leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -124,7 +124,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8">
             <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-white">Categorías populares</h2>
-            <Link href="/catalog" className="text-sm text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
+            <Link href="/catalog" className="text-sm text-white hover:text-white flex items-center gap-1 transition-colors">
               Ver todo <ArrowRight size={14} />
             </Link>
           </div>
@@ -145,7 +145,7 @@ export default async function HomePage() {
                 >
                   <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/10" />
                   <h3 className="font-display font-extrabold text-xl text-white mb-1 relative">{cat.name}</h3>
-                  <p className="text-white/60 text-sm relative">{cat.productCount}+ productos</p>
+                  <p className="text-white text-sm relative">{cat.productCount}+ productos</p>
                 </Link>
               );
             })}
@@ -164,7 +164,7 @@ export default async function HomePage() {
           ].map((b, i) => (
             <div key={i} className="py-4">
               <div className="font-display font-black text-3xl sm:text-4xl text-brand-red">{b.num}</div>
-              <div className="text-sm text-gray-400 mt-1">{b.label}</div>
+              <div className="text-sm text-gray-900 mt-1">{b.label}</div>
             </div>
           ))}
         </div>
@@ -180,7 +180,7 @@ export default async function HomePage() {
           <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-brand-red/10" />
           <div className="relative">
             <h2 className="font-display font-black text-3xl text-white mb-4">¿Listo para emocionar?</h2>
-            <p className="text-gray-400 mb-8 max-w-md mx-auto">
+            <p className="text-white mb-8 max-w-md mx-auto">
               Explora nuestro catálogo, personaliza tus productos y recíbelos en menos de 10 días.
             </p>
             <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-8 py-3.5 rounded-full hover:bg-brand-red-dark transition-colors">

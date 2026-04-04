@@ -93,7 +93,7 @@ export function ContactSection() {
 
                         <div className="relative z-10">
                             <h2 className="font-display font-black text-4xl mb-6">Contacto</h2>
-                            <div className="space-y-6 text-gray-300 text-lg leading-relaxed">
+                            <div className="space-y-6 text-white text-lg leading-relaxed">
                                 <p>
                                     En <span className="text-white font-bold">Universo Merchan</span> te ayudamos a encontrar regalos corporativos y packs personalizados que conecten de verdad con las personas.
                                 </p>
@@ -111,7 +111,7 @@ export function ContactSection() {
                                         <Mail size={24} className="text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-400 font-medium">Email de contacto</p>
+                                        <p className="text-sm text-white font-medium">Email de contacto</p>
                                         <p className="text-xl font-bold text-white group-hover:text-brand-red transition-colors">pedidos@universomerchan.com</p>
                                     </div>
                                 </a>
@@ -123,7 +123,7 @@ export function ContactSection() {
                     <div className="lg:col-span-3 p-10 sm:p-14 bg-surface-50">
                         <div className="max-w-xl">
                             <h3 className="font-display font-bold text-2xl text-gray-900 mb-2">Cuéntanos tu idea</h3>
-                            <p className="text-gray-500 mb-10">
+                            <p className="text-gray-900 mb-10">
                                 Nos pondremos en contacto contigo para ayudarte a crear una propuesta a medida para tu marca.
                             </p>
 
@@ -178,7 +178,7 @@ export function ContactSection() {
                                             className="w-5 h-5 border-gray-300 rounded text-brand-red focus:ring-brand-red cursor-pointer"
                                         />
                                     </div>
-                                    <label htmlFor="consentimiento" className="text-sm text-gray-600 leading-snug cursor-pointer">
+                                    <label htmlFor="consentimiento" className="text-sm text-gray-900 leading-snug cursor-pointer">
                                         He leído y acepto la <Link href="/legal/privacidad" className="text-brand-red hover:underline" target="_blank">política de privacidad</Link>, y consiento el tratamiento de mis datos para gestionar mi consulta. *
                                     </label>
                                 </div>

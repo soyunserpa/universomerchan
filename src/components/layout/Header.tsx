@@ -66,12 +66,12 @@ export function Header() {
                 autoFocus
                 className="w-48 px-3 py-1.5 text-sm border-2 border-surface-200 rounded-full font-body"
               />
-              <button type="button" onClick={() => setSearchOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button type="button" onClick={() => setSearchOpen(false)} className="text-gray-700 hover:text-gray-900">
                 <X size={18} />
               </button>
             </form>
           ) : (
-            <button onClick={() => setSearchOpen(true)} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5">
+            <button onClick={() => setSearchOpen(true)} className="text-gray-700 hover:text-gray-900 transition-colors p-1.5">
               <Search size={20} />
             </button>
           )}
@@ -79,7 +79,7 @@ export function Header() {
           {/* Cart */}
           <button
             onClick={() => toggleCart()}
-            className="relative text-gray-400 hover:text-gray-600 transition-colors p-1.5"
+            className="relative text-gray-700 hover:text-gray-900 transition-colors p-1.5"
           >
             <ShoppingCart size={20} />
             {itemCount > 0 && (
@@ -90,14 +90,14 @@ export function Header() {
           </button>
 
           {/* User */}
-          <Link href="/account/orders" className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hidden sm:block">
+          <Link href="/account/orders" className="text-gray-700 hover:text-gray-900 transition-colors p-1.5 hidden sm:block">
             <User size={20} />
           </Link>
 
           {/* Mobile menu toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-gray-400 hover:text-gray-600 p-1.5"
+            className="md:hidden text-gray-700 hover:text-gray-900 p-1.5"
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>

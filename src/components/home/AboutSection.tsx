@@ -29,7 +29,7 @@ export function AboutSection() {
                         </div>
                         <div>
                             <p className="font-display font-black text-xl text-gray-900">Conexión</p>
-                            <p className="text-sm text-gray-500 font-medium">Emocional Real</p>
+                            <p className="text-sm text-gray-900 font-medium">Emocional Real</p>
                         </div>
                     </div>
                 </div>

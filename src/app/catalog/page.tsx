@@ -36,14 +36,14 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display font-extrabold text-3xl mb-2">Catálogo</h1>
-        {search && <p className="text-gray-400 text-sm">Resultados para &quot;{search}&quot;</p>}
+        {search && <p className="text-gray-900 text-sm">Resultados para &quot;{search}&quot;</p>}
       </div>
 
       {/* Search bar */}
       <div className="flex gap-4 items-center mb-5">
         {/* Search is always global — navigates to /catalog?search=X without category scope */}
         <form action="/catalog" method="GET" className="flex-1 relative">
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-900">
             <Search size={17} />
           </div>
           <input
@@ -54,7 +54,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-full text-sm font-body"
           />
         </form>
-        <span className="text-sm text-gray-400 hidden sm:block">{result.total} productos</span>
+        <span className="text-sm text-gray-900 hidden sm:block">{result.total} productos</span>
       </div>
 
       {/* Filters */}
@@ -78,8 +78,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         </div>
       ) : (
         <div className="text-center py-20">
-          <p className="text-gray-400 text-lg mb-2">No se encontraron productos</p>
-          <p className="text-gray-300 text-sm mb-6">Prueba con otros filtros o términos de búsqueda</p>
+          <p className="text-gray-900 text-lg mb-2">No se encontraron productos</p>
+          <p className="text-gray-900 text-sm mb-6">Prueba con otros filtros o términos de búsqueda</p>
           <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-6 py-2.5 rounded-full">
             Ver todos los productos
           </Link>
@@ -104,7 +104,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                 className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${
                   p === page
                     ? "bg-brand-red text-white"
-                    : "bg-surface-100 text-gray-500 hover:bg-surface-200"
+                    : "bg-surface-100 text-gray-900 hover:bg-surface-200"
                 }`}
               >
                 {p}

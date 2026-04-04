@@ -19,7 +19,7 @@ export default async function BlogPage() {
             <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight">
               Inspiración para tu <span className="text-brand-orange">Marca</span>
             </h1>
-            <p className="text-lg md:text-xl text-red-100/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-white max-w-2xl mx-auto leading-relaxed">
               Tendencias, guías y casos de éxito sobre merchandising corporativo, serigrafía y regalos originales que conectan con tu audiencia.
             </p>
           </div>
@@ -31,7 +31,7 @@ export default async function BlogPage() {
         {posts.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center max-w-3xl mx-auto">
             <h3 className="text-xl font-bold font-display text-gray-900 mb-2">Aún no hay artículos</h3>
-            <p className="text-gray-500">Estamos preparando contenido increíble para ti. ¡Vuelve pronto!</p>
+            <p className="text-gray-900">Estamos preparando contenido increíble para ti. ¡Vuelve pronto!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -58,7 +58,7 @@ export default async function BlogPage() {
 
                 {/* Contenido */}
                 <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">
                     <Clock size={14} />
                     <span>{new Date(post.publishedAt).toLocaleDateString("es-ES", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
@@ -67,7 +67,7 @@ export default async function BlogPage() {
                     {post.title}
                   </h2>
                   
-                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 mb-6 flex-grow">
+                  <p className="text-sm text-gray-900 leading-relaxed line-clamp-3 mb-6 flex-grow">
                     {post.excerpt}
                   </p>
                   
