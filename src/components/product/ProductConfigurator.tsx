@@ -632,7 +632,7 @@ export function ProductConfigurator({ product }: Props) {
             </div>
 
             <h1 className="font-display font-extrabold text-3xl mb-2">{product.name} {product.shortDescription}</h1>
-            {product.longDescription && <p className="text-xs text-gray-400 leading-relaxed mb-6">{product.longDescription}</p>}
+            {product.longDescription && <p className="text-base text-black leading-relaxed mb-6">{product.longDescription}</p>}
 
             {/* Color selector */}
             <div className="mb-5">
