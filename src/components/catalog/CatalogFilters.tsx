@@ -45,7 +45,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               currentCategory === cat.name
                 ? "bg-brand-red text-white"
-                : "bg-surface-100 text-gray-500 hover:bg-surface-200"
+                : "bg-surface-100 text-gray-900 hover:bg-surface-200"
             }`}
           >
             {cat.name}
@@ -58,10 +58,10 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
         <div className="flex gap-2 flex-wrap pl-1">
           <button
             onClick={() => router.push(buildUrl({ subcategory: undefined, page: undefined }))}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
               currentSubcategory === "Todas"
                 ? "bg-gray-700 text-white"
-                : "bg-surface-100 text-gray-400 hover:bg-surface-200"
+                : "bg-surface-100 text-gray-900 hover:bg-surface-200"
             }`}
           >
             Todas
@@ -70,10 +70,10 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             <button
               key={sub.name}
               onClick={() => router.push(buildUrl({ subcategory: sub.name, page: undefined }))}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
                 currentSubcategory === sub.name
                   ? "bg-gray-700 text-white"
-                  : "bg-surface-100 text-gray-400 hover:bg-surface-200"
+                  : "bg-surface-100 text-gray-900 hover:bg-surface-200"
               }`}
             >
               {sub.name} <span className="opacity-60">({sub.productCount})</span>
@@ -83,12 +83,12 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
       )}
 
       <div className="flex gap-3 items-center flex-wrap">
-        <div className="flex items-center gap-1.5 text-gray-400 bg-surface-50 px-3 py-1.5 rounded-full">
+        <div className="flex items-center gap-1.5 text-gray-900 bg-surface-50 px-3 py-1.5 rounded-full">
           <ArrowUpDown size={14} />
           <select
             value={currentSort}
             onChange={(e) => router.push(buildUrl({ sort: e.target.value === "name" ? undefined : e.target.value, page: undefined }))}
-            className="bg-transparent text-sm font-medium text-gray-600 border-none cursor-pointer focus:ring-0 p-0"
+            className="bg-transparent text-sm font-medium text-gray-900 border-none cursor-pointer focus:ring-0 p-0"
           >
             <option value="name">Nombre A-Z</option>
             <option value="price_asc">Precio: menor a mayor</option>
@@ -98,12 +98,12 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
           </select>
         </div>
 
-        <div className="flex items-center gap-1.5 text-gray-400 bg-surface-50 px-3 py-1.5 rounded-full">
+        <div className="flex items-center gap-1.5 text-gray-900 bg-surface-50 px-3 py-1.5 rounded-full">
           <div className="w-3 h-3 rounded-full border border-gray-300" style={{ backgroundColor: currentColor && currentColor !== "Todos" ? getHexForColor(currentColor) : "transparent" }} />
           <select
             value={currentColor || "Todos"}
             onChange={(e) => router.push(buildUrl({ color: e.target.value === "Todos" ? undefined : e.target.value, page: undefined }))}
-            className="bg-transparent text-sm font-medium text-gray-600 border-none cursor-pointer focus:ring-0 p-0"
+            className="bg-transparent text-sm font-medium text-gray-900 border-none cursor-pointer focus:ring-0 p-0"
           >
             <option value="Todos">Cualquier Color</option>
             <option value="Negro">Negro</option>
@@ -123,7 +123,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
 
         <button
           onClick={() => router.push(buildUrl({ green: greenOnly ? undefined : "true", page: undefined }))}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
             greenOnly
               ? "bg-green-100 text-green-700 border border-green-300"
               : "bg-surface-100 text-gray-400 hover:bg-green-50 hover:text-green-600"

@@ -36,23 +36,23 @@ export function ProductCard({ product, index }: { product: CatalogProductRespons
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
           {product.isGreen && (
-            <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-              <Leaf size={10} /> Eco
+            <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-sm font-semibold px-2 py-0.5 rounded-full">
+              <Leaf size={12} /> Eco
             </span>
           )}
         </div>
-        <span className="absolute top-2.5 right-2.5 bg-surface-100 text-gray-500 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+        <span className="absolute top-2.5 right-2.5 bg-surface-100 text-gray-900 text-sm font-semibold px-2 py-0.5 rounded-full">
           {product.totalStock.toLocaleString("es-ES")} uds
         </span>
       </div>
 
       {/* Info */}
       <div className="p-4">
-        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">
+        <p className="text-sm text-gray-900 font-semibold uppercase tracking-wider mb-1">
           {product.category}
         </p>
         <h3 className="font-display font-bold text-base mb-1 truncate">{product.name}</h3>
-        <p className="text-xs text-gray-400 line-clamp-2 mb-3 leading-relaxed">
+        <p className="text-sm text-gray-900 line-clamp-2 mb-3 leading-relaxed">
           {product.shortDescription}
         </p>
         <div className="flex justify-between items-center">
@@ -69,7 +69,7 @@ export function ProductCard({ product, index }: { product: CatalogProductRespons
               />
             ))}
             {product.variants.length > 5 && (
-              <span className="text-[10px] text-gray-400 leading-[14px]">+{product.variants.length - 5}</span>
+              <span className="text-sm text-gray-900 leading-[14px]">+{product.variants.length - 5}</span>
             )}
           </div>
         </div>

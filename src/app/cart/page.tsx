@@ -106,7 +106,7 @@ export default function CartPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-20 text-center">
         <ShoppingCart size={56} className="text-gray-200 mx-auto mb-4" />
         <h1 className="font-display font-extrabold text-3xl mb-3">Tu carrito está vacío</h1>
-        <p className="text-gray-400 mb-8">Explora nuestro catálogo y encuentra el producto perfecto para tu marca</p>
+        <p className="text-gray-900 mb-8">Explora nuestro catálogo y encuentra el producto perfecto para tu marca</p>
         <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-8 py-3 rounded-full hover:bg-brand-red-dark transition-colors">
           Explorar catálogo <ArrowRight size={16} />
         </Link>
@@ -118,7 +118,7 @@ export default function CartPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-display font-extrabold text-3xl">Tu carrito</h1>
-        <span className="text-sm text-gray-400">{itemCount} producto{itemCount > 1 ? "s" : ""} · {totalItems} unidades</span>
+        <span className="text-sm text-gray-900">{itemCount} producto{itemCount > 1 ? "s" : ""} · {totalItems} unidades</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
@@ -143,7 +143,7 @@ export default function CartPage() {
                       <Link href={`/product/${item.productMasterCode}`} className="font-semibold text-sm hover:text-brand-red transition-colors">
                         {item.productName}
                       </Link>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-sm text-gray-900 mt-0.5">
                         {item.color}{item.size ? ` · ${item.size}` : ""} · REF: {item.productMasterCode}
                       </p>
                     </div>
@@ -154,7 +154,7 @@ export default function CartPage() {
 
                   {/* Customization badge */}
                   {item.customization && (
-                    <div className="mt-2 flex items-center gap-1.5 text-xs">
+                    <div className="mt-2 flex items-center gap-1.5 text-sm">
                       <Palette size={12} className="text-purple-500" />
                       <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-medium">
                         {item.customization.positions.map(p => p.techniqueName).join(" + ")}
@@ -183,12 +183,12 @@ export default function CartPage() {
                       >
                         <Plus size={12} />
                       </button>
-                      <span className="text-xs text-gray-400 ml-1">uds</span>
+                      <span className="text-sm text-gray-900 ml-1">uds</span>
                     </div>
 
                     <div className="text-right">
                       <p className="font-display font-extrabold text-lg text-brand-red">{item.totalPrice.toFixed(2)}€</p>
-                      <p className="text-[11px] text-gray-400">{item.unitPriceTotal.toFixed(2)}€/ud</p>
+                      <p className="text-sm text-gray-900">{item.unitPriceTotal.toFixed(2)}€/ud</p>
                     </div>
                   </div>
                 </div>
@@ -198,10 +198,10 @@ export default function CartPage() {
 
           {/* Clear cart */}
           <div className="flex justify-between items-center pt-2">
-            <Link href="/catalog" className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors">
+            <Link href="/catalog" className="text-sm text-gray-900 hover:text-gray-700 flex items-center gap-1.5 transition-colors">
               <ArrowLeft size={14} /> Seguir comprando
             </Link>
-            <button onClick={clearCart} className="text-sm text-gray-400 hover:text-red-500 flex items-center gap-1.5 transition-colors">
+            <button onClick={clearCart} className="text-sm text-gray-900 hover:text-red-500 flex items-center gap-1.5 transition-colors">
               <Trash2 size={14} /> Vaciar carrito
             </button>
           </div>
@@ -216,7 +216,7 @@ export default function CartPage() {
             <div className="space-y-2 mb-4">
               {state.items.map((item, i) => (
                 <div key={i} className="flex justify-between text-sm">
-                  <span className="text-gray-400 truncate mr-2">{item.productName} ×{item.quantity}</span>
+                  <span className="text-gray-900 truncate mr-2">{item.productName} ×{item.quantity}</span>
                   <span className="font-semibold flex-shrink-0">{item.totalPrice.toFixed(2)}€</span>
                 </div>
               ))}
@@ -257,11 +257,11 @@ export default function CartPage() {
                     </button>
                   </div>
                 )}
-                {couponError && <p className="text-red-500 text-xs mt-1.5">{couponError}</p>}
+                {couponError && <p className="text-red-500 text-sm mt-1.5">{couponError}</p>}
               </div>
 
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-400">Subtotal</span>
+                <span className="text-gray-900">Subtotal</span>
                 <span className="font-semibold text-gray-700">{subtotal.toFixed(2)}€</span>
               </div>
               
@@ -273,8 +273,8 @@ export default function CartPage() {
               )}
 
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-400">Envío</span>
-                <span className="text-green-600 font-medium text-xs">Se calcula en el checkout</span>
+                <span className="text-gray-900">Envío</span>
+                <span className="text-green-600 font-medium text-sm">Se calcula en el checkout</span>
               </div>
             </div>
 
@@ -283,7 +283,7 @@ export default function CartPage() {
                 <span className="font-bold">Total estimado</span>
                 <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
-              <p className="text-[11px] text-gray-400 text-right">IVA no incluido</p>
+              <p className="text-sm text-gray-900 text-right">IVA no incluido</p>
             </div>
 
             {/* Checkout button */}
@@ -301,8 +301,8 @@ export default function CartPage() {
                 { icon: Truck, text: "Entrega en menos de 10 días" },
                 { icon: Package, text: "Producción 80% europea" },
               ].map((badge, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs text-gray-400">
-                  <badge.icon size={14} className="text-gray-300 flex-shrink-0" />
+                <div key={i} className="flex items-center gap-2 text-sm text-gray-900">
+                  <badge.icon size={14} className="text-gray-900 flex-shrink-0" />
                   {badge.text}
                 </div>
               ))}
