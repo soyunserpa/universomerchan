@@ -33,8 +33,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 overflow-hidden">
+      {/* JSON-LD Breadcrumb for Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Catálogo", item: "https://universomerchan.com/catalog" },
+              { "@type": "ListItem", position: 2, name: product.category, item: `https://universomerchan.com/catalog?category=${encodeURIComponent(product.category)}` },
+              { "@type": "ListItem", position: 3, name: product.name },
+            ],
+          }),
+        }}
+      />
+
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+      <nav className="flex items-center gap-2 text-sm text-gray-900 mb-6">
         <a href="/catalog" className="hover:text-gray-600 transition-colors">Catálogo</a>
         <span>›</span>
         <a href={`/catalog?category=${encodeURIComponent(product.category)}`} className="hover:text-gray-600 transition-colors">
@@ -76,24 +92,36 @@ export default async function ProductPage({ params }: ProductPageProps) {
             "@context": "https://schema.org",
             "@type": "Product",
             name: product.name,
-            image: product.mainImage,
+            image: product.variants?.filter(v => v.mainImage).map(v => v.mainImage) || [product.mainImage],
             description: product.shortDescription || product.longDescription,
             sku: product.masterCode,
+            mpn: product.masterCode,
+            material: product.material || undefined,
+            category: product.category,
             brand: {
               "@type": "Brand",
-              name: "Universo Merchan",
+              name: product.brand || "Universo Merchan",
             },
+            ...(product.isGreen ? { additionalProperty: { "@type": "PropertyValue", name: "Sostenible", value: "Sí" } } : {}),
             offers: {
               "@type": "AggregateOffer",
-              url: `https://universomerchan.com/product/${product.masterCode}`,
+              url: `https://universomerchan.com/product/${params.code.toLowerCase()}`,
               priceCurrency: "EUR",
               lowPrice: product.startingPriceRaw || 0,
-              availability: "https://schema.org/InStock",
+              offerCount: product.variants?.length || 1,
+              availability: product.totalStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
               seller: {
                 "@type": "Organization",
-                name: "Universo Merchan"
-              }
-            }
+                name: "Universo Merchan",
+                url: "https://universomerchan.com",
+              },
+            },
+            isRelatedTo: relatedProducts.slice(0, 3).map(rp => ({
+              "@type": "Product",
+              name: rp.name,
+              url: `https://universomerchan.com/product/${rp.masterCode.toLowerCase()}`,
+              image: rp.mainImage,
+            })),
           }),
         }}
       />
