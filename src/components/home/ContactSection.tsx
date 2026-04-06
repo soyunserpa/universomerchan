@@ -86,6 +86,10 @@ export function ContactSection() {
                             <img
                                 src="/images/contact-us-office.png"
                                 alt="Oficina creativa Universo Merchan"
+                                width={1200}
+                                height={800}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full object-cover mix-blend-luminosity"
                             />
                         </div>

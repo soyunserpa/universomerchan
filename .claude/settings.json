@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sshpass -p 'V34a6df?6' ssh -o StrictHostKeyChecking=no root@212.227.90.110 \"psql $DATABASE_URL -t -c \"\"SELECT category_level1, COUNT\\(*\\) as productos FROM products WHERE is_visible = true GROUP BY category_level1 ORDER BY COUNT\\(*\\) DESC;\"\"\")"
+    ]
+  }
+}

@@ -19,49 +19,92 @@ conn.on('ready', () => {
             }
             
             console.log("Found project at:", projectDir);
-            const filesToSync = [
-                "src/app/robots.ts",
-                "src/app/sitemap.ts",
-                "src/app/layout.tsx",
-                "src/app/product/[code]/page.tsx",
-                "src/app/blog/[slug]/page.tsx",
-                "src/app/blog/page.tsx",
-                "src/app/page.tsx",
-                "src/app/catalog/page.tsx",
-                "src/app/cart/page.tsx",
-                "src/components/catalog/ProductCard.tsx",
-                "src/components/catalog/CatalogFilters.tsx",
-                "src/components/home/AboutSection.tsx",
-                "src/components/home/ContactSection.tsx",
-                "src/components/layout/Header.tsx",
-                "src/components/layout/Footer.tsx",
-                "src/lib/catalog-api.ts",
-                "public/images/about-us-hero-new.jpeg"
-            ];
             
-            let uploaded = 0;
+            const path = require('path');
+            const rootPath = '/Users/universomerchan/universomerchanweb/universomerchan';
+            
+            function walkSync(dir) {
+                let results = [];
+                const absoluteDir = path.resolve(rootPath, dir);
+                if (!fs.existsSync(absoluteDir)) return results;
+                
+                const list = fs.readdirSync(absoluteDir);
+                list.forEach(file => {
+                    if (['node_modules', '.next', '.git', '.DS_Store'].includes(file)) return;
+                    const fullPath = path.resolve(absoluteDir, file);
+                    const stat = fs.statSync(fullPath);
+                    if (stat && stat.isDirectory()) {
+                        results = results.concat(walkSync(path.join(dir, file)));
+                    } else {
+                        results.push(path.join(dir, file));
+                    }
+                });
+                return results;
+            }
+
+            let filesToSync = [
+                "tailwind.config.ts",
+                "next.config.mjs",
+                "package.json",
+                "package-lock.json",
+                "postcss.config.js"
+            ].filter(f => fs.existsSync(path.resolve(rootPath, f)));
+
+            filesToSync = filesToSync.concat(walkSync('src'));
+            filesToSync = filesToSync.concat(walkSync('public'));
+            // Remove duplicates just in case
+            filesToSync = [...new Set(filesToSync)];
+
+            console.log(`Prepared ${filesToSync.length} files to sync.`);
+
+            const directoriesToCreate = [...new Set(filesToSync.map(f => path.dirname(f).replace(/\\\\/g, '/')))].filter(d => d !== '.');
+            const mkdirCommands = directoriesToCreate.map(d => `mkdir -p ${projectDir}/${d}`).join('\\n');
+            fs.writeFileSync('mkdir_script.sh', mkdirCommands);
+
+            console.log("Creating remote directories scripts...");
             conn.sftp((err, sftp) => {
                 if (err) throw err;
-                
-                filesToSync.forEach(file => {
-                    const localPath = `/Users/universomerchan/universomerchanweb/universomerchan/${file}`;
-                    const remotePath = `${projectDir}/${file}`;
-                    
-                    sftp.fastPut(localPath, remotePath, (err) => {
-                        if (err) {
-                            console.log("Error uploading", localPath, err.message);
-                        } else {
-                            console.log("Uploaded", localPath, "->", remotePath);
-                            uploaded++;
-                        }
-                        
-                        if (uploaded === filesToSync.length) {
-                            console.log("Running npm install, build & pm2 reload...");
-                            conn.exec(`cd ${projectDir} && mkdir -p src/app/api/cron/generate-blog && npm install && npm run build && pm2 reload all`, (err, buildStream) => {
-                                buildStream.on('data', d => process.stdout.write(d))
-                                          .on('close', () => conn.end());
-                            });
-                        }
+                sftp.fastPut('mkdir_script.sh', `${projectDir}/mkdir_script.sh`, (err) => {
+                    if (err) throw err;
+                    conn.exec(`cd ${projectDir} && bash mkdir_script.sh && rm mkdir_script.sh`, (err, stream) => {
+                        if (err) throw err;
+                        let errData = "";
+                        stream.on('data', d => {}).on('stderr', d => { errData += d.toString(); }).on('close', () => {
+                            if (errData) console.error("MKDIR Warnings:", errData);
+                            let uploaded = 0;
+                            let failed = 0;
+                            
+                            function uploadNext(index) {
+                                if (index >= filesToSync.length) {
+                                    console.log(`Finished uploads. Success: ${uploaded}, Failed: ${failed}`);
+                                    console.log("Running npm install, build & pm2 reload...");
+                                    conn.exec(`cd ${projectDir} && npm install && npm run build && pm2 reload all`, (err, buildStream) => {
+                                        buildStream.on('data', d => process.stdout.write(d))
+                                                  .on('stderr', d => process.stderr.write(d))
+                                                  .on('close', () => conn.end());
+                                    });
+                                    return;
+                                }
+                                
+                                const file = filesToSync[index].replace(/\\\\/g, '/');
+                                const localPath = `${rootPath}/${file}`;
+                                const remotePath = `${projectDir}/${file}`;
+                                
+                                sftp.fastPut(localPath, remotePath, (err) => {
+                                    if (err) {
+                                        console.log("Error uploading", file, err.message);
+                                        failed++;
+                                    } else {
+                                        uploaded++;
+                                        if (uploaded % 20 === 0) console.log(`Uploaded ${uploaded}/${filesToSync.length}...`);
+                                    }
+                                    uploadNext(index + 1);
+                                });
+                            }
+                            
+                            console.log("Starting file sync...");
+                            uploadNext(0);
+                        });
                     });
                 });
             });

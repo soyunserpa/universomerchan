@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Gift } from "lucide-react";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -9,7 +10,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <img src="/images/logo.svg" alt="Universo Merchan" className="h-8" />
+              <Image src="/images/logo.svg" alt="Universo Merchan" width={200} height={32} className="h-8 w-auto" />
             </div>
             <p className="text-sm text-white leading-relaxed max-w-xs">
               Consigue que tu marca se recuerde. Regalos corporativos que generan emociones y conexiones reales.
@@ -19,7 +20,7 @@ export function Footer() {
 
           {/* Catalog */}
           <div>
-            <h4 className="font-display font-bold text-sm text-white mb-4">Catálogo</h4>
+            <h3 className="font-display font-bold text-sm text-white mb-4">Catálogo</h3>
             {[
               { label: "Botellas y termos", search: "botella" },
               { label: "Libretas y blocs", search: "libreta" },
@@ -36,7 +37,7 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="font-display font-bold text-sm text-white mb-4">Empresa</h4>
+            <h3 className="font-display font-bold text-sm text-white mb-4">Empresa</h3>
             {[
               { label: "Sobre nosotros", href: "/#sobre-nosotros" },
               { label: "Cómo funciona", href: "/#como-funciona" },
@@ -50,7 +51,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="font-display font-bold text-sm text-white mb-4">Legal</h4>
+            <h3 className="font-display font-bold text-sm text-white mb-4">Legal</h3>
             {[
               { label: "Política de Privacidad", href: "/legal/privacidad" },
               { label: "Política de Cookies", href: "/legal/cookies" },
@@ -65,7 +66,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-display font-bold text-sm text-white mb-4">Contacto</h4>
+            <h3 className="font-display font-bold text-sm text-white mb-4">Contacto</h3>
             <p className="text-sm text-white mb-2">pedidos@universomerchan.com</p>
             <p className="text-sm text-white mb-2">Madrid, España</p>
           </div>

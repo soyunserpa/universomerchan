@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProductDetail, getProductList, type CatalogProductResponse } from "@/lib/catalog-api";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
+import { ProductAccordion } from "@/components/product/ProductAccordion";
 import { ProductCard } from "@/components/catalog/ProductCard";
 
 interface ProductPageProps {
@@ -62,6 +63,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       {/* Configurator — client component handles all interactivity */}
       <ProductConfigurator product={product} />
+
+      {/* Accordion extra product info */}
+      <ProductAccordion product={product} />
 
       {/* ── RELATED PRODUCTS SECTION ──────────────────────── */}
       {relatedProducts.length > 0 && (

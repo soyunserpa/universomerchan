@@ -29,7 +29,7 @@
             },
             {
               "role": "user",
-              "content": "Escribe un artículo B2B persuasivo para el blog de 'Universo Merchan'. Genera un objeto JSON EXACTAMENTE con estas claves: 'title' (titular clickbait y SEO), 'excerpt' (resumen de 2 líneas), 'body' (contenido formateado en HTML limpio usando h2, ul, li y strong, alrededor de 600 palabras), 'metaTitle' (max 60 chars), 'metaDescription' (max 155 chars), y 'featuredImageUrl' (usa un string aleatorio de foto corporativa usando 'https://source.unsplash.com/1200x800/?business,marketing,merchandise,office')."
+              "content": "Escribe un artículo B2B persuasivo para el blog de 'Universo Merchan'. Usa palabras clave long-tail en negrita sobre regalos corporativos. Incluye obligatoriamente 1 o 2 enlaces HTML (con la etiqueta <a href=\"https://universomerchan.com/catalog\">) en el cuerpo apuntando al catálogo con un anchor text natural. Genera un objeto JSON EXACTAMENTE con estas claves: 'title' (titular clickbait y SEO), 'excerpt' (resumen de 2 líneas), 'body' (contenido formateado en HTML limpio usando h2, p, ul, li, a y strong, alrededor de 600 palabras), 'metaTitle' (max 60 chars), 'metaDescription' (max 155 chars), y 'featuredImageUrl' (usa un string aleatorio de foto corporativa usando 'https://source.unsplash.com/1200x800/?business,marketing,merchandise,office')."
             }
           ]
         }

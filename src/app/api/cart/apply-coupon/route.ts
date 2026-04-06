@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
                 code: coupon.code,
                 discountType: coupon.discountType,
                 discountValue: parseFloat(coupon.discountValue.toString()),
+                freeShipping: coupon.freeShipping,
             }
         });
 

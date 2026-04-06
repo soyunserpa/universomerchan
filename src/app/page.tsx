@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getCategories, getProductDetail } from "@/lib/catalog-api";
 import { Search, Palette, ShoppingCart, Truck, Star, Leaf, ArrowRight } from "lucide-react";
@@ -43,7 +44,7 @@ export default async function HomePage() {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-white/[0.03]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative">
-          <div className="animate-slide-up">
+          <div>
             <div className="inline-flex items-center gap-1.5 bg-white/15 text-white text-sm font-semibold px-3 py-1 rounded-full mb-5">
               <Star size={11} /> +4.000 productos personalizables
             </div>
@@ -76,7 +77,17 @@ export default async function HomePage() {
               >
                 <div className="w-full aspect-square bg-surface-50 rounded-xl flex items-center justify-center mb-2 overflow-hidden relative">
                   {p.mainImage ? (
-                    <img src={p.mainImage} alt={p.name} className="w-[85%] h-[85%] object-contain drop-shadow-lg" loading="lazy" />
+                    <div className="w-[85%] h-[85%] flex items-center justify-center relative">
+                      <img 
+                        src={p.mainImage} 
+                        alt={p.name} 
+                        width={400}
+                        height={400}
+                        className="w-full h-full object-contain drop-shadow-lg" 
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
                   ) : (
                     <div className="text-gray-200"><Palette size={32} /></div>
                   )}
@@ -105,7 +116,7 @@ export default async function HomePage() {
             { num: "04", Icon: Truck, title: "Recibe en <10 días", desc: "Aprueba el boceto online y sigue tu envío con tracking en tiempo real" },
           ].map((step, i) => (
             <div key={i} className={`bg-white rounded-2xl p-6 border border-surface-200 hover-lift relative animate-slide-up delay-${i + 1}`}>
-              <span className="font-display font-black text-5xl text-surface-100 absolute top-3 right-4">{step.num}</span>
+              <span aria-hidden="true" className="font-display font-black text-5xl text-brand-red absolute top-3 right-4 select-none">{step.num}</span>
               <div className="w-11 h-11 rounded-xl bg-brand-red/10 flex items-center justify-center mb-4">
                 <step.Icon size={20} className="text-brand-red" />
               </div>
@@ -134,7 +145,7 @@ export default async function HomePage() {
               { name: "Textil", productCount: 520, slug: "textil" },
               { name: "Bolsas", productCount: 280, slug: "bolsas" },
             ]).map((cat, i) => {
-              const colors = ["#1E3A8A", "#DE0121", "#059669", "#7C3AED", "#EA580C", "#0891B2"];
+              const colors = ["#1E3A8A", "#B8001A", "#047857", "#6D28D9", "#9A3412", "#155E75"];
               const bg = colors[i % colors.length];
               return (
                 <Link

@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
             discountValue: String(body.discountValue),
             minOrderValue: body.minOrderValue ? String(body.minOrderValue) : null,
             usageLimit: body.usageLimit ? parseInt(body.usageLimit) : null,
+            freeShipping: body.freeShipping !== undefined ? body.freeShipping : false,
             isActive: body.isActive !== undefined ? body.isActive : true,
             expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
         }).returning();

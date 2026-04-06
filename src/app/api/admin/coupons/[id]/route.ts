@@ -14,6 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             discountValue: body.discountValue ? String(body.discountValue) : undefined,
             minOrderValue: body.minOrderValue ? String(body.minOrderValue) : null,
             usageLimit: body.usageLimit ? parseInt(body.usageLimit) : null,
+            freeShipping: body.freeShipping !== undefined ? body.freeShipping : false,
             isActive: body.isActive,
             expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
             updatedAt: new Date(),

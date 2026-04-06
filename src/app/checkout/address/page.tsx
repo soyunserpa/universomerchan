@@ -28,10 +28,30 @@ function CheckoutAddressPage() {
   const [form, setForm] = useState({
     name: "", company: "", cif: "", street: "", postalCode: "", city: "", country: "ES", email: "", phone: "",
   });
-  const isUnder300 = subtotal < 300;
+  
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [appliedCoupon, setAppliedCoupon] = useState<{ type: string; value: number; freeShipping?: boolean } | null>(null);
+
+  // Fetch coupon details on load if code exists in URL
+  useEffect(() => {
+    if (couponCode && state.items.length > 0) {
+      fetch("/api/cart/apply-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, subtotal })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setAppliedCoupon({ type: data.coupon.discountType, value: data.coupon.discountValue, freeShipping: data.coupon.freeShipping });
+        }
+      })
+      .catch(() => {});
+    }
+  }, [couponCode, state.items.length, subtotal]);
 
   // Pre-fill from user profile
   useEffect(() => {
@@ -57,6 +77,33 @@ function CheckoutAddressPage() {
   }, [isLoading, isAuthenticated, state.items.length, router]);
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const isUnder300 = subtotal < 300;
+  let baseShippingCost = isUnder300 ? 8.00 : 0;
+  let finalShippingCost = baseShippingCost;
+  let discountAmount = 0;
+
+  if (appliedCoupon) {
+    if (appliedCoupon.type === "percentage") {
+      const perc = appliedCoupon.value / 100;
+      discountAmount = subtotal * perc;
+      finalShippingCost = baseShippingCost * (1 - perc);
+    } else {
+      discountAmount = Math.min(appliedCoupon.value, subtotal);
+      if (appliedCoupon.value > subtotal) {
+        const leftOver = appliedCoupon.value - subtotal;
+        finalShippingCost = Math.max(0, baseShippingCost - leftOver);
+      }
+    }
+    if (appliedCoupon.freeShipping) {
+      finalShippingCost = 0;
+    }
+  } else if (user?.discountPercent) {
+    discountAmount = subtotal * (user.discountPercent / 100);
+    finalShippingCost = baseShippingCost * (1 - user.discountPercent / 100);
+  }
+
+  const finalTotal = subtotal - discountAmount + finalShippingCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,9 +147,6 @@ function CheckoutAddressPage() {
   if (isLoading || state.items.length === 0) {
     return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
   }
-
-  const shippingCost = isUnder300 ? 8.00 : 0;
-  const total = subtotal + shippingCost;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -223,6 +267,14 @@ function CheckoutAddressPage() {
             />
           </div>
 
+          {/* Legal Acknowledgement */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+             <input type="checkbox" id="legal-boceto" required className="mt-1 w-4 h-4 accent-brand-red border-surface-300 rounded flex-shrink-0 cursor-pointer" />
+             <label htmlFor="legal-boceto" className="text-xs text-amber-900 font-medium leading-tight cursor-pointer">
+                 Comprendo que la producción de mi pedido no iniciará hasta que yo apruebe explícitamente el boceto virtual final que recibiré en mi panel de cliente una vez el pago haya sido verificado.
+             </label>
+          </div>
+
           {error && <p className="text-sm text-red-500 bg-red-50 px-4 py-3 rounded-xl">{error}</p>}
 
           {/* Submit */}
@@ -234,7 +286,7 @@ function CheckoutAddressPage() {
             {loading ? (
               <><RefreshCw size={18} className="animate-spin" /> Procesando...</>
             ) : (
-              <><Lock size={16} /> Pagar {total.toFixed(2)}€ con Stripe</>
+              <><Lock size={16} /> Pagar {finalTotal.toFixed(2)}€ con Stripe</>
             )}
           </button>
 
@@ -269,24 +321,33 @@ function CheckoutAddressPage() {
                 <span className="text-gray-400">Subtotal</span>
                 <span className="font-semibold">{subtotal.toFixed(2)}€</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Envío</span>
-                <span className={`font-semibold ${isUnder300 ? "" : "text-green-600"}`}>
-                  {isUnder300 ? "8,00€" : "Gratis"}
-                </span>
-              </div>
-              {user?.discountPercent && user.discountPercent > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400 flex items-center gap-1"><Tag size={12} /> Descuento cliente</span>
-                  <span className="font-semibold text-green-600">-{user.discountPercent}%</span>
+              
+              {appliedCoupon && (
+                <div className="flex justify-between text-sm text-green-600 font-medium">
+                  <span className="flex items-center gap-1"><Tag size={12} /> Cupón ({couponCode})</span>
+                  <span>-{discountAmount.toFixed(2)}€{appliedCoupon.freeShipping ? " + Envío Gratis" : ""}</span>
                 </div>
               )}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Envío</span>
+                <span className={`font-semibold ${finalShippingCost === 0 ? "text-green-600" : ""}`}>
+                  {finalShippingCost === 0 ? "Gratis" : `${finalShippingCost.toFixed(2)}€`}
+                </span>
+              </div>
+              
+              {!appliedCoupon && (user?.discountPercent ?? 0) > 0 ? (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400 flex items-center gap-1"><Tag size={12} /> Descuento cliente</span>
+                  <span className="font-semibold text-green-600">-{user!.discountPercent}%</span>
+                </div>
+              ) : null}
             </div>
 
             <div className="border-t-2 border-gray-900 pt-3 mt-3">
               <div className="flex justify-between items-baseline">
                 <span className="font-bold">Total</span>
-                <span className="font-display font-extrabold text-2xl text-brand-red">{total.toFixed(2)}€</span>
+                <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
               <p className="text-[11px] text-gray-400 text-right">IVA no incluido</p>
             </div>

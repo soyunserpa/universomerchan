@@ -11,6 +11,7 @@ type Coupon = {
   minOrderValue: string | null;
   usageLimit: number | null;
   usageCount: number;
+  freeShipping: boolean;
   isActive: boolean;
   expiresAt: string | null;
 };
@@ -27,6 +28,7 @@ export default function AdminCouponsPage() {
     discountValue: "",
     minOrderValue: "",
     usageLimit: "",
+    freeShipping: false,
     isActive: true,
     expiresAt: "",
   });
@@ -53,7 +55,7 @@ export default function AdminCouponsPage() {
     setEditingCoupon(null);
     setFormData({
       code: "", discountType: "percentage", discountValue: "", 
-      minOrderValue: "", usageLimit: "", isActive: true, expiresAt: ""
+      minOrderValue: "", usageLimit: "", freeShipping: false, isActive: true, expiresAt: ""
     });
     setIsModalOpen(true);
   };
@@ -66,6 +68,7 @@ export default function AdminCouponsPage() {
       discountValue: coupon.discountValue,
       minOrderValue: coupon.minOrderValue || "",
       usageLimit: coupon.usageLimit ? String(coupon.usageLimit) : "",
+      freeShipping: coupon.freeShipping || false,
       isActive: coupon.isActive,
       expiresAt: coupon.expiresAt ? new Date(coupon.expiresAt).toISOString().split('T')[0] : "",
     });
@@ -161,8 +164,8 @@ export default function AdminCouponsPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right space-x-2">
-                  <button onClick={() => openEditModal(c)} className="text-gray-400 hover:text-blue-600"><Edit2 size={16} /></button>
-                  <button onClick={() => handleDelete(c.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button>
+                  <button onClick={() => openEditModal(c)} title="Editar cupón" className="text-gray-400 hover:text-blue-600"><Edit2 size={16} /></button>
+                  <button onClick={() => handleDelete(c.id)} title="Eliminar cupón" className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}
@@ -182,7 +185,7 @@ export default function AdminCouponsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Tipo *</label>
-                  <select value={formData.discountType} onChange={e => setFormData({...formData, discountType: e.target.value})} className="w-full border rounded-lg px-3 py-2">
+                  <select title="Tipo de descuento" value={formData.discountType} onChange={e => setFormData({...formData, discountType: e.target.value})} className="w-full border rounded-lg px-3 py-2">
                     <option value="percentage">Porcentaje (%)</option>
                     <option value="fixed">Fijo (€)</option>
                   </select>
@@ -201,9 +204,15 @@ export default function AdminCouponsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Caduca el</label>
-                  <input type="date" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} className="w-full border rounded-lg px-3 py-2" />
+                  <input title="Fecha de caducidad" placeholder="Fecha límite" type="date" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} className="w-full border rounded-lg px-3 py-2" />
                 </div>
-                <div className="flex items-end pb-2">
+                <div className="flex items-end pb-2 mt-4 col-span-2 sm:col-span-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={formData.freeShipping} onChange={e => setFormData({...formData, freeShipping: e.target.checked})} className="w-5 h-5 rounded text-brand-red focus:ring-brand-red" />
+                    <span className="text-sm font-semibold">Ofrece Envío Gratis</span>
+                  </label>
+                </div>
+                <div className="flex items-end pb-2 sm:mt-4 col-span-2 sm:col-span-1">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="w-5 h-5 rounded text-brand-red focus:ring-brand-red" />
                     <span className="text-sm font-semibold">Cupón Activo</span>

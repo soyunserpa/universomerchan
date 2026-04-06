@@ -522,6 +522,7 @@ export const coupons = pgTable("coupons", {
   minOrderValue: decimal("min_order_value", { precision: 10, scale: 2 }),
   usageLimit: integer("usage_limit"),
   usageCount: integer("usage_count").default(0).notNull(),
+  freeShipping: boolean("free_shipping").default(false).notNull(),
   
   isActive: boolean("is_active").default(true).notNull(),
   expiresAt: timestamp("expires_at"),
