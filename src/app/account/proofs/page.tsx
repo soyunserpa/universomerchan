@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
     Package, CheckCircle, Truck, Eye, Gift, ThumbsUp, ThumbsDown, MessageSquare,
-    FileText, User, LogOut, ChevronRight, RefreshCw, Layers
+    FileText, User, LogOut, ChevronRight, RefreshCw, Layers, Lock
 } from "lucide-react";
 
 interface ProofRecord {
@@ -205,14 +205,21 @@ export default function AccountProofsPage() {
                                                             <Eye size={14} /> Inspeccionar boceto PDF
                                                         </a>
                                                     )}
-                                                    <div className="flex gap-2 w-full sm:w-auto">
-                                                        <button onClick={() => { setProofAction({ lineId: proof.lineId, action: "approve" }); setActionMessage(""); }} className="flex-1 sm:flex-none justify-center bg-green-500 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 hover:bg-green-600 shadow-sm transition-all">
-                                                            <ThumbsUp size={14} /> Aprobar para producción
-                                                        </button>
-                                                        <button onClick={() => { setProofAction({ lineId: proof.lineId, action: "reject" }); setActionMessage(""); setRejectReason(""); }} className="flex-1 sm:flex-none justify-center bg-red-50 text-red-600 border border-red-200 text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 hover:bg-red-100 transition-all">
-                                                            <ThumbsDown size={14} /> Rechazar
-                                                        </button>
-                                                    </div>
+                                                    {proof.orderStatus === "pending_transfer" ? (
+                                                        <div className="w-full sm:w-auto bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                                                            <Lock size={16} className="text-amber-600 flex-shrink-0" />
+                                                            <span>Esperando confirmación de la transferencia para habilitar aprobación.</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex gap-2 w-full sm:w-auto">
+                                                            <button onClick={() => { setProofAction({ lineId: proof.lineId, action: "approve" }); setActionMessage(""); }} className="flex-1 sm:flex-none justify-center bg-green-500 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 hover:bg-green-600 shadow-sm transition-all">
+                                                                <ThumbsUp size={14} /> Aprobar para producción
+                                                            </button>
+                                                            <button onClick={() => { setProofAction({ lineId: proof.lineId, action: "reject" }); setActionMessage(""); setRejectReason(""); }} className="flex-1 sm:flex-none justify-center bg-red-50 text-red-600 border border-red-200 text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 hover:bg-red-100 transition-all">
+                                                                <ThumbsDown size={14} /> Rechazar
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
 

@@ -28,7 +28,20 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
         case "checkout.session.completed": {
             const session = event.data.object as Stripe.Checkout.Session;
-            console.log(`[Webhook] Payment completed: ${session.id}`);
+            console.log(`[Webhook] Session completed: ${session.id} (status: ${session.payment_status})`);
+            
+            if (session.payment_status === "paid" || session.payment_status === "no_payment_required") {
+                await handlePaymentSuccess(session.payment_intent as string, session.id);
+            } else if (session.payment_status === "unpaid") {
+                // Bank transfer started but funds not received yet.
+                const { handlePendingTransfer } = await import("@/lib/cart-checkout");
+                await handlePendingTransfer(session.payment_intent as string, session.id);
+            }
+            break;
+        }
+        case "checkout.session.async_payment_succeeded": {
+            const session = event.data.object as Stripe.Checkout.Session;
+            console.log(`[Webhook] Async payment succeeded for session: ${session.id}`);
             await handlePaymentSuccess(session.payment_intent as string, session.id);
             break;
         }

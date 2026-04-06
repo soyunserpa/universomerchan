@@ -7,9 +7,10 @@ import type { ProductDetailResponse } from "@/lib/catalog-api";
 import {
   Leaf, ShoppingCart, Palette, Eye, ArrowLeft,
   Check, Download, Minus, Plus, Info, Gift,
-  Layers, Loader2
+  Layers, Loader2, Package, ShieldCheck, Handshake
 } from "lucide-react";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
+import { useEffect } from "react";
 
 // ============================================================
 // CONSTANTS
@@ -168,7 +169,7 @@ export function ProductConfigurator({ product }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [variantIdx, setVariantIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [baseQty, setBaseQty] = useState(50);
+  const [baseQty, setBaseQty] = useState(1);
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({});
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null);
@@ -177,6 +178,12 @@ export function ProductConfigurator({ product }: Props) {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cachedMockups, setCachedMockups] = useState<Record<string, string>>({});
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Reset active image when variant changes
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [variantIdx]);
 
   // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
   const hasSize = product.hasSize;
@@ -397,7 +404,7 @@ export function ProductConfigurator({ product }: Props) {
 
       if (hasLogos && logoPlacements[0]?.logoDataUrl) {
         try {
-          const extMatch = logoPlacements[0].logoFileName.match(/\.([a-zA-Z0-9]+)$/);
+          const extMatch = logoPlacements[0].logoFileName.match(/\\.([a-zA-Z0-9]+)$/);
           const ext = extMatch ? extMatch[1] : undefined;
 
           const upRes = await fetch("/api/uploads/artwork", {
@@ -408,8 +415,16 @@ export function ProductConfigurator({ product }: Props) {
               extension: ext
             })
           });
-          if (upRes.ok) finalArtworkUrl = (await upRes.json()).url;
-        } catch (e) { console.error("Artwork upload error:", e); }
+          if (upRes.ok) {
+            finalArtworkUrl = (await upRes.json()).url;
+          } else {
+            throw new Error("HTTP error " + upRes.status);
+          }
+        } catch (e) {
+          console.error("Artwork upload error:", e);
+          alert("Lo sentimos, ha habido un problema de conexión al subir tu diseño. Prueba de nuevo o utiliza un formato más ligero.");
+          return; // Cancel add to cart
+        }
       }
 
       const customizationPayload = selectedTechnique && hasLogos ? {
@@ -428,7 +443,7 @@ export function ProductConfigurator({ product }: Props) {
             instructions: "",
           };
         }),
-        artworkUrl: finalArtworkUrl || logoPlacements[0]?.logoDataUrl || "",
+        artworkUrl: finalArtworkUrl || "",
         artworkFileName: logoPlacements[0]?.logoFileName || "",
         mockupUrl,
       } : null;
@@ -604,24 +619,30 @@ export function ProductConfigurator({ product }: Props) {
           {/* Image */}
           <div>
             <div className="w-full aspect-square bg-surface-50 rounded-3xl flex items-center justify-center mb-3 overflow-hidden">
-              {variant.mainImage ? (
-                <img src={variant.mainImage} alt={product.name} className="w-[72%] h-[72%] object-contain" />
+              {variant.images && variant.images.length > 0 ? (
+                <img src={variant.images[activeImageIndex]?.urlHiRes || variant.images[activeImageIndex]?.url} alt={product.name} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+              ) : variant.mainImage ? (
+                <img src={variant.mainImage} alt={product.name} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
               ) : (
                 <Gift size={60} className="text-gray-200" />
               )}
             </div>
-            <div className="flex gap-2">
-              {product.variants.slice(0, 6).map((v, i) => (
-                <button
-                  key={v.sku}
-                  onClick={() => setVariantIdx(i)}
-                  className={`w-14 h-14 rounded-xl bg-surface-50 border-2 flex items-center justify-center overflow-hidden transition-colors ${variantIdx === i ? "border-brand-red" : "border-surface-200"
-                    }`}
-                >
-                  {v.mainImage ? <img src={v.mainImage} alt={v.color} className="w-[80%] h-[80%] object-contain" /> : <div className="w-6 h-6 rounded-full" style={{ background: v.colorHex }} />}
-                </button>
-              ))}
-            </div>
+            
+            {/* Gallery Thumbnails */}
+            {variant.images && variant.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {variant.images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImageIndex(i)}
+                    className={`w-16 h-16 flex-shrink-0 rounded-xl bg-surface-50 border-2 flex items-center justify-center overflow-hidden transition-all ${activeImageIndex === i ? "border-brand-red ring-2 ring-brand-red/20 shadow-sm" : "border-surface-200 hover:border-gray-300"
+                      }`}
+                  >
+                    <img src={img.url} alt={`Vista ${i + 1}`} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product info */}
@@ -646,12 +667,8 @@ export function ProductConfigurator({ product }: Props) {
                     <button
                       key={v.sku}
                       onClick={() => setVariantIdx(idx)}
-                      className="w-8 h-8 rounded-full border-[3px] transition-all"
-                      style={{
-                        background: v.colorHex,
-                        borderColor: variant.color === v.color ? "#DE0121" : "#E8E8E8",
-                        boxShadow: variant.color === v.color ? "0 0 0 2px white, 0 0 0 4px #DE0121" : "none",
-                      }}
+                      className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${variant.color === v.color ? "ring-2 ring-brand-red border-brand-red scale-110" : "border-2 border-surface-200 hover:border-surface-300"}`}
+                      style={{ backgroundColor: v.colorHex }}
                       title={v.color}
                     />
                   );
@@ -713,13 +730,15 @@ export function ProductConfigurator({ product }: Props) {
             {/* Quantity (non-textiles) */}
             {!hasSize && (
               <div className="mb-5">
-                <label className="text-sm font-semibold mb-2 block">Cantidad</label>
-                <div className="flex items-center gap-3">
+                <label className="text-sm font-semibold mb-2 block">
+                  Cantidad <span className="text-xs text-gray-500 font-normal ml-1">(De 1 a {maxStock.toLocaleString("es-ES")} uds)</span>
+                </label>
+                <div className="flex items-center gap-3 flex-wrap">
                   <button onClick={() => setBaseQty(Math.max(1, baseQty - 10))} disabled={isOutOfStock} title="Restar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Minus size={14} /></button>
                   <input type="number" max={maxStock} title="Unidades" placeholder="1" value={baseQty} onChange={(e) => setBaseQty(Math.max(1, Math.min(maxStock, parseInt(e.target.value) || 1)))} disabled={isOutOfStock} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body outline-none disabled:opacity-50" />
                   <button onClick={() => setBaseQty(Math.min(maxStock, baseQty + 10))} disabled={isOutOfStock || baseQty >= maxStock} title="Sumar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Plus size={14} /></button>
-                  <div className="flex gap-1.5 ml-2">
-                    {[50, 100, 250, 500].map(q => (
+                  <div className="flex gap-1.5 ml-2 flex-wrap">
+                    {[5, 15, 50, 100, 250, 500].map(q => (
                       <button key={q} title={`Elegir ${q} unidades`} onClick={() => setBaseQty(q)} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${baseQty === q ? "bg-brand-red/10 text-brand-red border border-brand-red" : "bg-surface-100 text-gray-400 border border-transparent hover:bg-surface-200"}`}>{q}</button>
                     ))}
                   </div>
@@ -760,6 +779,11 @@ export function ProductConfigurator({ product }: Props) {
             })()}
 
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} />
+
+            <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> A mayor cantidad mayor descuento en imprenta.</span>
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> Para cantidades grandes contactarnos por WhatsApp o email para descuentos especiales.</span>
+            </div>
 
             <div className="flex gap-3 mt-5">
               <button
@@ -951,7 +975,7 @@ export function ProductConfigurator({ product }: Props) {
       {step === 3 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in">
           <div>
-            <div className="grid gap-3" style={{ gridTemplateColumns: logoPlacements.length > 1 ? "repeat(2, 1fr)" : "1fr" }}>
+            <div className={`grid gap-3 ${logoPlacements.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
               {(logoPlacements.length > 0 ? logoPlacements : [null]).map((lp, idx) => {
                 const zone = lp ? printZones.find(z => z.positionId === lp.positionId) : printZones[0];
                 const getUrl = () => {
@@ -1058,6 +1082,37 @@ export function ProductConfigurator({ product }: Props) {
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
                 Añadir al carrito
               </button>
+            </div>
+
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 flex gap-3 text-sm text-blue-800">
+              <div className="flex-shrink-0 mt-0.5">
+                <Info size={16} className="text-blue-600" />
+              </div>
+              <div className="leading-snug">
+                <strong>¿No estás seguro de cómo quedará?</strong><br/>
+                No te preocupes. Te enviaremos un <strong>boceto final profesional</strong> a tu correo para que lo valides antes de pasar a producción. Podrás aprobarlo o solicitar cambios desde tu panel de cliente.
+              </div>
+            </div>
+
+            <div className={`mt-4 mb-2 grid gap-3 ${product.isGreen ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
+              <div className="flex items-center gap-2 text-xs text-gray-700 bg-surface-50 p-2.5 rounded-lg border border-surface-200">
+                <Package size={16} className="text-brand-red flex-shrink-0" />
+                <span className="font-medium leading-tight">Envío a península <br className="hidden sm:block" />en 3-10 días</span>
+              </div>
+              {product.isGreen && (
+                <div className="flex items-center gap-2 text-xs text-gray-700 bg-green-50 p-2.5 rounded-lg border border-green-200">
+                  <Leaf size={16} className="text-green-600 flex-shrink-0" />
+                  <span className="font-medium leading-tight text-green-800">Materiales <br className="hidden sm:block" />Sostenibles</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-xs text-gray-700 bg-surface-50 p-2.5 rounded-lg border border-surface-200">
+                <Handshake size={16} className="text-brand-red flex-shrink-0" />
+                <span className="font-medium leading-tight">Atención B2B <br className="hidden sm:block" />Personalizada</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-700 bg-surface-50 p-2.5 rounded-lg border border-surface-200">
+                <ShieldCheck size={16} className="text-brand-red flex-shrink-0" />
+                <span className="font-medium leading-tight">Pago 100% <br className="hidden sm:block" />Seguro</span>
+              </div>
             </div>
 
             <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full mt-3 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center justify-center gap-2 text-gray-500 hover:border-gray-300 transition-colors disabled:opacity-50">

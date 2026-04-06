@@ -19,7 +19,7 @@ export default function CartPage() {
   
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number; freeShipping?: boolean } | null>(null);
   const [couponError, setCouponError] = useState("");
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
@@ -45,7 +45,7 @@ export default function CartPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setAppliedCoupon({ code: data.coupon.code, type: data.coupon.discountType, value: data.coupon.discountValue });
+        setAppliedCoupon({ code: data.coupon.code, type: data.coupon.discountType, value: data.coupon.discountValue, freeShipping: data.coupon.freeShipping });
         setCouponCode("");
       } else {
         setCouponError(data.error);
@@ -250,7 +250,7 @@ export default function CartPage() {
                     <div className="flex items-center gap-2 text-green-700 text-sm">
                       <Tag size={16} />
                       <span className="font-bold font-mono">{appliedCoupon.code}</span>
-                      <span>(-{appliedCoupon.type === "percentage" ? `${appliedCoupon.value}%` : `${appliedCoupon.value}€`})</span>
+                      <span>(-{appliedCoupon.type === "percentage" ? `${appliedCoupon.value}%` : `${appliedCoupon.value}€`}{appliedCoupon.freeShipping ? " + Envío Gratis" : ""})</span>
                     </div>
                     <button onClick={() => setAppliedCoupon(null)} className="text-gray-400 hover:text-red-500">
                       <Trash2 size={16} />
@@ -274,7 +274,7 @@ export default function CartPage() {
 
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-900">Envío</span>
-                <span className="text-green-600 font-medium text-sm">Se calcula en el checkout</span>
+                <span className="text-green-600 font-medium text-sm">{appliedCoupon?.freeShipping ? "Gratis" : "Se calcula en el checkout"}</span>
               </div>
             </div>
 

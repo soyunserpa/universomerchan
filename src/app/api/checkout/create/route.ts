@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
-import { createOrderFromCart, createCheckoutSession } from "@/lib/cart-checkout";
+import { createOrderFromCart, createCheckoutSession, processFreeOrder } from "@/lib/cart-checkout";
 import { updateProfile } from "@/lib/auth-service";
 import type { CartItem } from "@/lib/configurator-engine";
 
@@ -52,9 +52,14 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        const { orderId, orderNumber } = await createOrderFromCart({ userId, items, shippingAddress, expressShipping, customerNotes, couponCode });
-        const totalPrice = items.reduce((sum, i) => sum + i.totalPrice, 0);
-        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerEmail: shippingAddress.email, totalPrice, items, expressShipping: expressShipping || false, couponCode });
+        const { orderId, orderNumber, finalShippingCost, totalPrice } = await createOrderFromCart({ userId, items, shippingAddress, expressShipping, customerNotes, couponCode });
+        
+        if (totalPrice <= 0) {
+            await processFreeOrder(orderId);
+            return NextResponse.json({ success: true, orderNumber, checkoutUrl: `/checkout/success?order=${orderNumber}` });
+        }
+
+        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerEmail: shippingAddress.email, totalPrice, items, expressShipping: expressShipping || false, couponCode, finalShippingCost });
 
         return NextResponse.json({ success: true, orderNumber, checkoutUrl: sessionUrl, sessionId });
     } catch (error: any) {

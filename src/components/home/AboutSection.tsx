@@ -13,12 +13,12 @@ export function AboutSection() {
                     <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-gray-900/5 rounded-full blur-3xl"></div>
 
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[600px] w-full">
-                        <Image
-                            src="/images/about-us-hero-new.jpeg"
+                        <img
+                            src="/images/about-us-hero-new.webp"
                             alt="Regalos corporativos premium Universo Merchan"
-                            fill
-                            className="object-cover transform hover:scale-105 transition-transform duration-700"
-                            sizes="(max-width: 768px) 100vw, 50vw"
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
                         />
                     </div>
 
@@ -36,7 +36,7 @@ export function AboutSection() {
 
                 {/* Right: Content */}
                 <div className="relative z-10">
-                    <div className="inline-flex items-center gap-2 bg-brand-red/10 text-brand-red text-sm font-bold px-4 py-2 rounded-full mb-6">
+                    <div className="inline-flex items-center gap-2 bg-brand-red/10 text-brand-red-dark text-sm font-bold px-4 py-2 rounded-full mb-6">
                         <Sparkles size={16} /> Sobre nosotros
                     </div>
 

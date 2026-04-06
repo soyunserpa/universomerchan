@@ -59,6 +59,11 @@ function proxyUrl(url: string | null | undefined): string {
   return url;
 }
 
+const VECTOR_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' fill='%2310b981' rx='20'/><text x='100' y='95' font-family='Arial' font-size='22' font-weight='bold' fill='white' text-anchor='middle'>VECTOR</text><text x='100' y='125' font-family='Arial' font-size='15' fill='%23f0fdf4' text-anchor='middle'>ADJUNTO</text></svg>";
+const getDisplayDataUrl = (dataUrl: string, fileName: string) => {
+  return /\\.(ai|eps|pdf)$/i.test(fileName) ? VECTOR_PLACEHOLDER : dataUrl;
+};
+
 // ============================================================
 // COMPONENT — Midocean-style split layout
 // Left: Print area canvas (checkerboard bg, logo draggable)
@@ -264,7 +269,8 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         ctx.drawImage(productImg, 0, 0, natW, natH);
 
         // Draw logo using IDENTICAL math to PreviewWithLogo's logoOverlay
-        const logoImg = await loadImage(logo.dataUrl);
+        const displayDataUrl = getDisplayDataUrl(logo.dataUrl, logo.fileName);
+        const logoImg = await loadImage(displayDataUrl);
         let parsedPoints = zone.points;
         if (typeof parsedPoints === "string") {
           try { parsedPoints = JSON.parse(parsedPoints); } catch(e) { parsedPoints = []; }
@@ -410,7 +416,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
               {/* Logo in the canvas */}
               {activeLogoData ? (
                 <img
-                  src={activeLogoData.dataUrl}
+                  src={getDisplayDataUrl(activeLogoData.dataUrl, activeLogoData.fileName)}
                   alt="Logo"
                   className="cursor-move select-none"
                   style={{
@@ -437,7 +443,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
                   <div className="text-center">
                     <Upload size={28} className="text-brand-red/40 mx-auto mb-2" />
                     <p className="text-xs text-gray-400 font-medium">Arrastra tu logo aqu&iacute;</p>
-                    <p className="text-[10px] text-gray-300 mt-1">PNG, SVG, JPG</p>
+                    <p className="text-[10px] text-gray-300 mt-1">PNG, SVG, AI, EPS, PDF</p>
                   </div>
                 </div>
               )}
@@ -456,7 +462,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
 
             <input
               id={`logo-upload-${activeZone}`}
-              type="file" accept=".png,.jpg,.jpeg,.svg,.webp,.gif" className="hidden"
+              type="file" accept=".png,.jpg,.jpeg,.svg,.webp,.gif,.ai,.eps,.pdf" className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ""; }}
             />
           </div>
@@ -551,9 +557,10 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     const logoH = zoneHeight * currentLogoPos.scale;
     const logoLeft = zoneLeft + zoneWidth * currentLogoPos.x - logoW / 2;
     const logoTop = zoneTop + zoneHeight * currentLogoPos.y - logoH / 2;
+    const displayDataUrl = getDisplayDataUrl(activeLogoData.dataUrl, activeLogoData.fileName);
     return (
       <img
-        src={activeLogoData.dataUrl}
+        src={displayDataUrl}
         alt="Logo preview"
         className="pointer-events-none select-none"
         style={{

@@ -65,6 +65,11 @@ export interface CatalogProductResponse {
     stock: number;
     mainImage: string;
     mainImageHiRes: string;
+    images: Array<{
+      url: string;
+      urlHiRes: string;
+      subtype: string;
+    }>;
   }>;
   numberOfPrintPositions: number;
   mainImage: string;
@@ -206,6 +211,15 @@ export async function getProductList(params: {
       const assets = safeParseJsonArray(variant.digitalAssets);
       const frontImage = assets.find((a: any) => a.subtype === "item_picture_front");
       
+      // Extract ALL images for the product gallery
+      const allImages = assets
+        .filter((a: any) => a.subtype?.startsWith("item_picture") || a.subtype?.startsWith("item_lifestyle") || a.type === "image")
+        .map((a: any) => ({
+          url: a.url || "",
+          urlHiRes: a.url_highress || a.url || "",
+          subtype: a.subtype || "item_picture",
+        }));
+      
       variantsWithStock.push({
         sku: variant.sku,
         color: variant.colorDescription || "",
@@ -216,6 +230,7 @@ export async function getProductList(params: {
         stock: qty,
         mainImage: frontImage?.url || "",
         mainImageHiRes: frontImage?.url_highress || frontImage?.url || "",
+        images: allImages,
       });
     }
 
@@ -703,43 +718,38 @@ function slugify(text: string): string {
 }
 
 function getTechniqueDescription(id: string, midoceanName: string): string {
-  const descriptions: Record<string, string> = {
-    S2: "Serigrafía — Tintas sólidas, ideal para logos de pocos colores",
-    B: "Grabado en relieve — Elegante y duradero",
-    L3: "Grabado láser — Precisión máxima, acabado premium en metal",
-    E: "Bordado — Alta calidad, resistente a lavados",
+  // First, exact specific matches that cannot just be deduced by pure prefix,
+  // or that we want very specific phrasing for.
+  const exactDescriptions: Record<string, string> = {
+    B: "Relieve / Termograbado — Elegante y duradero",
     UV: "Impresión UV — Full color sobre superficies rígidas",
     UVP: "Impresión UV 360° — Envolvente full color",
-    ST: "Serigrafía textil — Colores vivos en camisetas",
-    ST1: "Transfer digital — Full color fotográfico en textil",
+    ST: "Serigrafía Textil — Colores vivos en telas",
+    ST1: "Transfer Digital — Full color fotográfico en textil",
     DTF: "DTF Transfer — Textura suave, colores vibrantes",
-    T1: "Sublimación textil — Colores vibrantes en poliéster",
-    P1: "Tampografía — Ideal para objetos curvos y pequeños",
     SUB: "Sublimación — Full color en cerámica y poliéster",
-    P5: "Tampografía digital — Mayor detalle y colores",
-    DL: "Impresión digital directa — Full color sin límite",
-    S5: "Serigrafía transfer — Colores sólidos en textil",
-    TD1: "Transfer digital DTG — Fotográfico en algodón",
-    TR: "Transfer reflectante — Visibilidad nocturna",
-    TT: "Transfer — Acabado profesional en textil",
-    S7: "Serigrafía especial — Acabado de alta resistencia",
-    P7: "Tampografía — Precisión en piezas curvas",
-    TC: "Transfer cerámico — Para tazas y superficies de calor",
-    DO: "Gota de resina (Doming) — Efecto 3D brillante",
+    DL: "Impresión Digital Directa — Full color sin límite",
+    DO: "Gota de Resina (Doming) — Efecto 3D brillante y protector",
+    TC: "Transfer Cerámico — Resistente a calor y lavavajillas",
+    DO1: "Gota de Resina (Doming) — Efecto 3D brillante y protector",
   };
 
-  if (descriptions[id]) return descriptions[id];
+  const cleanId = id.toUpperCase().trim();
+  if (exactDescriptions[cleanId]) return exactDescriptions[cleanId];
 
-  // Smart prefix fallbacks
-  const cleanName = midoceanName.trim();
-  if (id.startsWith('S')) return `${cleanName} — Colores sólidos vibrantes`;
-  if (id.startsWith('P')) return `${cleanName} — Ideal para pequeños detalles`;
-  if (id.startsWith('L')) return `${cleanName} — Acabado premium e imborrable`;
-  if (id.startsWith('T') || id.startsWith('TD')) return `${cleanName} — Personalización a todo color`;
-  if (id.startsWith('E')) return `${cleanName} — Acabado textil de lujo`;
-  if (id.startsWith('D')) return `${cleanName} — Impresión digital en alta resolución`;
-  
-  return `${cleanName} — Técnica de personalización estándar`;
+  // Robust Prefix Regex Matching
+  if (/^RS\d*$/.test(cleanId)) return `Serigrafía Circular — Perfecta para botellas y envases`;
+  if (/^S\d*$/.test(cleanId)) return `Serigrafía — Tintas sólidas, ideal para grandes tiradas`;
+  if (/^P\d*$/.test(cleanId)) return `Tampografía — Ideal para pequeños detalles en curvas`;
+  if (/^RL\d*$/.test(cleanId)) return `Grabado Láser Circular — Precisión 360º en metal`;
+  if (/^L\d*$/.test(cleanId)) return `Grabado Láser — Precisión máxima, acabado premium inborrable`;
+  if (/^E\d*$/.test(cleanId)) return `Bordado — Acabado textil de alta calidad`;
+  if (/^TR\d*$/.test(cleanId)) return `Transfer Reflectante — Alta visibilidad técnica`;
+  if (/^TD\d*$/.test(cleanId)) return `Transfer Digital — Fotográfico y muy resistente`;
+  if (/^TT\d*$/.test(cleanId)) return `Transfer Textil — Acabado profesional por calor`;
+  if (/^T\d*$/.test(cleanId)) return `Sublimación / Transfer — Calidad de impresión extrema`;
+
+  return `${midoceanName.trim()} — Técnica de personalización estándar`;
 }
 
 function getTechniquePricingType(id: string): string {

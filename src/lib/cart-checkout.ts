@@ -58,7 +58,7 @@ export async function createOrderFromCart(params: {
   expressShipping?: boolean;
   customerNotes?: string;
   couponCode?: string;
-}): Promise<{ orderId: number; orderNumber: string }> {
+}): Promise<{ orderId: number; orderNumber: string; finalShippingCost: number; totalPrice: number }> {
   const { userId, items, shippingAddress, expressShipping, customerNotes, couponCode } = params;
 
   // Get user for discount
@@ -94,6 +94,9 @@ export async function createOrderFromCart(params: {
   let discountAmount = 0;
   let finalCouponCode: string | null = null;
   const userDiscountPct = parseFloat(user?.discountPercent?.toString() || "0");
+  
+  let baseShippingCost = expressShipping ? 8.00 : 0.00;
+  let finalShippingCost = baseShippingCost;
 
   if (couponCode) {
     const coupon = await db.query.coupons.findFirst({ where: eq(schema.coupons.code, couponCode.toUpperCase().trim()) });
@@ -104,18 +107,30 @@ export async function createOrderFromCart(params: {
     if (isCouponValid) {
       finalCouponCode = coupon.code;
       if (coupon.discountType === "percentage") {
-        discountAmount = subtotal * (parseFloat(coupon.discountValue.toString()) / 100);
+        const perc = parseFloat(coupon.discountValue.toString()) / 100;
+        discountAmount = subtotal * perc;
+        finalShippingCost = baseShippingCost * (1 - perc);
       } else {
-        discountAmount = Math.min(parseFloat(coupon.discountValue.toString()), subtotal);
+        const fixedValue = parseFloat(coupon.discountValue.toString());
+        discountAmount = Math.min(fixedValue, subtotal);
+        if (fixedValue > subtotal) {
+          const leftOver = fixedValue - subtotal;
+          finalShippingCost = Math.max(0, baseShippingCost - leftOver);
+        }
+      }
+      if (coupon.freeShipping) {
+        finalShippingCost = 0;
       }
     } else {
       discountAmount = subtotal * (userDiscountPct / 100);
+      finalShippingCost = baseShippingCost * (1 - userDiscountPct / 100);
     }
   } else {
     discountAmount = subtotal * (userDiscountPct / 100);
+    finalShippingCost = baseShippingCost * (1 - userDiscountPct / 100);
   }
 
-  const totalPrice = subtotal - discountAmount;
+  const totalPrice = subtotal - discountAmount + finalShippingCost;
 
   const orderNumber = await generateOrderNumber();
 
@@ -131,6 +146,7 @@ export async function createOrderFromCart(params: {
     marginPrintApplied: String(marginPrint),
     couponCode: finalCouponCode,
     discountApplied: String(discountAmount),
+    shippingCost: String(finalShippingCost),
     totalPrice: String(totalPrice),
     shippingName: shippingAddress.name,
     shippingCompany: shippingAddress.company || null,
@@ -169,7 +185,7 @@ export async function createOrderFromCart(params: {
     });
   }
 
-  return { orderId: order.id, orderNumber };
+  return { orderId: order.id, orderNumber, finalShippingCost, totalPrice };
 }
 
 // ============================================================
@@ -184,8 +200,9 @@ export async function createCheckoutSession(params: {
   items: CartItem[];
   expressShipping: boolean;
   couponCode?: string;
+  finalShippingCost: number;
 }): Promise<{ sessionUrl: string; sessionId: string }> {
-  const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode } = params;
+  const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost } = params;
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
     price_data: {
@@ -255,7 +272,16 @@ export async function createCheckoutSession(params: {
     locale: "es",
 
     // Card = Visa/MC/Amex + Apple Pay + Google Pay
-    payment_method_types: ["card"],
+    // customer_balance = SEPA Bank Transfers
+    payment_method_types: ["card", "customer_balance"],
+    payment_method_options: {
+      customer_balance: {
+        funding_type: "bank_transfer",
+        bank_transfer: {
+          type: "eu_bank_transfer",
+        },
+      },
+    },
 
     // Auto-generate invoice (useful for B2B clients with CIF)
     invoice_creation: {
@@ -276,26 +302,17 @@ export async function createCheckoutSession(params: {
       enabled: true,
     },
 
-    // Shipping options (standard vs express)
-    shipping_options: expressShipping ? [
+    // Shipping options dynamically updated via finalShippingCost
+    shipping_options: [
       {
         shipping_rate_data: {
           type: "fixed_amount",
-          fixed_amount: { amount: 800, currency: "eur" }, // 8.00€ express small order fee
-          display_name: "Envío Directo (Gestión pedidos < 300€)",
-          delivery_estimate: {
+          fixed_amount: { amount: Math.round(finalShippingCost * 100), currency: "eur" },
+          display_name: expressShipping ? "Envío Directo (Gestión pedidos < 300€)" : "Envío estándar",
+          delivery_estimate: expressShipping ? {
             minimum: { unit: "business_day", value: 3 },
             maximum: { unit: "business_day", value: 5 },
-          },
-        },
-      },
-    ] : [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          fixed_amount: { amount: 0, currency: "eur" },
-          display_name: "Envío estándar",
-          delivery_estimate: {
+          } : {
             minimum: { unit: "business_day", value: 7 },
             maximum: { unit: "business_day", value: 10 },
           },
@@ -335,13 +352,51 @@ export async function handlePaymentSuccess(
     return;
   }
 
+  await finalizeOrder(order.id, true, paymentIntentId);
+}
+
+export async function handlePendingTransfer(
+  paymentIntentId: string,
+  sessionId: string,
+): Promise<void> {
+  const order = await db.query.orders.findFirst({
+    where: eq(schema.orders.stripeSessionId, sessionId),
+  });
+
+  if (!order) return;
+
+  await finalizeOrder(order.id, false, paymentIntentId);
+}
+
+export async function processFreeOrder(orderId: number): Promise<void> {
+  await finalizeOrder(orderId, true);
+}
+
+async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentIntentId?: string) {
+  const order = await db.query.orders.findFirst({ where: eq(schema.orders.id, orderId) });
+  if (!order) return;
+
+  // Si la orden ya estaba fully paid (por ej. si Midocean ya empezó), no re-ejecutar.
+  if (order.status === "paid" && isPaid) {
+    return;
+  }
+
+  const newStatus = isPaid ? "paid" : "pending_transfer";
+
   // Update order status
   await db.update(schema.orders).set({
-    status: "paid",
-    stripePaymentIntentId: paymentIntentId,
-    paidAt: new Date(),
+    status: newStatus,
+    stripePaymentIntentId: stripePaymentIntentId || order.stripePaymentIntentId,
+    paidAt: isPaid ? new Date() : null,
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, order.id));
+
+  // If this is just a transition from pending_transfer to paid (async_payment_succeeded),
+  // we do NOT want to resubmit to Midocean or decrement coupons again. We just update status and stop.
+  if (order.status === "pending_transfer" && isPaid) {
+    console.log(`[Checkout] Order ${order.orderNumber} funds finally received via Bank Transfer`);
+    return;
+  }
 
   // Increment coupon usage if an actual coupon code was stored
   if (order.couponCode) {
@@ -353,7 +408,7 @@ export async function handlePaymentSuccess(
     }
   }
 
-  console.log(`[Checkout] Order ${order.orderNumber} paid successfully`);
+  console.log(`[Checkout] Order ${order.orderNumber} successfully captured (Paid: ${isPaid})`);
 
   // Get user and order lines
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });

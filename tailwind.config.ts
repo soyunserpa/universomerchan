@@ -22,8 +22,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['"Poppins"', "sans-serif"],
-        body: ['"Poppins"', "sans-serif"],
+        sans: ['var(--font-poppins)', "sans-serif"],
+        display: ['var(--font-poppins)', "sans-serif"],
+        body: ['var(--font-poppins)', "sans-serif"],
       },
       borderRadius: {
         "2xl": "16px",
