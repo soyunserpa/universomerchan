@@ -835,7 +835,7 @@ export function ProductConfigurator({ product }: Props) {
 
           <div>
             <h2 className="font-display font-extrabold text-2xl mb-2">Personaliza tu {product.name}</h2>
-            <p className="text-sm text-gray-400 mb-6">Selecciona una zona en el editor y elige técnica de impresión</p>
+            <p className="text-sm text-gray-500 mb-6">Completa los pasos en el visor para preparar tu producto.</p>
 
             {/* Current position indicator */}
             {selectedPosition && positionData && (
@@ -854,10 +854,13 @@ export function ProductConfigurator({ product }: Props) {
               </div>
             )}
 
-            {/* 1. Technique — with REAL indicative prices */}
+            {/* 3. Technique */}
             {selectedPosition && (
               <div className="mb-5 animate-slide-up">
-                <label className="text-sm font-semibold mb-2 block">1. Técnica de impresión</label>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-brand-red text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span>
+                  <label className="text-sm font-bold text-gray-900 leading-none">Elige técnica y colores de impresión</label>
+                </div>
                 <div className="space-y-2">
                   {positionData?.techniques.map(tech => {
                     const isSelected = selectedTechnique === tech.techniqueId;
