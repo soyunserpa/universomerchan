@@ -370,7 +370,11 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     return (
       <div className="space-y-4">
         {/* Zone Tabs */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="bg-brand-red text-white w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shadow-sm">1</span>
+          <h3 className="font-bold text-gray-900 text-sm">Elige la zona de impresión</h3>
+        </div>
+        <div className="flex gap-2 flex-wrap mb-4">
           {printZones.map((zone) => {
             const hasLogo = !!logos[zone.positionId];
             const isActive = activeZone === zone.positionId;
@@ -397,6 +401,10 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         <div className="flex gap-4 items-start">
           {/* LEFT: Print area canvas */}
           <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-brand-red text-white w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shadow-sm">2</span>
+              <h3 className="font-bold text-gray-900 text-sm">Sube y ajusta tu logotipo</h3>
+            </div>
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide">
               &Aacute;rea de impresi&oacute;n &middot; {activeZoneData?.maxWidthMm}&times;{activeZoneData?.maxHeightMm}mm
             </div>
@@ -468,17 +476,20 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
           </div>
 
           {/* RIGHT: Product preview with logo overlay */}
-          <div className="w-[280px] flex-shrink-0">
+          <div className="w-[280px] flex-shrink-0 flex flex-col">
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide flex items-center gap-1">
               <Eye size={10} /> Vista previa
             </div>
-            <PreviewWithLogo
-              previewUrl={previewUrl}
-              productName={productName}
-              activeLogoData={activeLogoData}
-              activeZoneData={activeZoneData}
-              currentLogoPos={currentLogoPos}
-            />
+            
+            <div className="w-full flex items-center justify-center bg-surface-50 rounded-xl border border-surface-200 h-[435px] p-2">
+              <PreviewWithLogo
+                previewUrl={previewUrl}
+                productName={productName}
+                activeLogoData={activeLogoData}
+                activeZoneData={activeZoneData}
+                currentLogoPos={currentLogoPos}
+              />
+            </div>
             <div className="text-[9px] text-gray-300 text-center mt-1">
               {activeZoneData?.positionName}
             </div>
@@ -579,21 +590,22 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
   })();
 
   return (
-    <div className="rounded-xl border border-surface-200 bg-surface-50 overflow-hidden relative">
+    <div className="relative inline-block w-fit max-w-full max-h-full">
       {previewUrl ? (
         <>
           <img
             ref={imgRef}
             src={previewUrl}
             alt={productName}
-            className="w-full h-auto block"
+            className="block w-auto h-auto mix-blend-multiply"
+            style={{ maxWidth: '100%', maxHeight: '415px' }}
             draggable={false}
             onLoad={handleImageLoad}
           />
           {logoOverlay}
         </>
       ) : (
-        <div className="aspect-square flex items-center justify-center text-gray-300 text-xs">Sin imagen</div>
+        <div className="flex items-center justify-center text-gray-300 text-xs w-full h-[200px]">Sin imagen</div>
       )}
     </div>
   );
