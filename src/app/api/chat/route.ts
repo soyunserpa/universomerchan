@@ -54,5 +54,5 @@ REGLAS:
     maxSteps: 5,
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toDataStreamResponse();
 }
