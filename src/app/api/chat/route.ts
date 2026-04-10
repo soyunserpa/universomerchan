@@ -57,6 +57,7 @@ export async function POST(req: Request) {
         },
       }),
     },
+    maxSteps: 5,
   });
 
   return result.toUIMessageStreamResponse();
