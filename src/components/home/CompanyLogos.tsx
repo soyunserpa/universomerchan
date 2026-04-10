@@ -4,15 +4,14 @@
 import React, { useState, useEffect } from "react";
 
 const companies = [
-  { name: "Novotel", src: "/logos/novotel.png" },
-  { name: "Porsche", src: "/logos/porsche.png" },
+  { name: "Novotel", src: "/logos/novotel.png", customClass: "max-w-[180px] sm:max-w-[220px] scale-110" },
+  { name: "Porsche", src: "/logos/porsche.png", customClass: "max-w-[150px] sm:max-w-[180px]" },
   { name: "Instituto DI", src: "/logos/institutodi.png" },
-  { name: "Estores a Medida", src: "/logos/estores.png" },
   { name: "Metapro Academy", src: "/logos/metapro.png" },
   { name: "Quiero Un Serpa", src: "/logos/quierounserpa.png" },
 ];
 
-function Logo({ name, src }: { name: string; src: string }) {
+function Logo({ name, src, customClass }: { name: string; src: string; customClass?: string }) {
   const [error, setError] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -32,12 +31,12 @@ function Logo({ name, src }: { name: string; src: string }) {
   }
 
   return (
-    <div className="flex items-center justify-center h-16 sm:h-20 w-auto min-w-[120px] px-4 filter grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer relative group">
+    <div className="flex items-center justify-center h-16 sm:h-20 w-auto min-w-[130px] px-4 filter grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer relative group">
       <div className="absolute inset-0 bg-brand-red/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <img
         src={src}
         alt={`${name} logotipo`}
-        className={`max-h-[85%] max-w-[140px] object-contain relative z-10 drop-shadow-sm ${src.includes('quierounserpa') ? 'invert hover:invert' : ''}`}
+        className={`max-h-[90%] object-contain relative z-10 drop-shadow-sm ${customClass || 'max-w-[130px]'} ${src.includes('quierounserpa') ? 'invert hover:invert' : ''}`}
         onError={() => setError(true)}
         suppressHydrationWarning
       />
