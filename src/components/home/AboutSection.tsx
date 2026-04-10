@@ -13,12 +13,12 @@ export function AboutSection() {
                     <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-gray-900/5 rounded-full blur-3xl"></div>
 
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[600px] w-full">
-                        <img
+                        <Image
                             src="/images/about-us-hero-new.jpeg"
                             alt="Regalos corporativos premium Universo Merchan"
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className="object-cover transform hover:scale-105 transition-transform duration-700"
                         />
                     </div>
 
