@@ -73,7 +73,7 @@ export function ChatbotBubble() {
           setIsWizardLoading(true);
           const loaderId = 'loader-' + Date.now();
           setTimeout(() => {
-             setMessages(prev => [...prev, { id: loaderId, role: 'assistant', content: 'Gracias. Estoy analizando la información de tu marca y catálogo para crear tu pack...' } as any]);
+             setMessages(prev => [...prev, { id: loaderId, role: 'assistant', content: 'Dame 10 segundos... estoy buscando los mejores productos para ti.' } as any]);
           }, 300);
           
           try {
@@ -197,7 +197,7 @@ export function ChatbotBubble() {
                       </div>
                     </div>
                     <div className="px-4 py-3 rounded-2xl text-sm bg-white border border-gray-100 shadow-sm text-brand-red rounded-tl-sm flex items-center gap-2 italic">
-                      <Loader2 size={16} className="animate-spin" /> Pensando...
+                      <Loader2 size={16} className="animate-spin" /> Dame 10 segundos...
                     </div>
                   </div>
                 </div>
