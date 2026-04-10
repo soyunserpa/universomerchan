@@ -7,48 +7,67 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { company_name, industry, purpose, objective } = await req.json();
+    const { company_name, industry, objective } = await req.json();
 
-    // Obtener productos aleatorios del catálogo (en el PHP antiguo se cogían de un JSON)
+    // --- SYSTEM-FIRST: buscar productos relevantes por industria + objetivo ---
+    // Construir query de búsqueda combinando industria y objetivo del cliente
+    const searchTerms = `${industry} ${objective}`.trim();
+
+    // Buscar productos relevantes al contexto del cliente (sistema primero)
     const res = await getProductList({
-      limit: 5,
+      search: searchTerms,
+      limit: 8,
       sort: 'newest'
     });
-    
-    const selection = res.products.slice(0, Math.floor(Math.random() * 2) + 4); // 4 a 5 productos
-    const productNames = selection.map(p => p.name).join(', ');
 
-    const prompt = `Eres un asesor experto en branding emocional y merchandising corporativo.
-Debes crear un pack de regalos corporativos utilizando EXACTAMENTE los siguientes productos reales de nuestro catálogo: ${productNames}.
+    // Si no hay resultados relevantes, hacer búsqueda más genérica
+    let products = res.products;
+    if (products.length < 4) {
+      const fallback = await getProductList({
+        search: industry,
+        limit: 8,
+        sort: 'newest'
+      });
+      products = fallback.products;
+    }
 
-La empresa cliente se llama ${company_name}, se dedica a ${industry}.
-Su propósito o filosofía es: ${purpose}.
-El objetivo específico de la campaña o acción es: ${objective}.
+    // Seleccionar 4-5 productos del resultado
+    const selection = products.slice(0, Math.min(5, Math.max(4, products.length)));
 
-Genera una respuesta en Markdown siguiendo este formato estricto:
-1. Empieza con un saludo cordial.
-2. Dale un "Nombre emocional" potente al Pack que has creado.
-3. Enumera cada producto asignado, pero hazlo en una lista donde incluyas una frase que justifique emocional y funcionalmente su elección relacionándola con la filosofía u objetivo. Usa negritas para el nombre del producto.
-4. Escribe un párrafo final e inspirador (una Experiencia Integrada) donde narres brevemente un momento de la vida real de la persona que recibirá el pack entero, imaginando cómo todos los productos conectados cumplen el objetivo de la campaña (${objective}).
+    // Preparar contexto de productos compacto (optimizar tokens)
+    const productContext = selection.map(p => (
+      `- ${p.name} (Ref: ${p.masterCode}, ~${p.startingPrice ?? 'consultar'}€/ud)`
+    )).join('\n');
 
-Mantén un tono empático, B2B, entusiasta y muy profesional.`;
+    // --- AI-SECOND: prompt enfocado solo en la narrativa emocional ---
+    const prompt = `Crea un pack de regalos corporativos con estos productos reales:
+${productContext}
+
+Cliente: ${company_name} | Sector: ${industry} | Objetivo: ${objective}
+
+Responde en Markdown:
+1. Saludo breve
+2. Nombre emocional del Pack
+3. Lista de cada producto con una frase que justifique su elección para el objetivo
+4. Párrafo inspirador narrando cómo el pack cumple el objetivo
+
+Tono: empático, B2B, profesional. Máximo 300 palabras.`;
 
     const { text } = await generateText({
-      model: openai('gpt-4o'),
-      prompt: prompt,
+      model: openai('gpt-4o-mini'),
+      prompt,
     });
 
     let markdownOutput = text;
-    
-    // Adjuntamos un bloque de productos reales y llamadas a la acción al final
-    markdownOutput += `\n\n### Productos Seleccionados en tu Pack\n\n`;
+
+    // Adjuntar bloque de productos reales con enlaces
+    markdownOutput += `\n\n### 🎁 Productos Seleccionados\n\n`;
     selection.forEach(p => {
       const url = `https://universomerchan.com/product/${p.masterCode}`;
-      const img = p.images[0] ? `\n![${p.name}](${p.images[0]})\n` : '';
-      markdownOutput += `- **[${p.name}](${url})** *(Ref: ${p.masterCode})* \n`;
+      markdownOutput += `- **[${p.name}](${url})** *(Ref: ${p.masterCode})*\n`;
     });
 
-    markdownOutput += `\n\n💬 **¿Te encaja o prefieres que ajustemos algo?** Entra a nuestra web o habla con nuestro equipo comercial por WhatsApp para un presupuesto ajustado sin compromiso!`;
+    markdownOutput += `\n\n💬 **¿Te encaja o prefieres que ajustemos algo?** Habla con nuestro equipo por [WhatsApp](https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0) para un presupuesto sin compromiso.`;
 
     return NextResponse.json({ markdown: markdownOutput });
   } catch (err: any) {
