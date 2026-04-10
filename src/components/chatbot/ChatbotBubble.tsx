@@ -170,8 +170,17 @@ export function ChatbotBubble() {
                       ) : null}
                       
                       {m.content && (
-                        <div className="prose prose-sm prose-p:leading-snug prose-a:text-brand-red font-medium">
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                        <div className="prose prose-sm prose-p:leading-snug prose-a:text-brand-red prose-img:rounded-lg prose-img:w-full prose-img:max-h-40 prose-img:object-contain prose-img:my-1 font-medium">
+                          <ReactMarkdown
+                            components={{
+                              img: ({ src, alt }) => (
+                                <img src={src} alt={alt || ''} loading="lazy" className="rounded-lg w-full max-h-40 object-contain my-1 border border-gray-100" />
+                              ),
+                              a: ({ href, children, ...props }) => (
+                                <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline" {...props}>{children}</a>
+                              ),
+                            }}
+                          >{m.content}</ReactMarkdown>
                         </div>
                       )}
                     </div>

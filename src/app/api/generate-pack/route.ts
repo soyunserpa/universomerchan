@@ -53,19 +53,24 @@ Responde en Markdown:
 
 Tono: empático, B2B, profesional. Máximo 300 palabras.`;
 
+    // --- PRODUCTOS PRIMERO: tarjetas con imagen y link al inicio ---
+    let markdownOutput = `### 🎁 Productos Seleccionados\n\n`;
+    selection.forEach(p => {
+      const url = `https://universomerchan.com/product/${p.masterCode}`;
+      const img = p.mainImage || '';
+      if (img) {
+        markdownOutput += `[![${p.name}](${img})](${url})\n\n`;
+      }
+      markdownOutput += `**[${p.name}](${url})** — *~${p.startingPrice ?? 'consultar'}€/ud*\n\n---\n\n`;
+    });
+
+    // --- DESPUÉS: narrativa emocional de la IA ---
     const { text } = await generateText({
       model: openai('gpt-4o-mini'),
       prompt,
     });
 
-    let markdownOutput = text;
-
-    // Adjuntar bloque de productos reales con enlaces
-    markdownOutput += `\n\n### 🎁 Productos Seleccionados\n\n`;
-    selection.forEach(p => {
-      const url = `https://universomerchan.com/product/${p.masterCode}`;
-      markdownOutput += `- **[${p.name}](${url})** *(Ref: ${p.masterCode})*\n`;
-    });
+    markdownOutput += text;
 
     markdownOutput += `\n\n💬 **¿Te encaja o prefieres que ajustemos algo?** Habla con nuestro equipo por [WhatsApp](https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0) para un presupuesto sin compromiso.`;
 
