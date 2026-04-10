@@ -1,25 +1,30 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const companies = [
-  { name: "Novotel", domain: "novotel.com" },
-  { name: "Porsche", domain: "porsche.com" },
-  { name: "Instituto DI", domain: "institutodi.com" },
-  { name: "Estores a Medida", domain: "cortinadecor.com" },
-  { name: "Metapro Academy", domain: "metaproacademy.com" },
-  { name: "Quiero Un Serpa", domain: "quierounserpa.com" },
+  { name: "Novotel", src: "/logos/novotel.png" },
+  { name: "Porsche", src: "/logos/porsche.png" },
+  { name: "Instituto DI", src: "/logos/institutodi.png" },
+  { name: "Estores a Medida", src: "/logos/estores.png" },
+  { name: "Metapro Academy", src: "/logos/metapro.png" },
+  { name: "Quiero Un Serpa", src: "/logos/quierounserpa.png" },
 ];
 
-function Logo({ name, domain }: { name: string; domain: string }) {
+function Logo({ name, src }: { name: string; src: string }) {
   const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // If the image API fails, we show a nice typographic fallback
-  if (error) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // We use purely typographic fallback if the image fails or before mounting prevents hydration match
+  if (!mounted || error) {
     return (
       <div className="flex items-center justify-center h-16 sm:h-20 px-6 filter grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-1 transition-all duration-300">
-        <span className="font-display font-black text-xl sm:text-2xl text-gray-800 tracking-tight">
+        <span className="font-display font-black text-xl sm:text-2xl text-gray-900 tracking-tight" suppressHydrationWarning>
           {name}
         </span>
       </div>
@@ -27,14 +32,14 @@ function Logo({ name, domain }: { name: string; domain: string }) {
   }
 
   return (
-    <div className="flex items-center justify-center h-16 sm:h-20 w-32 sm:w-44 px-4 filter grayscale opacity-50 hover:grayscale-0 hover:opacity-100 hover:-translate-y-2 transition-all duration-500 ease-out cursor-pointer relative group">
-      {/* Glow effect on hover */}
+    <div className="flex items-center justify-center h-16 sm:h-20 w-auto min-w-[120px] px-4 filter grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer relative group">
       <div className="absolute inset-0 bg-brand-red/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <img
-        src={`https://logo.clearbit.com/${domain}`}
-        alt={`${name} logo`}
-        className="max-h-full max-w-full object-contain relative z-10 drop-shadow-sm"
+        src={src}
+        alt={`${name} logotipo`}
+        className="max-h-[85%] max-w-[140px] object-contain relative z-10 drop-shadow-sm"
         onError={() => setError(true)}
+        suppressHydrationWarning
       />
     </div>
   );
@@ -45,7 +50,7 @@ export function CompanyLogos() {
     <section className="border-t border-b border-gray-100 bg-white py-12 sm:py-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-10">
-          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest text-center">
+          <p className="text-sm font-bold text-gray-900 uppercase tracking-widest text-center">
             Proyectos que confían en nosotros
           </p>
         </div>
@@ -66,20 +71,19 @@ export function CompanyLogos() {
           `}} />
           
           <div className="flex items-center w-full pause-on-hover">
-            {/* Double the list for seamless infinite loop */}
             <div className="flex items-center gap-10 sm:gap-20 animate-slide whitespace-nowrap min-w-max px-10">
               {companies.map((company, i) => (
-                <Logo key={`first-${i}`} name={company.name} domain={company.domain} />
+                <Logo key={`first-${i}`} name={company.name} src={company.src} />
               ))}
             </div>
             <div className="flex items-center gap-10 sm:gap-20 animate-slide whitespace-nowrap min-w-max px-10">
               {companies.map((company, i) => (
-                <Logo key={`second-${i}`} name={company.name} domain={company.domain} />
+                <Logo key={`second-${i}`} name={company.name} src={company.src} />
               ))}
             </div>
              <div className="flex items-center gap-10 sm:gap-20 animate-slide whitespace-nowrap min-w-max px-10">
               {companies.map((company, i) => (
-                <Logo key={`third-${i}`} name={company.name} domain={company.domain} />
+                <Logo key={`third-${i}`} name={company.name} src={company.src} />
               ))}
             </div>
           </div>
