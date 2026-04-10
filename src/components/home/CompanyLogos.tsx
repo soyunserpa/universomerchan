@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 
 const companies = [
-  { name: "Novotel", src: "/logos/novotel.png", customClass: "max-w-[180px] sm:max-w-[220px] scale-110" },
+  { name: "Novotel", src: "/logos/novotel.png", customClass: "max-w-[220px] sm:max-w-[280px] scale-125 mx-4" },
   { name: "Porsche", src: "/logos/porsche.png", customClass: "max-w-[150px] sm:max-w-[180px]" },
   { name: "Instituto DI", src: "/logos/institutodi.png" },
   { name: "Metapro Academy", src: "/logos/metapro.png" },
