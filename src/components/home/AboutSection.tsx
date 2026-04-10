@@ -14,7 +14,7 @@ export function AboutSection() {
 
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[600px] w-full">
                         <img
-                            src="/images/about-us-hero-new.webp"
+                            src="/images/about-us-hero-new.jpeg"
                             alt="Regalos corporativos premium Universo Merchan"
                             loading="lazy"
                             decoding="async"
