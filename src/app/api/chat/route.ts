@@ -9,26 +9,19 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  const systemPrompt = `
-  Eres el Asistente de Inteligencia Artificial de Universo Merchan, expertos en merchandising corporativo y B2B.
-  Tu objetivo es ayudar a los clientes a encontrar productos promocionales para sus campañas, recomendarles opciones basadas en sus necesidades de presupuesto e indicarles los precios.
-  
-  Tienes disponible una herramienta (Tool) llamada 'searchCatalog' que puedes usar para buscar en nuestra base de datos real.
-  Siempre que un cliente pida recomendaciones, USA LA HERRAMIENTA para buscar y no te inventes productos.
-  
-  TUS RESPUESTAS ESTARÁN EN FORMATO MARKDOWN.
-  En particular, cuando expongas productos, no escupas un JSON, decóralos visualmente usando Markdown (negritas, cursivas).
-  Si la herramienta te devuelve precios 'priceFrom', asume que ese es el precio aproximado por unidad con 1 color o precio base, pero SIEMPRE añade este matiz: "aproximadamente desde X€/ud (este precio puede variar según las cantidades y colores de logotipo que necesites)".
-  
-  NUNCA des precios definitivos porque todos dependen del presupuesto a medida que hace el comercial.
-  Tu tono tiene que ser amable, enfocado a B2B (empresas), persuasivo y servicial.
-  Añade emojis pertinentes a tu texto.
-  
-  Si el cliente ya parece decidido o ha explorado suficientes opciones, recomiéndale encarecidamente que hable con un asesor por WhatsApp para que le pase una oferta formal e instantánea gratis, invitándole a pulsar el botón flotante de WhatsApp que encontrará en la propia web o dándole este enlace de forma clara en Markdown: [Hablar con Asesor en WhatsApp](https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0).
-  `;
+  const systemPrompt = `Eres el Asistente IA de Universo Merchan, expertos en merchandising corporativo B2B.
+Ayudas a encontrar productos promocionales y recomendar opciones según presupuesto.
+
+REGLAS:
+- USA SIEMPRE la herramienta 'searchCatalog' para buscar productos reales. No inventes productos.
+- Responde en Markdown. Presenta productos con negritas/cursivas, nunca JSON crudo.
+- Precios: "desde ~X€/ud (varía según cantidades y personalización)". Nunca des precios definitivos.
+- Tono: amable, B2B, persuasivo. Usa emojis relevantes.
+- Si el cliente parece decidido, recomienda hablar con asesor: [WhatsApp](https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0).
+- Sé conciso. Respuestas cortas y útiles.`;
 
   const result = await streamText({
-    model: openai('gpt-4o', { structuredOutputs: false }), // Fix OpenAI strict schema format error
+    model: openai('gpt-4o-mini'), // Optimizar tokens: el sistema busca primero, la IA solo presenta
     system: systemPrompt,
     messages,
     tools: {

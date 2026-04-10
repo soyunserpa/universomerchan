@@ -8,7 +8,6 @@ import ReactMarkdown from 'react-markdown';
 const WIZARD_QUESTIONS = [
   '¿Cuál es el nombre de tu empresa?',
   '¿A qué se dedica tu empresa?',
-  '¿Cuál es su propósito o filosofía?',
   '¿Cuál es el objetivo específico de la campaña o acción?'
 ];
 
@@ -21,7 +20,7 @@ export function ChatbotBubble() {
     maxSteps: 5,
   });
   
-  const [wizardState, setWizardState] = useState({ step: -1, answers: { company_name: '', industry: '', purpose: '', objective: '' } });
+  const [wizardState, setWizardState] = useState({ step: -1, answers: { company_name: '', industry: '', objective: '' } });
   const [isWizardLoading, setIsWizardLoading] = useState(false);
   
   const isLoading = status === 'submitted' || status === 'streaming' || isWizardLoading;
@@ -39,7 +38,7 @@ export function ChatbotBubble() {
   };
   
   const startWizard = () => {
-    setWizardState({ step: 0, answers: { company_name: '', industry: '', purpose: '', objective: '' } });
+    setWizardState({ step: 0, answers: { company_name: '', industry: '', objective: '' } });
     setMessages([
       { id: Date.now().toString(), role: 'assistant', content: '¡Hola! Soy tu asistente de merchandising y te ayudaré a crear un pack emocionalmente memorable.' } as any,
       { id: (Date.now() + 1).toString(), role: 'assistant', content: WIZARD_QUESTIONS[0] } as any
@@ -51,15 +50,14 @@ export function ChatbotBubble() {
     if (!input.trim() || isLoading) return;
     
     // Si estamos en modo Mago (Wizard)
-    if (wizardState.step >= 0 && wizardState.step < 4) {
+    if (wizardState.step >= 0 && wizardState.step < 3) {
       const userText = input.trim();
       setInput('');
       
       const newAnswers = { ...wizardState.answers };
       if (wizardState.step === 0) newAnswers.company_name = userText;
       if (wizardState.step === 1) newAnswers.industry = userText;
-      if (wizardState.step === 2) newAnswers.purpose = userText;
-      if (wizardState.step === 3) newAnswers.objective = userText;
+      if (wizardState.step === 2) newAnswers.objective = userText;
       
       const nextStep = wizardState.step + 1;
       
@@ -67,7 +65,7 @@ export function ChatbotBubble() {
       setMessages(prev => [...prev, { id: Date.now().toString() + 'u', role: 'user', content: userText } as any]);
       setWizardState({ step: nextStep, answers: newAnswers });
       
-      if (nextStep < 4) {
+      if (nextStep < 3) {
           setTimeout(() => {
             setMessages(prev => [...prev, { id: Date.now().toString() + 'a', role: 'assistant', content: WIZARD_QUESTIONS[nextStep] } as any]);
           }, 300);
