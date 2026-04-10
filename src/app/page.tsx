@@ -46,7 +46,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative">
           <div>
             <div className="inline-flex items-center gap-1.5 bg-white/15 text-white text-sm font-semibold px-3 py-1 rounded-full mb-5">
-              <Star size={11} /> +4.000 productos personalizables
+              <Star size={11} /> +2.000 productos personalizables
             </div>
             <h1 className="font-display font-black text-4xl sm:text-5xl text-white leading-[1.05] mb-5">
               Consigue que tu marca se recuerde.
@@ -110,7 +110,7 @@ export default async function HomePage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { num: "01", Icon: Search, title: "Elige tu producto", desc: "Explora +4.000 productos con stock en tiempo real y filtros inteligentes" },
+            { num: "01", Icon: Search, title: "Elige tu producto", desc: "Explora +2.000 productos con stock en tiempo real y filtros inteligentes" },
             { num: "02", Icon: Palette, title: "Personaliza", desc: "Elige técnica de impresión, sube tu logo y previsualiza el resultado" },
             { num: "03", Icon: ShoppingCart, title: "Presupuesta y compra", desc: "Precio en tiempo real, descarga PDF o compra directo con tarjeta" },
             { num: "04", Icon: Truck, title: "Recibe en <10 días", desc: "Aprueba el boceto online y sigue tu envío con tracking en tiempo real" },
@@ -168,7 +168,7 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
           {[
-            { num: "4.000+", label: "Productos" },
+            { num: "2.000+", label: "Productos" },
             { num: "< 10", label: "Días de entrega" },
             { num: "80%", label: "Producción europea" },
             { num: "17", label: "Técnicas de impresión" },

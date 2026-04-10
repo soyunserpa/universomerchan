@@ -55,7 +55,7 @@ export const DEFAULT_STATIC_PAGES = [
       <h2>Consigue que tu marca se recuerde</h2>
       <p>Universo Merchan es mucho más que merchandising: es emoción hecha regalo. Con más de 10 años de experiencia, creamos regalos corporativos que conectan de verdad con personas, clientes y equipos.</p>
       <p>No queremos que las empresas entreguen objetos vacíos, queremos que le den una experiencia a esos productos que generan vínculos duraderos entre las marcas y su audiencia.</p>
-      <p>Con un catálogo de más de 4.000 productos personalizables, producción 80% europea, materiales sostenibles y entregas en menos de 10 días, ayudamos a las empresas a diferenciarse, emocionar y dejar huella.</p>
+      <p>Con un catálogo de más de 2.000 productos personalizables, producción 80% europea, materiales sostenibles y entregas en menos de 10 días, ayudamos a las empresas a diferenciarse, emocionar y dejar huella.</p>
       <h3>Misión</h3>
       <p>Fortalecer la conexión emocional entre las marcas, sus clientes y empleados, potenciando la creación de experiencias memorables a través de productos personalizados que se tocan, se sienten y se disfrutan.</p>
       <h3>Visión</h3>
@@ -63,7 +63,7 @@ export const DEFAULT_STATIC_PAGES = [
       <p><strong>#GeneraEmociones</strong></p>
     </div>`,
     metaTitle: "Sobre Universo Merchan | Regalos corporativos que generan emociones",
-    metaDescription: "Con más de 10 años de experiencia y 4.000+ productos personalizables, creamos regalos corporativos que conectan marcas con personas. Producción europea, entrega en menos de 10 días.",
+    metaDescription: "Con más de 10 años de experiencia y 2.000+ productos personalizables, creamos regalos corporativos que conectan marcas con personas. Producción europea, entrega en menos de 10 días.",
   },
   {
     slug: STATIC_PAGE_SLUGS.YOUR_CHOICE,

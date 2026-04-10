@@ -41,7 +41,7 @@ function T(content: string, preheader: string = ""): string {
 // ── CUSTOMER EMAILS (8) ──────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, firstName: string) {
-  return sendEmail({ to, subject: "¡Bienvenido/a a Universo Merchan!", html: T(`<h2 style="font-size:24px;font-weight:800">¡Hola ${firstName}!</h2><p style="color:#666;line-height:1.7">Bienvenido/a a Universo Merchan. Explora más de 4.000 productos personalizables.</p><p style="text-align:center"><a href="${SITE_URL}/catalog" class="btn">Explorar catálogo</a></p>`, "Ya puedes personalizar productos") });
+  return sendEmail({ to, subject: "¡Bienvenido/a a Universo Merchan!", html: T(`<h2 style="font-size:24px;font-weight:800">¡Hola ${firstName}!</h2><p style="color:#666;line-height:1.7">Bienvenido/a a Universo Merchan. Explora más de 2.000 productos personalizables.</p><p style="text-align:center"><a href="${SITE_URL}/catalog" class="btn">Explorar catálogo</a></p>`, "Ya puedes personalizar productos") });
 }
 
 export async function sendOrderConfirmationEmail(to: string, d: { firstName: string; orderNumber: string; items: Array<{ name: string; quantity: number; color: string; technique?: string }>; totalPrice: string; estimatedDelivery: string; invoicePdfUrl?: string }) {
