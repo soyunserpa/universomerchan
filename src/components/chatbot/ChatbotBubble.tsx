@@ -90,7 +90,7 @@ export function ChatbotBubble() {
             resultContent += `[![${p.name}](${p.image})](${p.url})\n\n`;
           }
           resultContent += `**[${p.name}](${p.url})**`;
-          if (p.price) resultContent += ` — *desde ~${p.price}€/ud*`;
+          if (p.price) resultContent += ` — *desde ~${p.price}/ud*`;
           if (p.colors) resultContent += `\n\n🎨 ${p.colors}`;
           resultContent += `\n\n---\n\n`;
         });
