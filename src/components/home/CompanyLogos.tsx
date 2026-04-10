@@ -37,7 +37,7 @@ function Logo({ name, src }: { name: string; src: string }) {
       <img
         src={src}
         alt={`${name} logotipo`}
-        className="max-h-[85%] max-w-[140px] object-contain relative z-10 drop-shadow-sm"
+        className={`max-h-[85%] max-w-[140px] object-contain relative z-10 drop-shadow-sm ${src.includes('quierounserpa') ? 'invert hover:invert' : ''}`}
         onError={() => setError(true)}
         suppressHydrationWarning
       />
