@@ -1,6 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText, tool } from 'ai';
-import { z } from 'zod';
+import { streamText, tool, jsonSchema } from 'ai';
 import { getProductList } from '../../../lib/catalog-api';
 
 // Allow streaming responses up to 60 seconds
@@ -34,8 +33,16 @@ export async function POST(req: Request) {
     tools: {
       searchCatalog: tool({
         description: 'Busca productos en el catálogo vivo de la tienda. Puedes filtrar por texto, categorías o presupuestos. Siempre devuelve los 5 mejores resultados.',
-        parameters: z.object({
-          query: z.string().describe('Término o frase de búsqueda, ej. "Mochilas ecológicas", "Bolígrafos", "Ideas para oficina". Si el usuario no pide nada en particular pero debes buscar, usa "general" o un sinónimo representativo.'),
+        parameters: jsonSchema({
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Término o frase de búsqueda, ej. "Mochilas ecológicas", "Bolígrafos", "Ideas para oficina". Si el usuario no pide nada en particular pero debes buscar, usa "general" o un sinónimo representativo.'
+            }
+          },
+          required: ['query'],
+          additionalProperties: false
         }),
         // @ts-ignore
         execute: async (args: any) => {
