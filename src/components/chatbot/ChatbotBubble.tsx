@@ -7,7 +7,14 @@ import ReactMarkdown from 'react-markdown';
 
 export function ChatbotBubble() {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
+  const [input, setInput] = useState('');
+  
+  const { messages, status, sendMessage } = useChat({
+    api: '/api/chat',
+  });
+  
+  const isLoading = status === 'submitted' || status === 'streaming';
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -16,9 +23,19 @@ export function ChatbotBubble() {
     }
   }, [messages]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    sendMessage({ content: input, role: 'user' });
+    setInput('');
+  };
+
   return (
     <>
-      {/* Burbuja flotante */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-[110px] right-6 md:bottom-[100px] md:right-8 z-50 p-4 bg-brand-red text-white rounded-full shadow-2xl hover:bg-red-700 transition-all transform hover:scale-110 flex items-center justify-center focus:outline-none"
@@ -27,7 +44,6 @@ export function ChatbotBubble() {
         {isOpen ? <X size={26} /> : <MessageSquare size={26} />}
       </button>
 
-      {/* Ventana de chat */}
       {isOpen && (
         <div className="fixed bottom-[180px] right-6 md:bottom-[170px] md:right-8 z-50 w-[90vw] md:w-[380px] h-[75vh] md:h-[600px] max-h-[800px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-4">
           
@@ -58,7 +74,7 @@ export function ChatbotBubble() {
             )}
             
             <div className="space-y-4">
-              {messages.map(m => (
+              {messages.map((m: any) => (
                 <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex gap-3 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     
@@ -75,7 +91,6 @@ export function ChatbotBubble() {
                     </div>
 
                     <div className={`px-4 py-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-gray-800 text-white rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
-                      {/* Render markdown properly if it's the assistant */}
                       {m.toolInvocations?.length ? (
                         <div className="flex items-center gap-2 text-brand-red text-xs italic">
                           <Loader2 size={12} className="animate-spin" /> Buscando catálogos...
@@ -110,11 +125,10 @@ export function ChatbotBubble() {
             </div>
           </div>
 
-          {/* Formulario de Input */}
           <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-gray-100">
             <div className="flex items-center relative">
               <input
-                value={input || ''}
+                value={input}
                 onChange={handleInputChange}
                 placeholder="Escribe tu mensaje..."
                 className="w-full bg-surface-50 border border-gray-200 rounded-full pl-5 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/50 focus:border-brand-red transition-all"
@@ -122,7 +136,7 @@ export function ChatbotBubble() {
               />
               <button 
                 type="submit" 
-                disabled={!(input || '').trim() || isLoading}
+                disabled={!input.trim() || isLoading}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-red text-white rounded-full hover:bg-red-700 disabled:opacity-50 transition-colors"
                 aria-label="Enviar mensaje"
               >
