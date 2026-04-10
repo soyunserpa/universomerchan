@@ -35,19 +35,15 @@ export async function POST(req: Request) {
       searchCatalog: tool({
         description: 'Busca productos en el catálogo vivo de la tienda. Puedes filtrar por texto, categorías o presupuestos. Siempre devuelve los 5 mejores resultados.',
         parameters: z.object({
-          search: z.string().optional().describe('Término libre de búsqueda, ej. "Mochilas ecológicas", "Bolígrafos rojos"'),
-          budget: z.enum(['under_1', '1_to_5', '5_to_20', 'over_20']).optional().describe('Rango de presupuesto deseado.'),
-          greenOnly: z.boolean().optional().describe('Si el cliente pide un artículo sostenible o ecológico explícitamente.'),
+          query: z.string().describe('Término o frase de búsqueda, ej. "Mochilas ecológicas", "Bolígrafos", "Ideas para oficina". Si el usuario no pide nada en particular pero debes buscar, usa "general" o un sinónimo representativo.'),
         }),
         // @ts-ignore
         execute: async (args: any) => {
-          const { search, budget, greenOnly } = args;
+          const { query } = args;
           // LLamada interna a la BD con los helper functions de catálogo
           // Usamos `limit: 5` para que la respuesta de búsqueda sea rápida y el contexto de LLM no reviente.
           const res = await getProductList({
-            search,
-            budget,
-            greenOnly,
+            search: query !== "general" ? query : undefined,
             limit: 5,
             sort: 'newest'
           });

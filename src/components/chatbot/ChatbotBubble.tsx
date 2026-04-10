@@ -90,7 +90,7 @@ export function ChatbotBubble() {
                       )}
                     </div>
 
-                    <div className={`px-4 py-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-gray-800 text-white rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
+                    <div className={`px-4 py-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-red-50 text-gray-900 border border-brand-red/20 rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
                       {m.toolInvocations?.length ? (
                         <div className="flex items-center gap-2 text-brand-red text-xs italic">
                           <Loader2 size={12} className="animate-spin" /> Buscando catálogos...
