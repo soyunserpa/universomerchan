@@ -33,8 +33,7 @@ export async function POST(req: Request) {
     messages,
     tools: {
       searchCatalog: tool({
-        description: 'Busca productos en el catálogo vivo de la tienda. Puedes filtrar por texto, categorías o presupuestos. Siempre devuelve los 5 mejores resultados.',
-        parameters: z.object({
+        inputSchema: z.object({
           query: z.string().describe('Término o frase de búsqueda, ej. "Mochilas ecológicas", "Bolígrafos", "Ideas para oficina". Si el usuario no pide nada en particular pero debes buscar, usa "general" o un sinónimo representativo.'),
         }),
         // @ts-ignore
