@@ -103,8 +103,9 @@ function CheckoutAddressPage() {
     finalShippingCost = baseShippingCost * (1 - user.discountPercent / 100);
   }
 
-  const finalTotal = subtotal - discountAmount + finalShippingCost;
-
+  const baseTotal = subtotal - discountAmount + finalShippingCost;
+  const taxAmount = baseTotal * 0.21;
+  const finalTotal = baseTotal + taxAmount;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -344,12 +345,20 @@ function CheckoutAddressPage() {
               ) : null}
             </div>
 
-            <div className="border-t-2 border-gray-900 pt-3 mt-3">
-              <div className="flex justify-between items-baseline">
-                <span className="font-bold">Total</span>
+            <div className="border-t-2 border-gray-900 pt-3 mt-3 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Base Imponible</span>
+                <span className="font-semibold">{baseTotal.toFixed(2)}€</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">IVA (21%)</span>
+                <span className="font-semibold">{taxAmount.toFixed(2)}€</span>
+              </div>
+              <div className="flex justify-between items-baseline pt-2 border-t border-surface-200">
+                <span className="font-bold">Total a Pagar</span>
                 <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
-              <p className="text-[11px] text-gray-400 text-right">IVA no incluido</p>
+              <p className="text-[11px] text-gray-400 text-right">IVA incluido en el total a pagar</p>
             </div>
           </div>
         </div>

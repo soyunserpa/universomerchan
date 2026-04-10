@@ -11,7 +11,7 @@
 // Query params: ?category=&search=&page=1&limit=24&sort=name
 
 import { db } from "@/lib/database";
-import { eq, and, like, sql, desc, asc, ilike, or, exists } from "drizzle-orm";
+import { eq, and, like, sql, desc, asc, ilike, or, exists, inArray } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { getStartingPrice, formatPriceShort } from "@/lib/price-calculator";
 
@@ -75,17 +75,30 @@ export interface CatalogProductResponse {
   mainImage: string;
 }
 
-export async function getProductList(params: {
-  category?: string;
-  subcategory?: string;
-  search?: string;
+export interface GetProductListOptions {
   page?: number;
   limit?: number;
-  sort?: "name" | "price_asc" | "price_desc" | "newest" | "stock";
-  greenOnly?: boolean;
+  category?: string;
+  subcategory?: string;
   color?: string;
-}): Promise<{ products: CatalogProductResponse[]; total: number; pages: number }> {
-  const { category, subcategory, search, page = 1, limit = 24, sort = "name", greenOnly, color } = params;
+  search?: string;
+  greenOnly?: boolean;
+  sort?: "name" | "price_asc" | "price_desc" | "newest" | "stock";
+  budget?: string; // e.g. "under_1", "1_to_5", "5_to_20", "over_20"
+}
+
+export async function getProductList(options: GetProductListOptions = {}): Promise<{ products: CatalogProductResponse[]; total: number; pages: number }> {
+  const { 
+    page = 1, 
+    limit = 24, 
+    category, 
+    subcategory, 
+    search, 
+    greenOnly, 
+    sort = "newest",
+    color,
+    budget
+  } = options;
 
   // Build where conditions
   const conditions = [eq(schema.products.isVisible, true)];
@@ -105,12 +118,13 @@ export async function getProductList(params: {
       conditions.push(
         or(
           ilike(schema.products.productName, `%${term}%`),
+          ilike(schema.products.productName, `%${term}%`),
           ilike(schema.products.shortDescription, `%${term}%`),
           ilike(schema.products.longDescription, `%${term}%`),
           ilike(schema.products.categoryLevel1, `%${term}%`),
           ilike(schema.products.categoryLevel2, `%${term}%`),
           ilike(schema.products.masterCode, `%${term}%`),
-          ilike(schema.products.material, `%${term}%`),
+          ilike(schema.products.material, `%${term}%`)
         )!
       );
     }
@@ -161,6 +175,37 @@ export async function getProductList(params: {
     );
   }
 
+  // Budget formatting using existing JSON scales
+  if (budget) {
+    let minSell = 0;
+    let maxSell = 99999;
+    
+    if (budget === "under_1") maxSell = 0.99;
+    else if (budget === "1_to_5") { minSell = 1.00; maxSell = 4.99; }
+    else if (budget === "5_to_20") { minSell = 5.00; maxSell = 19.99; }
+    else if (budget === "over_20") { minSell = 20.00; }
+    
+    // Selling price = Database cost / (1 - marginPct/100)
+    // Margin is usually 35%. So `cost = sellingPrice * 0.65` (approx).
+    const costMultiplier = 0.65;
+    const minCost = minSell * costMultiplier;
+    const maxCost = maxSell * costMultiplier;
+
+    conditions.push(
+      exists(
+        db.select({ id: schema.productPrices.id })
+          .from(schema.productPrices)
+          .where(
+            and(
+               eq(schema.productPrices.masterCode, schema.products.masterCode),
+               sql`CAST(price_scales->0->>'price' AS NUMERIC) >= ${minCost}`,
+               sql`CAST(price_scales->0->>'price' AS NUMERIC) <= ${maxCost}`
+            )
+          )
+      )
+    );
+  }
+
   // Count total
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
@@ -169,14 +214,17 @@ export async function getProductList(params: {
   const total = Number(countResult[0].count);
 
   // Sort
-  let orderBy;
+  let primaryOrderBy;
   switch (sort) {
-    case "price_asc": orderBy = asc(schema.products.masterCode); break; // Will sort by price after
-    case "price_desc": orderBy = desc(schema.products.masterCode); break;
-    case "newest": orderBy = desc(schema.products.createdAt); break;
-    case "stock": orderBy = desc(schema.products.masterCode); break;
-    default: orderBy = asc(schema.products.productName);
+    case "price_asc": primaryOrderBy = asc(schema.products.masterCode); break; // Will sort by price after
+    case "price_desc": primaryOrderBy = desc(schema.products.masterCode); break;
+    case "newest": primaryOrderBy = desc(schema.products.createdAt); break;
+    case "stock": primaryOrderBy = desc(schema.products.masterCode); break;
+    default: primaryOrderBy = asc(schema.products.productName);
   }
+
+  // Define SQL to check if the product has any stock globally
+  const hasStockSql = sql`COALESCE((SELECT SUM(s.quantity) FROM stock s JOIN product_variants v ON s.sku = v.sku WHERE v.product_id = products.id), 0) > 0`;
 
   // Fetch products
   const offset = (page - 1) * limit;
@@ -184,42 +232,80 @@ export async function getProductList(params: {
     where: and(...conditions),
     limit,
     offset,
-    orderBy: [orderBy],
+    orderBy: [desc(hasStockSql), primaryOrderBy],
   });
 
-  // Enrich with variants, stock, and prices
+  // Enrich with variants, stock, and prices (BATCHED FOR N+1 PERFORMANCE)
   const enriched: CatalogProductResponse[] = [];
-  
-  for (const product of products) {
-    // Get variants
-    const variants = await db.query.productVariants.findMany({
-      where: eq(schema.productVariants.productId, product.id),
+
+  const productIds = products.map((p) => p.id);
+  const masterCodes = products.map((p) => p.masterCode);
+
+  let allVariants = [];
+  let allStock = [];
+  let allPrices = [];
+  let allPrintPositions = [];
+
+  if (productIds.length > 0) {
+    allVariants = await db.query.productVariants.findMany({
+      where: inArray(schema.productVariants.productId, productIds),
     });
+
+    const skus = allVariants.map((v) => v.sku);
+    if (skus.length > 0) {
+      allStock = await db.query.stock.findMany({
+        where: inArray(schema.stock.sku, skus),
+      });
+    }
+
+    allPrices = await db.query.productPrices.findMany({
+      where: inArray(schema.productPrices.masterCode, masterCodes),
+    });
+
+    try {
+      if (masterCodes.length > 0) {
+        const dbPos = await db.execute(
+          sql`SELECT master_code, position_image_blank FROM print_positions WHERE master_code = ANY(ARRAY[${sql.join(masterCodes.map(c => sql`${c}`), sql`, `)}]) AND position_image_blank IS NOT NULL`
+        );
+        allPrintPositions = (dbPos as any).rows || dbPos || [];
+      }
+    } catch (e) {}
+  }
+
+  for (const product of products) {
+    // Get variants mapped from batched result
+    const variants = allVariants.filter(v => v.productId === product.id);
 
     // Get stock for each variant
     const variantsWithStock = [];
     let totalStock = 0;
-    
+
     for (const variant of variants) {
-      const stockEntry = await db.query.stock.findFirst({
-        where: eq(schema.stock.sku, variant.sku),
-      });
+      const stockEntry = allStock.find(s => s.sku === variant.sku);
       const qty = stockEntry?.quantity || 0;
       totalStock += qty;
-      
+
       // Extract main image
       const assets = safeParseJsonArray(variant.digitalAssets);
-      const frontImage = assets.find((a: any) => a.subtype === "item_picture_front");
-      
+      const frontImage =
+        assets.find((a: any) => a.subtype === "item_picture_front") ||
+        assets.find((a: any) => a.subtype?.startsWith("item_picture")) ||
+        assets.find((a: any) => a.type === "image");
+
       // Extract ALL images for the product gallery
       const allImages = assets
-        .filter((a: any) => a.subtype?.startsWith("item_picture") || a.subtype?.startsWith("item_lifestyle") || a.type === "image")
+        .filter(
+          (a: any) =>
+            a.subtype?.startsWith("item_picture") ||
+            a.subtype?.startsWith("item_lifestyle") ||
+            a.type === "image"
+        )
         .map((a: any) => ({
           url: a.url || "",
           urlHiRes: a.url_highress || a.url || "",
           subtype: a.subtype || "item_picture",
         }));
-      
+
       variantsWithStock.push({
         sku: variant.sku,
         color: variant.colorDescription || "",
@@ -228,29 +314,56 @@ export async function getProductList(params: {
         colorHex: colorGroupToHex(variant.colorDescription || variant.colorGroup || ""),
         size: variant.size || undefined,
         stock: qty,
-        mainImage: frontImage?.url || "",
-        mainImageHiRes: frontImage?.url_highress || frontImage?.url || "",
+        mainImage: frontImage?.url || frontImage?.url_highress || frontImage?.link || "",
+        mainImageHiRes: frontImage?.url_highress || frontImage?.url || frontImage?.link || "",
         images: allImages,
       });
     }
 
-    // Get price scales
-    const priceEntry = await db.query.productPrices.findFirst({
-      where: eq(schema.productPrices.masterCode, product.masterCode),
-    });
-    
+    // Get price scales mapped from batched result
+    const priceEntry = allPrices.find(p => p.masterCode === product.masterCode);
+
     const priceScales = safeParseJsonArray(priceEntry?.priceScales).map((s: any) => ({
       minimumQuantity: parseInt(s.minimum_quantity),
       costPrice: typeof s.price === "string" ? parseFloat(s.price.replace(",", ".")) : Number(s.price || 0),
     }));
 
     // Use custom price if admin set one, otherwise calculate from Midocean
-    const startingPriceRaw = product.customPrice 
+    const startingPriceRaw = product.customPrice
       ? parseFloat(product.customPrice.toString())
       : getStartingPrice(priceScales, DEFAULT_MARGINS.productMarginPct);
 
-    // Main image from first variant
-    const mainImage = variantsWithStock[0]?.mainImage || "";
+    // Main image from first variant that has one
+    let mainImage = "";
+    for (const v of variantsWithStock) {
+      if (v.mainImage) {
+        mainImage = v.mainImage;
+        break;
+      } else if (v.images?.length > 0) {
+        mainImage = v.images[0].urlHiRes || v.images[0].url;
+        break;
+      }
+    }
+
+    // Fallback if variants had absolutely NO images: extract from product.digitalAssets
+    if (!mainImage && product.digitalAssets) {
+      try {
+        const pAssets = safeParseJsonArray(product.digitalAssets);
+        const pFront =
+          pAssets.find((a: any) => a.subtype === "item_picture_front") ||
+          pAssets.find((a: any) => a.subtype?.startsWith("item_picture")) ||
+          pAssets.find((a: any) => a.type === "image");
+        if (pFront) {
+          mainImage = pFront.url || pFront.url_highress || pFront.link || "";
+        }
+      } catch (e) {}
+    }
+
+    // Last resort fallback: extract from batched printing positions
+    if (!mainImage) {
+      const posRow = allPrintPositions.find(p => p.master_code === product.masterCode);
+      if (posRow?.position_image_blank) mainImage = posRow.position_image_blank;
+    }
 
     enriched.push({
       id: product.id,
@@ -552,7 +665,15 @@ export interface CategoryResponse {
   productCount: number;
 }
 
+
+let cachedCategories: CategoryResponse[] | null = null;
+let lastCatCacheTime = 0;
+
 export async function getCategories(): Promise<CategoryResponse[]> {
+  if (cachedCategories && Date.now() - lastCatCacheTime < 3600000) {
+    return cachedCategories;
+  }
+
   const result = await db
     .select({
       category: schema.products.categoryLevel1,
@@ -563,13 +684,16 @@ export async function getCategories(): Promise<CategoryResponse[]> {
     .groupBy(schema.products.categoryLevel1)
     .orderBy(desc(sql`count(*)`));
 
-  return result
+  const mapped = result
     .filter(r => r.category)
     .map(r => ({
       name: r.category!,
       slug: slugify(r.category!),
       productCount: Number(r.count),
     }));
+  cachedCategories = mapped;
+  lastCatCacheTime = Date.now();
+  return mapped;
 }
 
 // ============================================================
@@ -577,7 +701,15 @@ export async function getCategories(): Promise<CategoryResponse[]> {
 // Returns level 2 subcategories for a given level 1 category
 // ============================================================
 
+
+const subcatCache = new Map<string, {data: CategoryResponse[], time: number}>();
+
 export async function getSubcategories(category: string): Promise<CategoryResponse[]> {
+  const cached = subcatCache.get(category);
+  if (cached && Date.now() - cached.time < 3600000) {
+    return cached.data;
+  }
+
   const conditions = [
     eq(schema.products.isVisible, true),
     eq(schema.products.categoryLevel1, category),

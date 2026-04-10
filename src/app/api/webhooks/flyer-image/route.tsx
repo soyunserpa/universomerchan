@@ -143,7 +143,7 @@ export async function GET(req: Request) {
           {/* Top Header - Logo y Título */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-              <img src="https://universomerchan.com/images/logo.png" width="349" height="120" style={{ objectFit: 'contain' }} />
+              <img src="https://universomerchan.com/images/logo.png" alt="Universo Merchan" width="349" height="120" style={{ objectFit: 'contain' }} />
             </div>
             <p style={{ fontSize: 32, color: '#e63946', margin: 0, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '4px', borderBottom: '4px solid #e63946', paddingBottom: '15px' }}>
               Top Novedades B2B
@@ -167,10 +167,10 @@ export async function GET(req: Request) {
                 border: '1px solid #F1F5F9'
               }}>
                 <div style={{ position: 'relative', width: '280px', height: '280px', backgroundColor: 'white', borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
-                  <img src={prod.image} width="260" height="260" style={{ objectFit: 'contain' }} />
+                  <img src={prod.image} alt={prod.name} width="260" height="260" style={{ objectFit: 'contain' }} />
                   {/* Watermark Universo Merchan Logo */}
                   <div style={{ position: 'absolute', bottom: '10px', right: '10px', opacity: 0.9, display: 'flex' }}>
-                    <img src="https://universomerchan.com/images/logo.png" width="102" height="35" style={{ objectFit: 'contain' }} />
+                    <img src="https://universomerchan.com/images/logo.png" alt="Universo Merchan" width="102" height="35" style={{ objectFit: 'contain' }} />
                   </div>
                 </div>
                 

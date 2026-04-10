@@ -72,7 +72,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               UM
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900">{post.authorName || "Universo Merchan"}</p>
+              <p className="text-sm font-bold text-gray-900">{post.authorName?.replace(/ AI/gi, "") || "Universo Merchan"}</p>
               <p className="text-xs text-gray-500">Equipo Editorial</p>
             </div>
           </div>
@@ -96,7 +96,11 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       <div className={`container-custom max-w-4xl mx-auto ${!post.featuredImage ? 'mt-16' : ''}`}>
         <div 
           className="prose prose-lg md:prose-xl prose-red max-w-none prose-headings:font-display prose-headings:font-bold prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-brand-red prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-sm"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ 
+            __html: post.body.includes('<p>') || post.body.includes('<h') || post.body.includes('<br')
+              ? post.body 
+              : post.body.split(/\n+/).filter(Boolean).map(text => `<p>${text}</p>`).join('')
+          }}
         />
         
         {/* Footer / Share actions */}

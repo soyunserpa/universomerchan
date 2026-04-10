@@ -22,14 +22,14 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
     const values: Record<string, string | undefined> = {
       category: currentCategory === "Todos" ? undefined : currentCategory,
       subcategory: currentSubcategory === "Todas" ? undefined : currentSubcategory,
-      sort: currentSort === "name" ? undefined : currentSort,
+      sort: currentSort === "newest" ? undefined : currentSort,
       color: currentColor === "Todos" ? undefined : currentColor,
       search: search || undefined,
       green: greenOnly ? "true" : undefined,
       ...overrides,
     };
     Object.entries(values).forEach(([k, v]) => {
-      if (v && v !== "Todos" && v !== "Todas" && v !== "name") params.set(k, v);
+      if (v && v !== "Todos" && v !== "Todas" && v !== "newest") params.set(k, v);
     });
     return `/catalog${params.toString() ? `?${params.toString()}` : ""}`;
   };
@@ -55,13 +55,16 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
 
       {/* Subcategory pills — only shown when a category is selected and has subcategories */}
       {subcategories.length > 1 && (
-        <div className="flex gap-2 flex-wrap pl-1">
+        <div className="flex gap-2 flex-wrap items-center p-3 bg-surface-50 border border-surface-200 rounded-2xl relative w-full">
+          <div className="hidden sm:flex items-center text-gray-400 text-xs font-bold uppercase tracking-wider pr-2 border-r border-surface-200 mr-1">
+            ↳ {currentCategory}
+          </div>
           <button
             onClick={() => router.push(buildUrl({ subcategory: undefined, page: undefined }))}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
               currentSubcategory === "Todas"
-                ? "bg-gray-700 text-white"
-                : "bg-surface-100 text-gray-900 hover:bg-surface-200"
+                ? "bg-gray-800 text-white shadow-sm"
+                : "bg-white text-gray-700 hover:bg-gray-100 border border-surface-200"
             }`}
           >
             Todas
@@ -70,13 +73,13 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             <button
               key={sub.name}
               onClick={() => router.push(buildUrl({ subcategory: sub.name, page: undefined }))}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 currentSubcategory === sub.name
-                  ? "bg-gray-700 text-white"
-                  : "bg-surface-100 text-gray-900 hover:bg-surface-200"
+                  ? "bg-gray-800 text-white shadow-sm"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-surface-200"
               }`}
             >
-              {sub.name} <span className="opacity-60">({sub.productCount})</span>
+              {sub.name} <span className={currentSubcategory === sub.name ? "opacity-70" : "text-gray-400"}>({sub.productCount})</span>
             </button>
           ))}
         </div>
@@ -87,14 +90,14 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
           <ArrowUpDown size={14} />
           <select
             value={currentSort}
-            onChange={(e) => router.push(buildUrl({ sort: e.target.value === "name" ? undefined : e.target.value, page: undefined }))}
+            onChange={(e) => router.push(buildUrl({ sort: e.target.value === "newest" ? undefined : e.target.value, page: undefined }))}
             className="bg-transparent text-sm font-medium text-gray-900 border-none cursor-pointer focus:ring-0 p-0"
           >
+            <option value="newest">Más recientes</option>
             <option value="name">Nombre A-Z</option>
             <option value="price_asc">Precio: menor a mayor</option>
             <option value="price_desc">Precio: mayor a menor</option>
             <option value="stock">Más stock</option>
-            <option value="newest">Más recientes</option>
           </select>
         </div>
 

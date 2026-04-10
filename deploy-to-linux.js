@@ -44,7 +44,7 @@ conn.on('ready', () => {
 
             let filesToSync = [
                 "tailwind.config.ts",
-                "next.config.mjs",
+                "next.config.js",
                 "package.json",
                 "package-lock.json",
                 "postcss.config.js"

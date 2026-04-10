@@ -268,7 +268,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "SET_LOADING", loading: true });
     try {
       const response = await fetch(`/api/quotes/${quoteNumber}/restore`);
-      if (!response.ok) throw new Error("Presupuesto no encontrado o expirado");
+      if (!response.ok) {
+         let errMsg = "Presupuesto no encontrado o expirado";
+         try {
+            const errData = await response.json();
+            if (errData.error) errMsg = errData.error;
+         } catch(e) {}
+         // Si es error de caducidad (seguramente 410 Gone) podemos envolverlo para ser más explícitos
+         if (response.status === 410) {
+           errMsg = "Este presupuesto ha caducado a los 30 días, y por tanto, los logotipos han sido destruidos por privacidad. Por favor solicite o cree uno actualizado.";
+         }
+         throw new Error(errMsg);
+      }
       const data = await response.json();
       dispatch({ type: "RESTORE_CART", items: data.items });
     } catch (error: any) {

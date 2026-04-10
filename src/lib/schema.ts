@@ -647,3 +647,17 @@ export const staticPages = pgTable("static_pages", {
   metaDescription: varchar("meta_description", { length: 300 }),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// ============================================================
+// SEARCH QUERIES — Track user searches for autocomplete/trends
+// ============================================================
+
+export const searchQueries = pgTable("search_queries", {
+  id: serial("id").primaryKey(),
+  query: varchar("query", { length: 255 }).notNull().unique(),
+  count: integer("count").default(1).notNull(),
+  lastSearchedAt: timestamp("last_searched_at").defaultNow().notNull(),
+}, (table) => ({
+  queryIdx: uniqueIndex("search_queries_query_idx").on(table.query),
+  countIdx: index("search_queries_count_idx").on(table.count),
+}));

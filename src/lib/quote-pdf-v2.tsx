@@ -180,8 +180,16 @@ export function QuotePDFV2({ data }: { data: QuoteDataV2 }) {
         createElement(Text, { style: s.totalValue }, fmt(p.setupCost + p.printTotal + p.handlingTotal)),
       ) : null,
       createElement(View, { style: s.totalFinal },
-        createElement(Text, { style: s.totalFinalLabel }, "Total"),
+        createElement(Text, { style: s.totalFinalLabel }, "Base Imponible"),
         createElement(Text, { style: s.totalFinalValue }, fmt(p.grandTotal)),
+      ),
+      createElement(View, { style: [s.totalRow, { marginTop: 6 }] },
+        createElement(Text, { style: s.totalLabel }, "IVA (21%)"),
+        createElement(Text, { style: s.totalValue }, fmt(p.grandTotal * 0.21)),
+      ),
+      createElement(View, { style: s.totalFinal },
+        createElement(Text, { style: s.totalFinalLabel }, "Total a Pagar"),
+        createElement(Text, { style: s.totalFinalValue }, fmt(p.grandTotal * 1.21)),
       ),
       createElement(View, { style: [s.totalRow, { marginTop: 4 }] },
         createElement(Text, { style: s.totalLabel }, "Precio por unidad"),
@@ -194,12 +202,12 @@ export function QuotePDFV2({ data }: { data: QuoteDataV2 }) {
       ),
     ),
     createElement(Text, { style: s.validity },
-      "Este presupuesto es v\u00e1lido hasta el " + data.validUntil + ". IVA no incluido."
+      "Este presupuesto es v\u00e1lido hasta el " + data.validUntil + ". El precio por unidad no incluye IVA."
     ),
     createElement(View, { style: s.notes },
       createElement(Text, {},
         "\u2022 Los precios incluyen el producto y la personalizaci\u00f3n indicada.\n" +
-        "\u2022 Los precios no incluyen IVA.\n" +
+        "\u2022 El 21% de IVA correspondiente se detalla en el desglose final.\n" +
         "\u2022 Plazo de entrega: 7-10 d\u00edas laborables desde aprobaci\u00f3n del boceto.\n" +
         "\u2022 Las im\u00e1genes son orientativas. El color final puede variar ligeramente.\n" +
         "\u2022 Para +500 uds, contacta para precio especial."

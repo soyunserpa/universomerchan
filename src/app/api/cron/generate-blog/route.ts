@@ -142,7 +142,7 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
       featuredImageUrl: featuredImageUrl,
       metaTitle: articleData.title,
       metaDescription: articleData.metaDescription,
-      authorName: "Universo Merchan AI",
+      authorName: "Equipo Universo Merchan",
       isPublished: true,
       publishedAt: new Date(),
     }).returning();

@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Gift, BarChart3, Package, ShoppingCart, Users, Settings, RefreshCw,
-  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X, FileText, Mail, Tag, BookOpen, FolderOpen
+  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X, FileText, Mail, Tag, BookOpen, FolderOpen, Search
 } from "lucide-react";
 
 // ── Admin Auth Context ──────────────────────────────────────
@@ -110,6 +110,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     { href: "/admin/coupons", icon: Tag, label: "Cupones" },
     { href: "/admin/blog", icon: BookOpen, label: "Blog & SEO" },
     { href: "/admin/media", icon: FolderOpen, label: "Gestor Medios" },
+    { href: "/admin/searches", icon: Search, label: "Búsquedas" },
     { href: "/admin/settings", icon: Percent, label: "Márgenes" },
     { href: "/admin/emails", icon: Mail, label: "Emails" },
     { href: "/admin/sync", icon: Database, label: "Sincronización" },
@@ -158,7 +159,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-surface-200 px-4 sm:px-6 h-14 flex items-center justify-between sticky top-0 z-30">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-400 p-1">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-400 p-1" title="Abrir menú">
             <Menu size={20} />
           </button>
           <div className="hidden lg:block" />
