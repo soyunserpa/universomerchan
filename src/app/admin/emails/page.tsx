@@ -10,7 +10,7 @@ const DEFAULT_TEMPLATES: Record<string, { label: string; audience: string; subje
         label: "Bienvenida",
         audience: "Cliente",
         subject: "¡Bienvenido/a a Universo Merchan! 🎁",
-        body: "¡Hola {{firstName}}!\n\nBienvenido/a a Universo Merchan. Explora más de 4.000 productos personalizables.",
+        body: "¡Hola {{firstName}}!\n\nBienvenido/a a Universo Merchan. Explora más de 2.000 productos personalizables.",
     },
     email_tpl_order_confirmation: {
         label: "Confirmación de pedido",

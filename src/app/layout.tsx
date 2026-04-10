@@ -21,11 +21,11 @@ import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
-  description: "Consigue que tu marca se recuerde. +4.000 productos personalizables con entrega en menos de 10 días. #GeneraEmociones",
+  description: "Consigue que tu marca se recuerde. +2.000 productos personalizables con entrega en menos de 10 días. #GeneraEmociones",
   keywords: "merchandising, regalos corporativos, productos personalizados, serigrafía, grabado",
   openGraph: {
     title: "Universo Merchan — Consigue que tu marca se recuerde",
-    description: "+4.000 productos personalizables. Elige, personaliza, visualiza y recibe en menos de 10 días.",
+    description: "+2.000 productos personalizables. Elige, personaliza, visualiza y recibe en menos de 10 días.",
     url: "https://universomerchan.com",
     siteName: "Universo Merchan",
     locale: "es_ES",
@@ -87,7 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     "@type": "ImageObject",
                     url: "https://universomerchan.com/images/logo.svg",
                   },
-                  description: "Regalos corporativos personalizados que generan emociones. +4.000 productos con entrega en menos de 10 días.",
+                  description: "Regalos corporativos personalizados que generan emociones. +2.000 productos con entrega en menos de 10 días.",
                   email: "pedidos@universomerchan.com",
                   sameAs: [],
                   contactPoint: {
