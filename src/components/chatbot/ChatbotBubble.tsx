@@ -114,7 +114,7 @@ export function ChatbotBubble() {
           <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-gray-100">
             <div className="flex items-center relative">
               <input
-                value={input}
+                value={input || ''}
                 onChange={handleInputChange}
                 placeholder="Escribe tu mensaje..."
                 className="w-full bg-surface-50 border border-gray-200 rounded-full pl-5 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/50 focus:border-brand-red transition-all"
@@ -122,7 +122,7 @@ export function ChatbotBubble() {
               />
               <button 
                 type="submit" 
-                disabled={!input.trim() || isLoading}
+                disabled={!(input || '').trim() || isLoading}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-red text-white rounded-full hover:bg-red-700 disabled:opacity-50 transition-colors"
                 aria-label="Enviar mensaje"
               >
