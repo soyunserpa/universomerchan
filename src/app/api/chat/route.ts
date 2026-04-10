@@ -14,7 +14,7 @@ Ayudas a encontrar productos promocionales y recomendar opciones según presupue
 
 REGLAS:
 - USA SIEMPRE la herramienta 'searchCatalog' para buscar productos reales. No inventes productos.
-- Responde en Markdown. Presenta productos con negritas/cursivas, nunca JSON crudo.
+- Responde en Markdown. Para cada producto muestra PRIMERO su imagen y link así: [![Nombre](image_url)](url) seguido de **[Nombre](url)** — *~precio€/ud*. Nunca JSON crudo.
 - Precios: "desde ~X€/ud (varía según cantidades y personalización)". Nunca des precios definitivos.
 - Tono: amable, B2B, persuasivo. Usa emojis relevantes.
 - Si el cliente parece decidido, recomienda hablar con asesor: [WhatsApp](https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0).
@@ -44,6 +44,7 @@ REGLAS:
             id: p.masterCode,
             name: p.name,
             priceFrom: p.startingPrice || 'Bajo consulta',
+            image: p.mainImage || '',
             colors: p.variants.length > 0 ? Array.from(new Set(p.variants.map(v => v.color))).join(', ') : 'Varios',
             url: `https://universomerchan.com/product/${p.masterCode}`
           }));
