@@ -68,11 +68,6 @@ export function ChatbotBubble() {
     setIsWizardLoading(true);
     setMessages(prev => [...prev, { id: Date.now().toString() + 'u', role: 'user', content: query } as any]);
 
-    const loaderId = 'search-loader-' + Date.now();
-    setTimeout(() => {
-      setMessages(prev => [...prev, { id: loaderId, role: 'assistant', content: 'Dame 10 segundos...' } as any]);
-    }, 100);
-
     try {
       const res = await fetch('/api/catalog-search', {
         method: 'POST',
@@ -98,7 +93,7 @@ export function ChatbotBubble() {
       }
 
       setMessages(prev =>
-        prev.filter(m => m.id !== loaderId).concat({
+        prev.concat({
           id: Date.now().toString(),
           role: 'assistant',
           content: resultContent,
@@ -106,7 +101,7 @@ export function ChatbotBubble() {
       );
     } catch {
       setMessages(prev =>
-        prev.filter(m => m.id !== loaderId).concat({
+        prev.concat({
           id: Date.now().toString(),
           role: 'assistant',
           content: 'Hubo un error buscando productos. Inténtalo de nuevo.',
@@ -242,9 +237,13 @@ export function ChatbotBubble() {
                     </div>
 
                     <div className={`px-4 py-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-red-50 text-gray-900 border border-brand-red/20 rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
-                      {m.toolInvocations?.length || (m.parts && m.parts.some((p: any) => p.type && p.type.includes('tool'))) ? (
+                      {m.toolInvocations?.some((t: any) => t.state !== 'result') ? (
                         <div className="flex items-center gap-2 text-brand-red text-xs italic">
                           <Loader2 size={12} className="animate-spin" /> Buscando catálogos...
+                        </div>
+                      ) : m.toolInvocations?.length && !m.content ? (
+                        <div className="text-gray-500 text-xs italic">
+                           ✓ Catálogo consultado
                         </div>
                       ) : null}
 
@@ -276,7 +275,7 @@ export function ChatbotBubble() {
                       </div>
                     </div>
                     <div className="px-4 py-3 rounded-2xl text-sm bg-white border border-gray-100 shadow-sm text-brand-red rounded-tl-sm flex items-center gap-2 italic">
-                      <Loader2 size={16} className="animate-spin" /> Dame 10 segundos...
+                      <Loader2 size={16} className="animate-spin" /> {searchMode ? 'Buscando...' : 'Dame 10 segundos...'}
                     </div>
                   </div>
                 </div>
