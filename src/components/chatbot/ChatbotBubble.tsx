@@ -11,6 +11,7 @@ export function ChatbotBubble() {
   
   const { messages, status, sendMessage } = useChat({
     api: '/api/chat',
+    maxSteps: 5,
   });
   
   const isLoading = status === 'submitted' || status === 'streaming';
