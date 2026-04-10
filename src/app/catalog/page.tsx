@@ -1,11 +1,13 @@
+import React from 'react';
 import Link from "next/link";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { InfiniteProductGrid } from "@/components/catalog/InfiniteProductGrid";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CatalogPageProps {
-  searchParams: { category?: string; subcategory?: string; search?: string; page?: string; sort?: string; green?: string; color?: string };
+  searchParams: { category?: string; subcategory?: string; search?: string; page?: string; sort?: string; green?: string; color?: string; budget?: string };
 }
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
@@ -13,9 +15,11 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const subcategory = searchParams.subcategory || "Todas";
   const search = searchParams.search || "";
   const page = parseInt(searchParams.page || "1");
-  const sort = (searchParams.sort || "name") as any;
+  const sort = (searchParams.sort || "newest") as any;
   const greenOnly = searchParams.green === "true";
   const color = searchParams.color || "Todos";
+  const budget = searchParams.budget || "";
+  const limit = 24;
 
   const [result, categories, subcategories] = await Promise.all([
     getProductList({
@@ -23,7 +27,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       subcategory: subcategory === "Todas" ? undefined : subcategory,
       search, page, sort, greenOnly,
       color: color === "Todos" ? undefined : color,
-      limit: 24,
+      budget: budget === "" ? undefined : budget,
+      limit,
     }),
     getCategories(),
     category !== "Todos" ? getSubcategories(category) : Promise.resolve([]),
@@ -57,6 +62,46 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         <span className="text-sm text-gray-900 hidden sm:block">{result.total} productos</span>
       </div>
 
+      {/* Mini Asistente Wizard */}
+      <form action="/catalog" method="GET" className="bg-white border border-surface-200 rounded-2xl p-5 sm:p-6 flex flex-col lg:flex-row items-center gap-5 shadow-sm mb-8 w-full">
+        <span className="font-semibold text-gray-900 whitespace-nowrap text-sm lg:text-base text-center lg:text-left flex-shrink-0">
+          Encuentra merchandising rápido:
+        </span>
+        <div className="flex w-full gap-3 flex-col sm:flex-row">
+          <select 
+            name="category"
+            title="Categoría de producto"
+            aria-label="Categoría de producto"
+            className="flex-1 bg-surface-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-red outline-none cursor-pointer text-gray-700"
+            defaultValue={category === "Todos" ? "" : category}
+          >
+            <option value="">¿Buscas algún tipo en concreto?</option>
+            <option value="Bolsos y viajes">🎒 Mochilas y Bolsas</option>
+            <option value="Oficina y escritura">🖊️ Oficina y Escritura</option>
+            <option value="Bebidas y comidas">☕ Tazas y Botellas</option>
+            <option value="Tecnología">💻 Tecnología y Accesorios</option>
+            <option value="Hogar y bienestar">🏡 Hogar y Bienestar</option>
+            <option value="Lanyards y eventos">🎟️ Lanyards y Eventos</option>
+          </select>
+          <select 
+            name="budget"
+            title="Presupuesto"
+            aria-label="Presupuesto"
+            className="flex-1 bg-surface-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-red outline-none cursor-pointer text-gray-700"
+            defaultValue={budget || ""}
+          >
+            <option value="">🤑 Cualquier Presupuesto</option>
+            <option value="under_1">Menos de 1€ / ud</option>
+            <option value="1_to_5">Entre 1€ y 5€ / ud</option>
+            <option value="5_to_20">Entre 5€ y 20€ / ud</option>
+            <option value="over_20">Más de 20€ / ud</option>
+          </select>
+          <button type="submit" className="bg-brand-red text-white font-bold px-8 py-3 rounded-xl hover:bg-red-700 transition-all hover:shadow-md text-center">
+            Ver sugerencias
+          </button>
+        </div>
+      </form>
+
       {/* Filters */}
       <CatalogFilters
         categories={allCategories}
@@ -71,10 +116,127 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
       {/* Product Grid */}
       {result.products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-          {result.products.map((product, i) => (
-            <ProductCard key={product.masterCode} product={product} index={i} />
-          ))}
+        <div className="mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {result.products.map((product, i) => {
+              const isTopVenta = page === 1 && (!sort || sort === "newest") && !search && (!category || category === "Todos") && i < 3;
+              
+              const banners = [
+                {
+                  bgClass: "bg-gradient-to-br from-brand-red to-red-800 text-white",
+                  labelClass: "text-black font-black bg-white px-3 py-1 rounded inline-block",
+                  title: "¿No encuentras lo que buscas?",
+                  desc: "Tenemos acceso a más de 10.000 referencias en catálogo. Cuéntanos qué necesitas y lo buscamos para ti a precio de fábrica.",
+                  buttonClass: "bg-black text-white hover:bg-white hover:text-black shadow-black/20"
+                },
+                {
+                  bgClass: "bg-gradient-to-br from-surface-50 to-surface-200 text-gray-900 border border-surface-200",
+                  labelClass: "text-brand-red",
+                  title: "Preparamos tus campañas y eventos",
+                  desc: "Anticípate a tus ferias o welcome packs de empleados. Pide presupuesto por volumen y sorpréndete con nuestros descuentos.",
+                  buttonClass: "bg-brand-red text-white hover:bg-black hover:text-white shadow-brand-red/20"
+                },
+                {
+                  bgClass: "bg-gradient-to-br from-gray-900 to-black text-white",
+                  labelClass: "text-brand-red",
+                  title: "¿Tienes un proyecto a medida?",
+                  desc: "Nuestro equipo de expertos te asesora de forma gratuita para encontrar los regalos perfectos para tu próxima campaña corporativa. ¡Sin compromiso!",
+                  buttonClass: "bg-white text-gray-900 hover:bg-brand-red hover:text-white shadow-brand-red/20"
+                }
+              ];
+              const activeBanner = banners[page % 3];
+              
+              return (
+                <React.Fragment key={`${product.masterCode}-${i}`}>
+                  <ProductCard product={product} index={i} isTopVenta={isTopVenta} />
+                  
+                  {/* Banner Rompehielos después del producto 12 (index 11) */}
+                  {i === 11 && (
+                    <div className={`col-span-1 sm:col-span-2 lg:col-span-3 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between shadow-xl my-6 md:my-8 hover-lift ${activeBanner.bgClass}`}>
+                      <div className="mb-6 md:mb-0 max-w-xl text-center md:text-left">
+                        <span className={`font-bold tracking-wider text-sm mb-3 block uppercase ${activeBanner.labelClass}`}>Atención personalizada</span>
+                        <h3 className="text-3xl md:text-4xl font-display font-extrabold mb-3">{activeBanner.title}</h3>
+                        <p className="text-lg opacity-90">{activeBanner.desc}</p>
+                      </div>
+                      <a href="https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" className={`font-bold px-8 py-4 rounded-full transition-all shadow-lg transform hover:-translate-y-1 text-center ${activeBanner.buttonClass}`}>
+                        Hablar con un asesor
+                      </a>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+          
+          {/* Pagination and Progress Bar Design */}
+          {(page > 1 || page < result.pages) && (
+            <div className="mt-16 flex flex-col items-center justify-center w-full max-w-lg mx-auto pb-12">
+              {/* Progress Text */}
+              <div className="text-center mb-4 w-full">
+                <p className="text-gray-600 tracking-tight text-sm font-medium mb-3">
+                  Has visto {Math.min(page * limit, result.total)} de {result.total} productos
+                </p>
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className="bg-brand-red h-full rounded-full transition-all duration-1000 ease-out" 
+                    style={{ width: `${Math.round((Math.min(page * limit, result.total) / result.total) * 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex items-center gap-4 mt-4">
+                {page > 1 ? (
+                  <Link
+                    href={`/catalog?${(() => {
+                      const p = new URLSearchParams();
+                      if (category && category !== "Todos") p.set("category", category);
+                      if (subcategory && subcategory !== "Todas") p.set("subcategory", subcategory);
+                      if (search) p.set("search", search);
+                      if (sort && sort !== "newest") p.set("sort", sort as string);
+                      if (greenOnly) p.set("green", "true");
+                      if (color && color !== "Todos") p.set("color", color);
+                      if (page - 1 > 1) p.set("page", String(page - 1));
+                      return p.toString();
+                    })()}`}
+                    className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-semibold rounded-full hover:bg-gray-50 hover:border-gray-300 transition duration-200 flex items-center gap-2 group shadow-sm"
+                    scroll={true}
+                  >
+                    <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition" /> Anterior
+                  </Link>
+                ) : (
+                  <div className="px-6 py-2.5 bg-gray-50 text-gray-400 border border-transparent font-semibold rounded-full flex items-center gap-2 cursor-not-allowed opacity-70">
+                    <ChevronLeft className="w-4 h-4" /> Anterior
+                  </div>
+                )}
+                
+                {page < result.pages ? (
+                  <Link
+                    href={`/catalog?${(() => {
+                      const p = new URLSearchParams();
+                      if (category && category !== "Todos") p.set("category", category);
+                      if (subcategory && subcategory !== "Todas") p.set("subcategory", subcategory);
+                      if (search) p.set("search", search);
+                      if (sort && sort !== "newest") p.set("sort", sort as string);
+                      if (greenOnly) p.set("green", "true");
+                      if (color && color !== "Todos") p.set("color", color);
+                      p.set("page", String(page + 1));
+                      return p.toString();
+                    })()}`}
+                    className="px-6 py-2.5 bg-gray-900 border border-gray-900 text-white font-semibold rounded-full hover:bg-black hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-2 group"
+                    scroll={true}
+                  >
+                    Siguiente <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition" />
+                  </Link>
+                ) : (
+                  <div className="px-6 py-2.5 bg-gray-100 text-gray-400 font-semibold rounded-full flex items-center gap-2 cursor-not-allowed opacity-70">
+                    Siguiente <ChevronRight className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-20">
@@ -83,34 +245,6 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-6 py-2.5 rounded-full">
             Ver todos los productos
           </Link>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {result.pages > 1 && (
-        <div className="flex justify-center gap-2 mt-10">
-          {Array.from({ length: Math.min(result.pages, 10) }, (_, i) => i + 1).map((p) => {
-            const params = new URLSearchParams();
-            if (category !== "Todos") params.set("category", category);
-            if (subcategory !== "Todas") params.set("subcategory", subcategory);
-            if (search) params.set("search", search);
-            if (sort !== "name") params.set("sort", sort);
-            if (color !== "Todos") params.set("color", color);
-            params.set("page", String(p));
-            return (
-              <Link
-                key={p}
-                href={`/catalog?${params.toString()}`}
-                className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${
-                  p === page
-                    ? "bg-brand-red text-white"
-                    : "bg-surface-100 text-gray-900 hover:bg-surface-200"
-                }`}
-              >
-                {p}
-              </Link>
-            );
-          })}
         </div>
       )}
     </div>

@@ -266,8 +266,16 @@ export function QuotePDF({ data }: { data: QuoteData }) {
           createElement(Text, { style: [styles.totalValue, { color: "#15803D" }] }, `-${formatPrice(data.discount)}`),
         ),
         createElement(View, { style: styles.totalRowFinal },
-          createElement(Text, { style: { fontWeight: 700, fontSize: 14 } }, "Total"),
+          createElement(Text, { style: { fontWeight: 700, fontSize: 14 } }, "Base Imponible"),
           createElement(Text, { style: styles.totalFinal }, formatPrice(data.total)),
+        ),
+        createElement(View, { style: [styles.totalRow, { marginTop: 6 }] },
+          createElement(Text, { style: styles.totalLabel }, "IVA (21%)"),
+          createElement(Text, { style: styles.totalValue }, formatPrice(data.total * 0.21)),
+        ),
+        createElement(View, { style: styles.totalRowFinal },
+          createElement(Text, { style: { fontWeight: 700, fontSize: 14 } }, "Total a Pagar"),
+          createElement(Text, { style: styles.totalFinal }, formatPrice(data.total * 1.21)),
         ),
       ),
       
@@ -285,7 +293,7 @@ export function QuotePDF({ data }: { data: QuoteData }) {
       createElement(View, { style: styles.notes },
         createElement(Text, {},
           "• Los precios incluyen el producto y la personalización indicada.\n" +
-          "• Los precios no incluyen IVA.\n" +
+          "• El 21% de IVA correspondiente se detalla en el desglose final.\n" +
           "• El plazo de entrega estimado es de 7-10 días laborables desde la aprobación del boceto.\n" +
           "• Las imágenes del presupuesto son orientativas. El color final puede variar ligeramente.\n" +
           "• Para cantidades superiores a 500 unidades, contacta con nosotros para precio especial."

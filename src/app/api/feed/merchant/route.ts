@@ -9,6 +9,7 @@ export async function GET() {
   try {
     const result = await db
       .select({
+        dbId: schema.products.id,
         id: schema.products.masterCode,
         title: schema.products.productName,
         description: schema.products.shortDescription,
@@ -23,6 +24,49 @@ export async function GET() {
         eq(schema.products.masterCode, schema.productPrices.masterCode)
       )
       .where(eq(schema.products.isVisible, true));
+
+    // Fetch fallback variant prices for items like t-shirts that don't have priceScales
+    const allVariantPrices = await db
+      .select({
+        masterCode: schema.variantPrices.masterCode,
+        price: schema.variantPrices.price,
+      })
+      .from(schema.variantPrices);
+
+    const variantPriceMap = new Map();
+    for (const vp of allVariantPrices) {
+      const numPrice = parseFloat(vp.price as string || "0");
+      if (numPrice > 0) {
+        const current = variantPriceMap.get(vp.masterCode);
+        if (!current || numPrice < current) {
+          variantPriceMap.set(vp.masterCode, numPrice);
+        }
+      }
+    }
+
+    // Fetch fallback variant images (since main product images are sometimes PDFs)
+    const allVariantAssets = await db
+      .select({
+        productId: schema.productVariants.productId,
+        digitalAssets: schema.productVariants.digitalAssets,
+      })
+      .from(schema.productVariants);
+
+    const variantImageMap = new Map();
+    for (const v of allVariantAssets) {
+      if (!variantImageMap.has(v.productId)) {
+        try {
+          const assets = Array.isArray(v.digitalAssets) ? v.digitalAssets : JSON.parse((v.digitalAssets as string) || "[]");
+          const validAssets = assets.filter((a: any) => !/\.(pdf|eps|ai|psd|cdr|doc|docx|csv|xls|xlsx)(\?|$|#)/i.test(a.url || a.url_highres || a.url_highress || ""));
+          const front = validAssets.find((a: any) => a.subtype?.toLowerCase().includes("front"));
+          if (front) {
+            variantImageMap.set(v.productId, front.url || front.url_highres || front.url_highress);
+          } else if (validAssets.length > 0) {
+            variantImageMap.set(v.productId, validAssets[0].url || validAssets[0].url_highres || validAssets[0].url_highress);
+          }
+        } catch (e) { }
+      }
+    }
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
@@ -52,20 +96,47 @@ export async function GET() {
         } catch (e) { }
       }
 
+      if (price === "0.00" || parseFloat(price) <= 0) {
+        const fallback = variantPriceMap.get(p.id);
+        if (fallback && fallback > 0) {
+          price = (Math.round(fallback * 1.40 * 100) / 100).toFixed(2);
+        }
+      }
+
+      if (price === "0.00" || parseFloat(price) <= 0) continue;
+
       let img = "";
       if (p.imageAssets) {
         try {
+          const isNotDocument = (url: string) => !/\.(pdf|eps|ai|psd|cdr|doc|docx|csv|xls|xlsx)(\?|$|#)/i.test(url);
           const assets = Array.isArray(p.imageAssets) ? p.imageAssets : JSON.parse(p.imageAssets as string);
-          const front = assets.find((a: any) => a.subtype?.includes("front"));
+          
+          let validAssets = assets.filter((a: any) => {
+             const u = a.url || a.url_highres || a.url_highress || "";
+             return isNotDocument(u);
+          });
+
+          const front = validAssets.find((a: any) => a.subtype?.toLowerCase().includes("front"));
           if (front) {
-            img = front.url_highress || front.url_highres || front.url;
-          } else if (assets.length > 0) {
-            img = assets[0].url_highress || assets[0].url_highres || assets[0].url;
+            img = front.url || front.url_highres || front.url_highress;
+          } else if (validAssets.length > 0) {
+            img = validAssets[0].url || validAssets[0].url_highres || validAssets[0].url_highress;
           }
         } catch (e) { }
       }
 
+      if (!img) {
+        img = variantImageMap.get(p.dbId) || "";
+      }
+
       if (!img) continue; // Merchant center strictly requires image
+
+      // Ensure proper URL encoding for spaces and special characters
+      try {
+        img = new URL(img).href;
+      } catch (e) {
+        img = img.replace(/ /g, '%20');
+      }
 
       // XML escape helpers
       const escapeXml = (unsafe: string) => {
@@ -91,6 +162,8 @@ export async function GET() {
 <g:availability>in_stock</g:availability>
 <g:price>${price} EUR</g:price>
 <g:brand>${escapeXml(p.brand || "Universo Merchan")}</g:brand>
+<g:mpn>${escapeXml(p.id)}</g:mpn>
+<g:identifier_exists>no</g:identifier_exists>
 ${p.category ? `<g:product_type>${escapeXml(p.category)}</g:product_type>` : ''}
 </item>
 `;

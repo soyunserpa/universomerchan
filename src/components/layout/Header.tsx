@@ -13,6 +13,7 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [popularSearches, setPopularSearches] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -56,9 +57,24 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (searchOpen && popularSearches.length === 0) {
+      fetch("/api/search/popular")
+        .then(res => res.json())
+        .then(data => setPopularSearches(data.popular || []))
+        .catch(console.error);
+    }
+  }, [searchOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      fetch("/api/search/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchQuery.trim() })
+      }).catch(console.error);
+      
       window.location.href = `/catalog?search=${encodeURIComponent(searchQuery.trim())}`;
       setSearchOpen(false);
     }
@@ -113,9 +129,39 @@ export function Header() {
                 </button>
 
                 {/* Dropdown Results */}
-                {searchQuery.length >= 2 && (
+                {searchOpen && (
                   <div className="absolute top-12 left-0 w-full bg-white border border-surface-200 shadow-xl rounded-xl overflow-hidden py-2 z-50 animate-fade-in">
-                    {isSearching ? (
+                    
+                    {/* Tendencias */}
+                    {searchQuery.length < 2 && popularSearches.length > 0 && (
+                      <div className="px-4 py-2">
+                        <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-1">
+                          🔥 Top Búsquedas
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {popularSearches.map((term, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setSearchQuery(term);
+                                fetch("/api/search/track", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ query: term })
+                                }).catch(console.error);
+                                window.location.href = `/catalog?search=${encodeURIComponent(term)}`;
+                              }}
+                              className="px-3 py-1.5 bg-surface-100 hover:bg-brand-red hover:text-white text-gray-700 text-xs rounded-full transition-colors font-medium border border-surface-200 hover:border-brand-red"
+                            >
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {searchQuery.length >= 2 && isSearching ? (
                       <div className="flex items-center justify-center p-4 text-gray-500">
                         <Loader2 className="w-5 h-5 animate-spin" />
                       </div>
@@ -139,14 +185,24 @@ export function Header() {
                             </div>
                           </Link>
                         ))}
-                        <div className="px-4 py-2 border-t border-surface-100 mt-1">
-                          <button type="submit" className="text-xs font-bold text-brand-red w-full text-center hover:underline">
-                            Ver todos los resultados
-                          </button>
-                        </div>
                       </>
-                    ) : (
-                      <div className="px-4 py-3 text-xs text-gray-500 text-center">No hay resultados para "{searchQuery}"</div>
+                    ) : searchQuery.length >= 2 ? (
+                      <div className="p-4 text-center text-sm text-gray-500">
+                        No hay resultados para "{searchQuery}"
+                      </div>
+                    ) : null}
+                    
+                    {/* Botón inferior si hay búsqueda */}
+                    {searchQuery.length >= 2 && (
+                      <div className="border-t border-surface-200 p-2 mt-2 bg-surface-50">
+                        <button 
+                          type="button"
+                          onClick={(e) => handleSearch(e as any)}
+                          className="w-full text-center text-xs font-bold text-brand-red py-2 hover:underline rounded transition-colors"
+                        >
+                          Ver todos los resultados para "{searchQuery}"
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}

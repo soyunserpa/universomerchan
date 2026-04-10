@@ -32,8 +32,9 @@ export default function CartPage() {
   };
 
   const discountAmount = calculateDiscount();
-  const finalTotal = Math.max(0, subtotal - discountAmount);
-
+  const baseTotal = Math.max(0, subtotal - discountAmount);
+  const taxAmount = baseTotal * 0.21;
+  const finalTotal = baseTotal + taxAmount;
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     setApplyingCoupon(true);
@@ -278,12 +279,20 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="border-t-2 border-gray-900 pt-3 mb-5">
-              <div className="flex justify-between items-baseline">
+            <div className="border-t-2 border-gray-900 pt-3 mb-5 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-900">Base Imponible</span>
+                <span className="font-semibold">{baseTotal.toFixed(2)}€</span>
+              </div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-900">IVA (21%)</span>
+                <span className="font-semibold">{taxAmount.toFixed(2)}€</span>
+              </div>
+              <div className="flex justify-between items-baseline pt-2 border-t border-surface-200">
                 <span className="font-bold">Total estimado</span>
                 <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
-              <p className="text-sm text-gray-900 text-right">IVA no incluido</p>
+              <p className="text-sm text-gray-900 text-right">IVA incluido en el total estimado</p>
             </div>
 
             {/* Checkout button */}

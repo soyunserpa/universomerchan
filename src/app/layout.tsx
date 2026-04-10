@@ -15,7 +15,9 @@ import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
-import { GoogleTagManager } from "@next/third-parties/google";
+import { ChatbotBubble } from "@/components/chatbot/ChatbotBubble";
+import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
@@ -32,6 +34,17 @@ export const metadata: Metadata = {
   verification: {
     google: "mVS8J7HnqcunvWp4QbzZXuasi0ETBhRQS6mV5wT3-sI",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com"),
 };
 
@@ -42,6 +55,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://cdn1.midocean.com" />
       </head>
       <GoogleTagManager gtmId="GTM-K7XX7K68" />
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || "G-XXXXXXXXXX"} />
+      <Script id="meta-pixel" strategy="afterInteractive">
+        {`
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${process.env.NEXT_PUBLIC_META_PIXEL_ID || "123456789012345"}');
+          fbq('track', 'PageView');
+        `}
+      </Script>
       <body className={`bg-surface-50 text-gray-900 min-h-screen font-sans antialiased ${poppins.variable}`}>
         {/* JSON-LD: Organization + LocalBusiness structured data for Google */}
         <script
@@ -118,6 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MiniCart />
             <main className="min-h-[60vh]">{children}</main>
             <WhatsAppButton />
+            <ChatbotBubble />
             <Footer />
             <CookieBanner />
           </CartProvider>

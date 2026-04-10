@@ -204,6 +204,19 @@ export async function createCheckoutSession(params: {
 }): Promise<{ sessionUrl: string; sessionId: string }> {
   const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost } = params;
 
+  // ── TAX RATES (IVA 21%) ────────────────────────────────────
+  const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
+  let ivaRate = taxRatesList.data.find(t => t.percentage === 21 && t.display_name === "IVA");
+  if (!ivaRate) {
+    ivaRate = await stripe.taxRates.create({
+      display_name: "IVA",
+      description: "IVA España (21%)",
+      jurisdiction: "ES",
+      percentage: 21,
+      inclusive: false,
+    });
+  }
+
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
     price_data: {
       currency: "eur",
@@ -215,6 +228,7 @@ export async function createCheckoutSession(params: {
       unit_amount: Math.round(item.unitPriceTotal * 100), // Stripe uses cents
     },
     quantity: item.quantity,
+    tax_rates: [ivaRate.id],
   }));
 
   // ── Payment methods ────────────────────────────────────────
@@ -352,7 +366,7 @@ export async function handlePaymentSuccess(
     return;
   }
 
-  await finalizeOrder(order.id, true, paymentIntentId);
+  await finalizeOrder(order.id, true, paymentIntentId, sessionId);
 }
 
 export async function handlePendingTransfer(
@@ -365,20 +379,34 @@ export async function handlePendingTransfer(
 
   if (!order) return;
 
-  await finalizeOrder(order.id, false, paymentIntentId);
+  await finalizeOrder(order.id, false, paymentIntentId, sessionId);
 }
 
 export async function processFreeOrder(orderId: number): Promise<void> {
   await finalizeOrder(orderId, true);
 }
 
-async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentIntentId?: string) {
+async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentIntentId?: string, sessionId?: string) {
   const order = await db.query.orders.findFirst({ where: eq(schema.orders.id, orderId) });
   if (!order) return;
 
   // Si la orden ya estaba fully paid (por ej. si Midocean ya empezó), no re-ejecutar.
   if (order.status === "paid" && isPaid) {
     return;
+  }
+
+  let invoicePdfUrl: string | undefined;
+  if (isPaid && sessionId) {
+    try {
+      const sessionResponse = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['invoice']
+      });
+      if (sessionResponse.invoice && (sessionResponse.invoice as Stripe.Invoice).invoice_pdf) {
+        invoicePdfUrl = (sessionResponse.invoice as Stripe.Invoice).invoice_pdf as string;
+      }
+    } catch (err) {
+      console.error("[Checkout] Failed to retrieve invoice PDF for session", sessionId, err);
+    }
   }
 
   const newStatus = isPaid ? "paid" : "pending_transfer";
@@ -429,6 +457,7 @@ async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentInte
       })),
       totalPrice: `${parseFloat(order.totalPrice?.toString() || "0").toFixed(2)} €`,
       estimatedDelivery: "7-10 días laborables",
+      invoicePdfUrl: invoicePdfUrl,
     });
   }
 

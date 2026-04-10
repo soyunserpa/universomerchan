@@ -25,7 +25,7 @@ export function MiniCart() {
             <ShoppingCart size={18} className="text-brand-red" />
             <span className="font-display font-bold text-base">Tu carrito ({itemCount})</span>
           </div>
-          <button onClick={() => toggleCart(false)} className="text-gray-400 hover:text-gray-600 p-1">
+          <button onClick={() => toggleCart(false)} className="text-gray-400 hover:text-gray-600 p-1" title="Cerrar carrito">
             <X size={18} />
           </button>
         </div>
@@ -60,9 +60,17 @@ export function MiniCart() {
 
         {/* Footer */}
         <div className="border-t-2 border-gray-900 px-5 py-4 bg-white">
-          <div className="flex justify-between items-baseline mb-4">
-            <span className="font-semibold text-sm">Subtotal</span>
-            <span className="font-display font-extrabold text-xl text-brand-red">{subtotal.toFixed(2)}€</span>
+          <div className="flex justify-between items-baseline mb-2 text-sm">
+            <span className="text-gray-400">Base Imponible</span>
+            <span className="font-semibold text-gray-700">{subtotal.toFixed(2)}€</span>
+          </div>
+          <div className="flex justify-between items-baseline mb-2 text-sm">
+            <span className="text-gray-400">IVA (21%)</span>
+            <span className="font-semibold text-gray-700">{(subtotal * 0.21).toFixed(2)}€</span>
+          </div>
+          <div className="flex justify-between items-baseline mb-4 pt-2 border-t border-surface-200">
+            <span className="font-bold text-sm">Total</span>
+            <span className="font-display font-extrabold text-xl text-brand-red">{(subtotal * 1.21).toFixed(2)}€</span>
           </div>
           <div className="space-y-2">
             <Link

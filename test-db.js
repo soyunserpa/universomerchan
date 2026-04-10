@@ -1,7 +1,11 @@
-const { Client } = require('ssh2'); 
-const conn = new Client(); 
-conn.on('ready', () => { 
-  conn.exec(`sudo -u postgres psql universomerchan -c "SELECT raw_api_data FROM products WHERE master_code = 'MO6327' LIMIT 1;"`, (err, stream) => { 
-    stream.on('data', d => process.stdout.write(d)).on('close', () => { setTimeout(() => { process.exit(0); }, 500); });
-  }); 
-}).connect({host: '212.227.90.110', username: 'root', password: 'V34a6df?6'});
+const { neon } = require('@neondatabase/serverless');
+const sql = neon("postgresql://neondb_owner:F1rM8cAhxLbs@ep-blue-sea-a2rww68i-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require");
+async function main() {
+try {
+  await sql`SELECT * FROM search_queries LIMIT 1`;
+  console.log("Table exists");
+} catch(e) {
+  console.error("Error:", e.message);
+}
+}
+main();

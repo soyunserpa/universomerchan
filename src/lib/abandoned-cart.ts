@@ -11,7 +11,7 @@
 // ============================================================
 
 import { db } from "./database";
-import { eq, and, lt, sql, isNull } from "drizzle-orm";
+import { eq, and, lt, gt, sql, isNull } from "drizzle-orm";
 import * as schema from "./schema";
 import { sendCartAbandonedEmail } from "./email-service";
 
@@ -39,7 +39,7 @@ export async function checkAbandonedCarts(): Promise<{
     where: and(
       eq(schema.orders.status, "draft"),
       lt(schema.orders.createdAt, twentyFourHoursAgo),
-      sql`${schema.orders.createdAt} > ${twentySixHoursAgo}`,
+      gt(schema.orders.createdAt, twentySixHoursAgo),
     ),
   });
 
@@ -80,7 +80,7 @@ export async function checkAbandonedCarts(): Promise<{
 
     if (sent) {
       emailsSent24h++;
-      // Log email
+      // @ts-ignore - Bypass Drizzle ORM strict type inference bug
       await db.insert(schema.emailLog).values({
         recipientEmail: user.email,
         recipientType: "customer",
@@ -102,7 +102,7 @@ export async function checkAbandonedCarts(): Promise<{
     where: and(
       eq(schema.orders.status, "draft"),
       lt(schema.orders.createdAt, seventyTwoHoursAgo),
-      sql`${schema.orders.createdAt} > ${seventyFourHoursAgo}`,
+      gt(schema.orders.createdAt, seventyFourHoursAgo),
     ),
   });
 

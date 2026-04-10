@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Leaf, Palette } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 
-export function ProductCard({ product, index }: { product: CatalogProductResponse; index: number }) {
+export function ProductCard({ product, index, isTopVenta }: { product: CatalogProductResponse; index: number; isTopVenta?: boolean }) {
   const uniqueColors = product.variants
     .filter((v, i, arr) => arr.findIndex((x) => x.color === v.color) === i)
     .slice(0, 5);
@@ -17,12 +17,12 @@ export function ProductCard({ product, index }: { product: CatalogProductRespons
       .replace(/[^a-z0-9]+/g, "-")    // Replace invalid characters with dash
       .replace(/(^-|-$)+/g, "");      // Trim dashes
   };
-  const productSlug = `${product.masterCode.toLowerCase()}-${generateSlug(product.name)}`;
+  const productSlug = `${product.masterCode.toLowerCase()}-${generateSlug(product.name || "producto")}`;
 
   return (
     <Link
       href={`/product/${productSlug}`}
-      className={`bg-white rounded-2xl border border-surface-200 overflow-hidden hover-lift animate-slide-up`}
+      className={`bg-white rounded-2xl border ${isTopVenta ? 'border-amber-300 shadow-md ring-2 ring-amber-100' : 'border-surface-200'} overflow-hidden hover-lift animate-slide-up relative`}
       style={{ animationDelay: `${index * 0.04}s` }}
     >
       {/* Image */}
@@ -35,6 +35,11 @@ export function ProductCard({ product, index }: { product: CatalogProductRespons
 
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+          {isTopVenta && (
+            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+              🔥 TOP VENTAS
+            </span>
+          )}
           {product.isGreen && (
             <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-sm font-semibold px-2 py-0.5 rounded-full">
               <Leaf size={12} /> Eco
