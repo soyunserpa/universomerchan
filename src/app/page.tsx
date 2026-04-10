@@ -4,6 +4,8 @@ import { getCategories, getProductDetail } from "@/lib/catalog-api";
 import { Search, Palette, ShoppingCart, Truck, Star, Leaf, ArrowRight } from "lucide-react";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ContactSection } from "@/components/home/ContactSection";
+import { CompanyLogos } from "@/components/home/CompanyLogos";
+
 
 export default async function HomePage() {
   // Fetch categories
@@ -101,6 +103,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── TRUSTED BY / COMPANIES ──────────────────────── */}
+      <CompanyLogos />
 
       {/* ── HOW IT WORKS ──────────────────────────────────── */}
       <section id="como-funciona" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
