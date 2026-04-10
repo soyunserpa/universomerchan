@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   `;
 
   const result = await streamText({
-    model: openai('gpt-4o'), // Using our environment's OPENAI_API_KEY naturally picked up by the SDK
+    model: openai('gpt-4o', { structuredOutputs: false }), // Fix OpenAI strict schema format error
     system: systemPrompt,
     messages,
     tools: {
