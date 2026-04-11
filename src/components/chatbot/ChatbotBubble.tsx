@@ -136,9 +136,33 @@ export function ChatbotBubble() {
 
   useEffect(scrollToBottom, [messages, isLoading, scrollToBottom]);
 
+  // ─── Analytics Tracker ───
+  const [sessionId, setSessionId] = useState("");
+
   useEffect(() => {
-    if (isOpen && !hasBeenOpened) setHasBeenOpened(true);
-  }, [isOpen, hasBeenOpened]);
+    let sid = sessionStorage.getItem("um_chat_session");
+    if (!sid) {
+      sid = Date.now().toString() + Math.random().toString(36).slice(2);
+      sessionStorage.setItem("um_chat_session", sid);
+    }
+    setSessionId(sid);
+  }, []);
+
+  const trackFunnel = useCallback((step: string, metadata?: any) => {
+    if (!sessionId) return;
+    fetch("/api/chat/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, step, metadata })
+    }).catch(() => {});
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (isOpen && !hasBeenOpened) {
+      setHasBeenOpened(true);
+      trackFunnel("opened");
+    }
+  }, [isOpen, hasBeenOpened, trackFunnel]);
 
   useEffect(() => {
     if ((mode === "search" || mode === "freetext" || (mode === "wizard" && wizardStep >= 0)) && inputRef.current) {
@@ -181,6 +205,7 @@ export function ChatbotBubble() {
     resetAll();
     setMode("wizard");
     setWizardStep(0);
+    trackFunnel("started_wizard");
     addMsg({
       content: "¡Hola! 👋 Voy a crear un pack de merchandising a medida para tu empresa. Necesito 3 datos rápidos.",
     });
@@ -197,6 +222,9 @@ export function ChatbotBubble() {
     const field = WIZARD_QUESTIONS[wizardStep].field as keyof typeof wizardAnswers;
     newAnswers[field] = text;
     setWizardAnswers(newAnswers);
+    
+    // Log progression in the Funnel using the field that was just answered
+    trackFunnel(`answered_${field}`);
 
     const nextStep = wizardStep + 1;
     setWizardStep(nextStep);
@@ -247,6 +275,14 @@ export function ChatbotBubble() {
 
       const pack: Pack = data.pack;
       setCurrentPack(pack);
+      
+      // Funnel successfully converted
+      trackFunnel("completed_lead", { 
+        email: answers.email, 
+        company: answers.company_name,
+        price: pack.totalEstimatedPrice
+      });
+
       // Register Lead in CRM silently
       fetch('/api/quiz-leads', {
         method: 'POST',
