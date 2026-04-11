@@ -3,7 +3,7 @@ const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
     console.log('Connected to server. Executing deploy commands...');
-    conn.exec(`cd /var/www/universomerchan && git fetch --all && git reset --hard origin/main && npm install && node -e "const {Client} = require('pg'); const c = new Client({connectionString: require('dotenv').config({path: '.env.local'}).parsed.DATABASE_URL}); c.connect().then(()=>c.query('TRUNCATE search_queries;')).then(()=>console.log('Truncated Db')).catch(e=>console.log(e)).finally(()=>c.end());" && npx drizzle-kit push && npm run build && pm2 restart all`, (err, stream) => {
+    conn.exec(`cd /var/www/universomerchan && git fetch --all && git reset --hard origin/main && npm install && node -e "const postgres = require('postgres'); const sql = postgres(require('dotenv').config({path: '.env.local'}).parsed.DATABASE_URL); sql\\\`TRUNCATE search_queries;\\\`.then(()=>console.log('Truncated Db')).catch(e=>console.log(e)).finally(()=>sql.end());" && npx drizzle-kit push && npm run build && pm2 restart all`, (err, stream) => {
         if (err) throw err;
         stream.on('close', (code, signal) => {
             console.log('Deploy finished. Exit Code: ' + code);
