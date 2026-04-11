@@ -3,9 +3,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import {
-  Gift, BarChart3, Package, ShoppingCart, Users, Settings, RefreshCw,
-  AlertTriangle, LogOut, Eye, Database, ChevronRight, Percent, Menu, X, FileText, Mail, Tag, BookOpen, FolderOpen, Search
+import { 
+  BarChart3, Users, Settings, LogOut, Package, Image as ImageIcon, Briefcase, 
+  ShoppingCart, Tag, BookOpen, AlertCircle, Search, Menu, X, Gift, Percent, Database, FileText, FolderOpen, Mail, AlertTriangle, Eye
 } from "lucide-react";
 
 // ── Admin Auth Context ──────────────────────────────────────
@@ -103,6 +103,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: "/admin/dashboard", icon: BarChart3, label: "Dashboard" },
+    { href: "/admin/crm", icon: Briefcase, label: "CRM Leads" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
     { href: "/admin/quotes", icon: FileText, label: "Presupuestos" },
     { href: "/admin/clients", icon: Users, label: "Clientes" },

@@ -12,7 +12,7 @@ type Question = {
   field: string;
   title: string;
   subtitle?: string;
-  type: "choice" | "text" | "email";
+  type: "choice" | "text" | "lead_gate";
   choices?: Answer[];
   placeholder?: string;
 };
@@ -72,12 +72,12 @@ const QUIZ_STEPS: Question[] = [
     ]
   },
   {
-    id: "q_email",
+    id: "q_lead",
     field: "email",
     title: "¡Tenemos resultados mágicos para ti!",
-    subtitle: "Déjanos el email de contacto de tu empresa para bloquear la oferta personalizada y descubrirla ahora.",
-    type: "email",
-    placeholder: "pedidos@tuempresa.com"
+    subtitle: "Déjanos tu email y teléfono para bloquear la oferta personalizada y descubrirla ahora.",
+    type: "lead_gate",
+    placeholder: ""
   }
 ];
 
@@ -99,7 +99,7 @@ export function QuizModal({ onClose }: { onClose: () => void }) {
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!answers[currentStep.field]) return;
-    if (currentStep.type === "email") submitQuiz();
+    if (currentStep.type === "lead_gate") submitQuiz();
     else goToNextStep();
   };
 
@@ -240,34 +240,40 @@ export function QuizModal({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          {currentStep.type === "email" && (
-            <form onSubmit={handleTextSubmit} className="flex flex-col gap-6 max-w-lg w-full mb-8">
+          {currentStep.type === "lead_gate" && (
+            <form onSubmit={handleTextSubmit} className="flex flex-col gap-4">
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
                 <input
                   type="email"
                   required
                   autoFocus
-                  value={answers[currentStep.field] || ""}
-                  onChange={(e) => setAnswers(prev => ({ ...prev, [currentStep.field]: e.target.value }))}
-                  placeholder={currentStep.placeholder}
-                  className="w-full text-lg pl-14 pr-5 py-4 rounded-xl border-2 border-gray-200 focus:border-brand-red focus:outline-none bg-white font-medium transition-all focus:shadow-lg focus:shadow-brand-red/10"
+                  value={answers.email || ""}
+                  onChange={(e) => setAnswers(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="tuempresa@email.com"
+                  className="w-full text-lg pl-14 pr-5 py-4 rounded-xl border-2 border-gray-100 focus:border-brand-red focus:outline-none bg-white font-medium transition-all"
+                />
+              </div>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" style={{ transform: "translateY(-50%) rotate(90deg)" }}>📞</div>
+                <input
+                  type="tel"
+                  required
+                  value={answers.phone || ""}
+                  onChange={(e) => setAnswers(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Teléfono (Opcional o Recomendado)"
+                  className="w-full text-lg pl-14 pr-5 py-4 rounded-xl border-2 border-gray-100 focus:border-brand-red focus:outline-none bg-white font-medium transition-all"
                 />
               </div>
               <button
                 type="submit"
-                disabled={isLoading || !answers[currentStep.field]}
-                className="w-full py-4 bg-brand-red text-white text-lg font-bold rounded-xl hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2 group"
+                disabled={isLoading || !answers.email || !answers.phone}
+                className="mt-2 w-full py-4 bg-brand-red text-white text-lg font-bold rounded-xl hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
-                {isLoading ? (
-                  <><Loader2 size={20} className="animate-spin" /> Analizando tu perfil...</>
-                ) : (
-                  <><Sparkles size={20} /> Generar mi Pack Mágico</>
-                )}
+                {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                Ver Propuesta Mágica
               </button>
-              <p className="text-center text-xs text-gray-400 mt-2">
-                Descubrirás el pack directamente en esta pantalla. Zero Spam.
-              </p>
+              <p className="text-center text-xs text-gray-400 mt-2">Sólo enviamos presupuesto, nunca spam.</p>
             </form>
           )}
         </div>

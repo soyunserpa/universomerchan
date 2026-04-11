@@ -50,6 +50,13 @@ export const proofStatusEnum = pgEnum("proof_status", [
   "approved",         // Aprobado por cliente
   "rejected",         // Rechazado por cliente
 ]);
+export const leadStatusEnum = pgEnum("lead_status", [
+  "NEW",
+  "CONTACTED",
+  "PROPOSAL_SENT",
+  "WON",
+  "LOST"
+]);
 
 // ============================================================
 // ADMIN SETTINGS
@@ -107,6 +114,30 @@ export const users = pgTable("users", {
 }, (table) => ({
   emailIdx: uniqueIndex("users_email_idx").on(table.email),
   roleIdx: index("users_role_idx").on(table.role),
+}));
+
+// ============================================================
+// LEADS (CRM) — Generated from Octane AI style Quiz
+// ============================================================
+
+export const leads = pgTable("leads", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 30 }),
+  companyName: varchar("company_name", { length: 200 }),
+  industry: varchar("industry", { length: 100 }),
+  budget: varchar("budget", { length: 100 }),
+  objective: varchar("objective", { length: 200 }),
+  volume: varchar("volume", { length: 50 }),
+  
+  status: leadStatusEnum("status").default("NEW").notNull(),
+  adminNotes: text("admin_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  emailIdx: index("leads_email_idx").on(table.email),
+  statusIdx: index("leads_status_idx").on(table.status),
 }));
 
 // ============================================================

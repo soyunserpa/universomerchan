@@ -18,7 +18,7 @@ type Question = {
   field: string;
   title: string;
   subtitle?: string;
-  type: "choice" | "text" | "email";
+  type: "choice" | "text" | "lead_gate";
   choices?: Answer[];
   placeholder?: string;
 };
@@ -73,12 +73,12 @@ const QUIZ_STEPS: Question[] = [
     placeholder: "Ej. Acme Inc."
   },
   {
-    id: "q_email",
+    id: "q_lead",
     field: "email",
     title: "¡Ya tenemos tu propuesta lista!",
-    subtitle: "Déjanos tu email para que te enviemos una copia y descubre los productos recomendados a continuación.",
-    type: "email",
-    placeholder: "tu@empresa.com"
+    subtitle: "Déjanos tu email y número para enviarte una copia y contactarte con la propuesta final.",
+    type: "lead_gate",
+    placeholder: ""
   }
 ];
 
@@ -107,7 +107,7 @@ export default function QuizPage() {
     e.preventDefault();
     if (!answers[currentStep.field]) return;
     
-    if (currentStep.type === "email") {
+    if (currentStep.type === "lead_gate") {
       submitQuiz();
     } else {
       goToNextStep();
@@ -142,10 +142,8 @@ export default function QuizPage() {
       const syntheticObjective = `${answers.objective}`;
 
       const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "generate_pack",
           company_name: answers.companyName || "Nuestra Empresa",
@@ -285,24 +283,37 @@ export default function QuizPage() {
             </form>
           )}
 
-          {currentStep.type === "email" && (
-            <form onSubmit={handleTextSubmit} className="flex flex-col gap-6">
+          {currentStep.type === "lead_gate" && (
+            <form onSubmit={handleTextSubmit} className="flex flex-col gap-5">
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={28} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
                 <input
                   type="email"
                   required
                   autoFocus
-                  value={answers[currentStep.field] || ""}
-                  onChange={(e) => setAnswers(prev => ({ ...prev, [currentStep.field]: e.target.value }))}
-                  placeholder={currentStep.placeholder}
-                  className="w-full text-xl pl-16 pr-5 py-5 rounded-2xl border-2 border-gray-200 focus:border-brand-red focus:outline-none bg-white font-medium transition-all focus:shadow-lg focus:shadow-brand-red/10"
+                  value={answers.email || ""}
+                  onChange={(e) => setAnswers(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="tu@email.com"
+                  className="w-full text-lg pl-14 pr-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-brand-red focus:outline-none bg-white font-medium transition-all focus:shadow-lg focus:shadow-brand-red/10"
                 />
               </div>
-              <div className="flex justify-end mt-6">
+              
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" style={{ transform: "translateY(-50%) rotate(90deg)" }}>📞</div>
+                <input
+                  type="tel"
+                  required
+                  value={answers.phone || ""}
+                  onChange={(e) => setAnswers(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Teléfono (Opcional o Recomendado)"
+                  className="w-full text-lg pl-14 pr-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-brand-red focus:outline-none bg-white font-medium transition-all focus:shadow-lg focus:shadow-brand-red/10"
+                />
+              </div>
+              
+              <div className="flex justify-end mt-4">
                 <button
                   type="submit"
-                  disabled={isLoading || !answers[currentStep.field]}
+                  disabled={isLoading || !answers.email || !answers.phone}
                   className="w-full sm:w-auto px-10 py-5 bg-black text-white text-lg font-bold rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-all flex items-center justify-center gap-3 relative overflow-hidden group"
                 >
                   {isLoading ? (
@@ -319,7 +330,7 @@ export default function QuizPage() {
                   <div className="absolute inset-0 h-full w-0 bg-white/20 transition-all duration-[250ms] ease-out group-hover:w-full"></div>
                 </button>
               </div>
-              <p className="text-center text-xs text-gray-400 mt-4">
+              <p className="text-center text-xs text-gray-400 mt-2">
                 Nunca enviamos SPAM. Prometido. Al continuar, aceptas nuestra política de privacidad.
               </p>
             </form>
