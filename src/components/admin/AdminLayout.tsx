@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { 
-  BarChart3, Users, Settings, LogOut, Package, Image as ImageIcon, Briefcase, 
+  BarChart3, Users, Settings, LogOut, Package, Image as ImageIcon, Briefcase, RefreshCw,
   ShoppingCart, Tag, BookOpen, AlertCircle, Search, Menu, X, Gift, Percent, Database, FileText, FolderOpen, Mail, AlertTriangle, Eye
 } from "lucide-react";
 
