@@ -231,7 +231,7 @@ export default function QuizPage() {
         <div className="ml-auto w-1/3 sm:w-1/4 h-2 bg-gray-100 rounded-full overflow-hidden">
            <div 
              className="h-full bg-brand-red transition-all duration-500 ease-out" 
-             style={{ width: \`\${progress}%\` }}
+             style={{ width: `${progress}%` }}
            />
         </div>
       </header>
