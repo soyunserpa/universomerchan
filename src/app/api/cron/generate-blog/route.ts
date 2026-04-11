@@ -69,6 +69,7 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
   "title": "Un título pegadizo para el artículo (máx. 65 caracteres)",
   "metaDescription": "Metadescripción apta para SEO (máx. 155 caracteres)",
   "excerpt": "Un breve párrafo resumen para mostrar en el catálogo del blog",
+  "linkedinPost": "Un micro-post brutal y viral para publicar en LinkedIn con emojis y hashtags B2B (máximo 1200 caracteres, con un final de 'Lee el artículo completo en nuestro blog').",
   "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para DALL-E 3 que genere la imagen perfecta para acompañar el artículo (sin texto en la imagen, estilo foto de estudio, alta calidad, fotorealista, producto corporativo)",
   "body": "El artículo en MERO CÓDIGO HTML semántico (usando <h2>, <h3>, <p>, <ul>, <strong>). No incluyas tags <html>, <head> o <body>, solo el interior (empezando directamente desde tu primer <p> introductorio). Evita estilos en línea, usa puros tags estructurales y cuida el SEO (palabras clave)."
 }`
@@ -155,6 +156,87 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
 
     console.log(`[Blog Cron] Éxito. Post insertado ID: ${newPost.id}`);
     
+    // ======================================
+    // 6. PUBLICAR EN LINKEDIN
+    // ======================================
+    let linkedinStatus = "Skipped (No Token Configured)";
+    if (process.env.LINKEDIN_ACCESS_TOKEN) {
+      console.log(`[Blog Cron] Token de LinkedIn detectado. Preparando envío...`);
+      try {
+        const token = process.env.LINKEDIN_ACCESS_TOKEN;
+        
+        // 1. Obtener la Identidad del Autor (Member o Company)
+        let authorUrn = "";
+        if (process.env.LINKEDIN_ORGANIZATION_ID) {
+          authorUrn = `urn:li:organization:${process.env.LINKEDIN_ORGANIZATION_ID}`;
+          console.log(`[Blog Cron] Publicando como Empresa: ${authorUrn}`);
+        } else {
+          // Si no hay ID de empresa, leemos de quién es el token personal
+          const meRes = await fetch("https://api.linkedin.com/v2/userinfo", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          const meData = await meRes.json();
+          if (meData.sub) {
+            authorUrn = `urn:li:person:${meData.sub}`;
+            console.log(`[Blog Cron] Publicando como Persona: ${authorUrn}`);
+          }
+        }
+
+        if (authorUrn) {
+          const absoluteUrl = `https://universomerchan.com/blog/${newPost.slug}`;
+          
+          const linkedinPayload = {
+            author: authorUrn,
+            lifecycleState: "PUBLISHED",
+            specificContent: {
+              "com.linkedin.ugc.ShareContent": {
+                shareCommentary: {
+                  text: articleData.linkedinPost || `¡Nuevo artículo en el blog! ${articleData.title}`
+                },
+                shareMediaCategory: "ARTICLE",
+                media: [
+                  {
+                    status: "READY",
+                    description: { text: articleData.metaDescription },
+                    originalUrl: absoluteUrl,
+                    title: { text: articleData.title }
+                  }
+                ]
+              }
+            },
+            visibility: {
+              "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+            }
+          };
+
+          const linkedinRes = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "X-Restli-Protocol-Version": "2.0.0",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(linkedinPayload)
+          });
+
+          if (linkedinRes.ok) {
+            const data = await linkedinRes.json();
+            linkedinStatus = `Success (URN: ${data.id})`;
+            console.log(`[Blog Cron] LinkedIn postiado con éxito: ${data.id}`);
+          } else {
+            const errBody = await linkedinRes.text();
+            linkedinStatus = `API Error: ${linkedinRes.status}`;
+            console.error(`[Blog Cron] Error de LinkedIn API:`, errBody);
+          }
+        } else {
+          linkedinStatus = "Failed to determine Author URN";
+        }
+      } catch (liErr: any) {
+        linkedinStatus = `Error: ${liErr.message}`;
+        console.error(`[Blog Cron] Excepción en LinkedIn Post:`, liErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Daily AI Blog Generated",
@@ -162,7 +244,8 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
         id: newPost.id,
         title: newPost.title,
         slug: newPost.slug
-      }
+      },
+      linkedin: linkedinStatus
     });
 
   } catch (error: any) {
