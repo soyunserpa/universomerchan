@@ -201,7 +201,7 @@ export function ChatbotBubble() {
     const loadingSteps = [
       { text: "Buscando en +2.400 productos...", delay: 2000 },
       { text: "Seleccionando los mejores para ti...", delay: 4000 },
-      { text: "Preparando tu pack personalizado...", delay: 6000 },
+      { text: "Preparando tu propuesta personalizada...", delay: 6000 },
     ];
 
     for (const step of loadingSteps) {
@@ -263,7 +263,7 @@ export function ChatbotBubble() {
     } catch (err: any) {
       setIsLoading(false);
       addMsg({
-        content: `Lo siento, hubo un error generando tu pack: ${err.message}. ¿Quieres intentarlo de nuevo?`,
+        content: `Lo siento, hubo un error generando tu propuesta. ¿Quieres intentarlo de nuevo?`,
       });
       addMsg({
         type: "options",
@@ -384,7 +384,7 @@ export function ChatbotBubble() {
             content: "",
             options: [
               { label: "🔍 Otra búsqueda", action: "start_search" },
-              { label: "🎁 Crear pack con IA", action: "start_wizard" },
+              { label: "🎁 Crear pack corporativo", action: "start_wizard" },
             ],
           });
         }, 600);
@@ -452,13 +452,13 @@ export function ChatbotBubble() {
     } else if (mode === "search") {
       handleSearch(text);
     } else if (mode === "freetext") {
-      // Para dudas free text podrías conectar con otro endpoint de IA
+      // Para dudas free text podrías conectar con otro endpoint
       addMsg({ role: "user", content: text });
       addMsg({
         content: "Para consultas personalizadas, escríbenos a **pedidos@universomerchan.com** o llámanos. ¿Te ayudo con algo más?",
         type: "options",
         options: [
-          { label: "🎁 Crear pack con IA", action: "start_wizard" },
+          { label: "🎁 Crear pack corporativo", action: "start_wizard" },
           { label: "🔍 Buscar productos", action: "start_search" },
         ],
       });
@@ -515,7 +515,7 @@ export function ChatbotBubble() {
                 <h3 className="font-bold text-sm leading-tight">Asistente Merchan</h3>
                 <p className="text-white/70 text-[11px] flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" />
-                  Respuesta inmediata
+                  Respuesta automática
                 </p>
               </div>
             </div>
@@ -559,7 +559,7 @@ export function ChatbotBubble() {
                     className="bg-brand-red text-white py-3.5 px-4 rounded-xl text-sm font-semibold shadow-md hover:bg-red-700 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Sparkles size={16} />
-                    Crear pack con IA
+                    Crear pack corporativo
                   </button>
                   <button
                     onClick={startSearch}
