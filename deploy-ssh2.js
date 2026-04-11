@@ -3,7 +3,7 @@ const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
     console.log('Connected to server. Executing deploy commands...');
-    conn.exec('cd /var/www/universomerchan && git fetch --all && git reset --hard origin/main && npm install && yes | npx drizzle-kit push && npm run build && pm2 restart all', (err, stream) => {
+    conn.exec('cd /var/www/universomerchan && git fetch --all && git reset --hard origin/main && npm install && npx drizzle-kit push --force --accept-data-loss && npm run build && pm2 restart all', (err, stream) => {
         if (err) throw err;
         stream.on('close', (code, signal) => {
             console.log('Deploy finished. Exit Code: ' + code);
