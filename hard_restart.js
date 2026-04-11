@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 logs universo-tienda --err --lines 50', (err, stream) => {
+    conn.exec('cd /var/www/universomerchan && pm2 reload all', (err, stream) => {
         if (err) throw err;
         stream.on('close', () => {
             conn.end();

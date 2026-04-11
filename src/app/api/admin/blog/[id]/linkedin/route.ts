@@ -2,19 +2,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 import { blogPosts } from "@/lib/schema";
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { verifyJwt } from "@/lib/jwt";
+import { requireAuth } from "@/lib/auth-service";
 import { OpenAI } from "openai";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
-    const authHeader = headers().get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authHeader = req.headers.get("authorization");
+    const auth = await requireAuth(authHeader, "admin");
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status || 401 });
     }
-    const tokenStr = authHeader.split(" ")[1];
-    const decoded = await verifyJwt(tokenStr);
-    if (!decoded) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const id = parseInt(params.id);
     if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
