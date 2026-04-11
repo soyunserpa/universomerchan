@@ -147,7 +147,8 @@ export function ChatbotBubble() {
         setIsWizardLoading(false);
         setWizardState(w => ({ ...w, step: 5 }));
 
-        const prompt = `¡Hola! Me gustaría crear un pack corporativo estratégico. Mis datos:
+        const prompt = `[INTERNAL_SYSTEM_PROMPT]
+¡Hola! Me gustaría crear un pack corporativo estratégico. Mis datos:
 - Empresa: ${newAnswers.company_name}
 - Sector/Industria: ${newAnswers.industry}
 - Objetivo Principal: ${newAnswers.objective}
@@ -214,7 +215,9 @@ Dale un título inspirador al pack y justifica brevemente (en 1 línea) por qué
             )}
 
             <div className="space-y-4">
-              {messages.map((m: any) => (
+              {messages
+                .filter((m: any) => !(m.content || m.text || m.parts?.[0]?.text || '').includes('[INTERNAL_SYSTEM_PROMPT]'))
+                .map((m: any) => (
                 <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex gap-3 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
 
