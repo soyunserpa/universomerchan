@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft, Mail, CheckCircle2, ChevronRight, Gift, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Mail, CheckCircle2, ChevronRight, Gift, Loader2, Sparkles } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
@@ -138,8 +138,8 @@ export default function QuizPage() {
       }).catch(e => console.error("Lead tracking failed:", e));
 
       // 2. Build Prompt Context from Answers
-      const syntheticIndustry = \`\${answers.industry} (Presupuesto: \${answers.budget})\`;
-      const syntheticObjective = \`\${answers.objective}\`;
+      const syntheticIndustry = `${answers.industry} (Presupuesto: ${answers.budget})`;
+      const syntheticObjective = `${answers.objective}`;
 
       const response = await fetch('/api/chat', {
         method: 'POST',
