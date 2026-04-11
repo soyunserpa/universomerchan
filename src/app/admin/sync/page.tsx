@@ -11,14 +11,18 @@ interface SyncEntry {
 }
 
 export default function AdminSyncPage() {
-  const { authHeaders } = useAdminAuth();
+  const { authHeaders, logout } = useAdminAuth();
   const [logs, setLogs] = useState<SyncEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
 
   const fetchLogs = () => {
     fetch("/api/admin/sync/status", { headers: authHeaders() })
-      .then(r => {
+      .then(async r => {
+        if (r.status === 401 || r.status === 403) {
+          logout();
+          throw new Error("Unauthorized");
+        }
         if (!r.ok) throw new Error("Auth/Network Error");
         return r.json();
       })
