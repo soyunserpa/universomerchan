@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/components/admin/AdminLayout";
-import { Search, RefreshCw, Users, ShoppingCart, UserCheck, UserX, Trash2 } from "lucide-react";
+import { Search, RefreshCw, Users, ShoppingCart, UserCheck, UserX, Trash2, Download } from "lucide-react";
 
 interface Client {
   id: number; email: string; firstName: string; lastName: string;
@@ -65,11 +65,48 @@ export default function AdminClientsPage() {
     }
   };
 
+  const downloadCSV = () => {
+    if (!clients.length) return alert("No hay clientes para exportar");
+    
+    const headers = ["ID", "Email", "Nombre", "Apellidos", "Empresa", "CIF", "Teléfono", "Descuento", "Total Pedidos", "Total Gastado", "Último Pedido", "Fecha Registro", "Activo"];
+    const rows = clients.map(c => [
+      c.id,
+      `"${c.email || ""}"`,
+      `"${c.firstName || ""}"`,
+      `"${c.lastName || ""}"`,
+      `"${c.companyName || ""}"`,
+      `"${c.cif || ""}"`,
+      `"${c.phone || ""}"`,
+      `${c.discountPercent}%`,
+      c.totalOrders,
+      c.totalSpent,
+      c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString() : "",
+      new Date(c.createdAt).toLocaleDateString(),
+      c.isActive ? "Sí" : "No"
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `clientes_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display font-extrabold text-2xl">Clientes</h1>
-        <span className="text-sm text-gray-400">{total} clientes</span>
+        <div>
+          <h1 className="font-display font-extrabold text-2xl">Clientes</h1>
+          <span className="text-sm text-gray-400 block mt-0.5">{total} clientes registrados</span>
+        </div>
+        <button onClick={downloadCSV} className="flex items-center gap-2 px-3 py-2 border border-surface-200 bg-white rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-xs shadow-sm">
+          <Download size={14} /> Exportar Clientes (CSV)
+        </button>
       </div>
 
       <div className="relative mb-5">
