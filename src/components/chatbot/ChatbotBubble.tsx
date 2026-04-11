@@ -569,14 +569,14 @@ export function ChatbotBubble() {
                     className="bg-brand-red text-white py-3.5 px-4 rounded-xl text-sm font-semibold shadow-md hover:bg-red-700 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Sparkles size={16} />
-                    Test Visual Recomendado
+                    Propuesta de packs por sector
                   </button>
                   <button
                     onClick={startWizard}
                     className="bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Gift size={16} />
-                    Asistente Inteligente (Chat)
+                    Crear pack corporativo (vía Chat)
                   </button>
                   <button
                     onClick={startSearch}
