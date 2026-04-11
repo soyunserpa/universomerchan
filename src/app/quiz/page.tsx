@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowLeft, Mail, CheckCircle2, ChevronRight, Gift, Loader2, Sparkles } from "lucide-react";
-import { Navbar } from "@/components/layout/Navbar";
+import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 // ════════════════════════════════════════════════════════════════
@@ -175,7 +175,7 @@ export default function QuizPage() {
   if (quizComplete && recommendedPack) {
     return (
       <main className="min-h-screen bg-gray-50 flex flex-col pt-[88px]">
-        <Navbar />
+        <Header />
         <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 mt-10">
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-6">
