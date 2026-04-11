@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     }
 
     if (products.length < 8) {
-      const more = (await getProductList({ limit: 25, sort: 'stock' })).products;
+      const more = (await getProductList({ limit: 100, sort: 'newest' })).products;
       const ids = new Set(products.map(p => p.masterCode));
       products = [...products, ...more.filter(p => !ids.has(p.masterCode))];
     }
