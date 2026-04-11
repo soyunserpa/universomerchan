@@ -105,7 +105,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
     { href: "/admin/dashboard", icon: BarChart3, label: "Dashboard" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
     { href: "/admin/quotes", icon: FileText, label: "Presupuestos" },
-    { href: "/admin/products", icon: Package, label: "Productos" },
     { href: "/admin/clients", icon: Users, label: "Clientes" },
     { href: "/admin/coupons", icon: Tag, label: "Cupones" },
     { href: "/admin/blog", icon: BookOpen, label: "Blog & SEO" },
