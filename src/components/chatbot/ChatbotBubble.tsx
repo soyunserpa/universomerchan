@@ -144,24 +144,18 @@ export function ChatbotBubble() {
           setMessages(prev => [...prev, { id: Date.now().toString() + 'a', role: 'assistant', content: WIZARD_QUESTIONS[nextStep] } as any]);
         }, 300);
       } else {
-        setIsWizardLoading(true);
-        const loaderId = 'loader-' + Date.now();
-        setTimeout(() => {
-          setMessages(prev => [...prev, { id: loaderId, role: 'assistant', content: 'Dame 10 segundos... estoy buscando los mejores productos para ti.' } as any]);
-        }, 300);
+        setIsWizardLoading(false);
+        setWizardState(w => ({ ...w, step: 5 }));
 
-        try {
-          const res = await fetch('/api/generate-pack', {
-            method: 'POST', body: JSON.stringify(newAnswers)
-          });
-          const data = await res.json();
-          setMessages(prev => prev.filter(m => m.id !== loaderId).concat({ id: Date.now().toString(), role: 'assistant', content: data.markdown || data.error } as any));
-        } catch {
-          setMessages(prev => prev.filter(m => m.id !== loaderId).concat({ id: Date.now().toString(), role: 'assistant', content: 'Hubo un error al generar el pack. Por favor, reinténtalo o pregúntame directamente.' } as any));
-        } finally {
-          setIsWizardLoading(false);
-          setWizardState(w => ({ ...w, step: 5 }));
-        }
+        const prompt = `¡Hola! Me gustaría crear un pack corporativo estratégico. Mis datos:
+- Empresa: ${newAnswers.company_name}
+- Sector/Industria: ${newAnswers.industry}
+- Objetivo Principal: ${newAnswers.objective}
+
+Usa tu herramienta de catálogo para buscar posibles productos que encajen perfectos con este perfil. Luego, preséntame un solo Pack compuesto por de 4 a 5 productos variados.
+Dale un título inspirador al pack y justifica brevemente (en 1 línea) por qué eliges cada producto para nuestro objetivo. ¡Gracias!`;
+
+        sendMessage({ text: prompt });
       }
       return;
     }
