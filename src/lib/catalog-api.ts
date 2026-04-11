@@ -112,19 +112,62 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
   }
   
   if (search) {
-    const terms = search.trim().split(/\s+/);
-    for (const term of terms) {
-      if (!term) continue;
+    const stopwords = new Set(['de', 'con', 'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'para', 'y', 'o', 'a', 'en', 'barato', 'barata', 'baratos', 'baratas', 'economico', 'economica', 'quiero', 'necesito', 'busco']);
+    const terms = search.trim().split(/\s+/).map(t => t.toLowerCase()).filter(t => t.length > 1 && !stopwords.has(t));
+    
+    // Si filtrando stopwords nos quedamos sin términos (ej. buscar "para"), usamos el texto original
+    const finalTerms = terms.length > 0 ? terms : search.trim().split(/\s+/).filter(t => t.length > 1);
+
+    for (const rawTerm of finalTerms) {
+      if (!rawTerm) continue;
+      
+      // Singularizar palabras básicas en español que terminen en s/es
+      let term = rawTerm;
+      if (term.endsWith('es') && term.length > 4) {
+        term = term.slice(0, -2);
+      } else if (term.endsWith('s') && term.length > 3) {
+        term = term.slice(0, -1);
+      }
+
+      // Para colores comunes, añadir traducciones al 'or' (ej. blanco, blancos, blanca, blancas, white)
+      const isRed = term.startsWith('roj') || term === 'red';
+      const isBlue = term.startsWith('azul') || term === 'blue';
+      const isWhite = term.startsWith('blanc') || term === 'white';
+      const isBlack = term.startsWith('negr') || term === 'black';
+      const isGreen = term.startsWith('verd') || term === 'green';
+      const isYellow = term.startsWith('amarill') || term === 'yellow';
+
+      const colorConditions = [];
+      if (isRed) colorConditions.push(ilike(schema.productVariants.colorDescription, '%red%'), ilike(schema.productVariants.colorDescription, '%rojo%'));
+      if (isBlue) colorConditions.push(ilike(schema.productVariants.colorDescription, '%blue%'), ilike(schema.productVariants.colorDescription, '%azul%'));
+      if (isWhite) colorConditions.push(ilike(schema.productVariants.colorDescription, '%white%'), ilike(schema.productVariants.colorDescription, '%blanco%'));
+      if (isBlack) colorConditions.push(ilike(schema.productVariants.colorDescription, '%black%'), ilike(schema.productVariants.colorDescription, '%negro%'));
+      if (isGreen) colorConditions.push(ilike(schema.productVariants.colorDescription, '%green%'), ilike(schema.productVariants.colorDescription, '%verde%'));
+      if (isYellow) colorConditions.push(ilike(schema.productVariants.colorDescription, '%yellow%'), ilike(schema.productVariants.colorDescription, '%amarillo%'));
+
       conditions.push(
         or(
-          ilike(schema.products.productName, `%${term}%`),
           ilike(schema.products.productName, `%${term}%`),
           ilike(schema.products.shortDescription, `%${term}%`),
           ilike(schema.products.longDescription, `%${term}%`),
           ilike(schema.products.categoryLevel1, `%${term}%`),
           ilike(schema.products.categoryLevel2, `%${term}%`),
-          ilike(schema.products.masterCode, `%${term}%`),
-          ilike(schema.products.material, `%${term}%`)
+          ilike(schema.products.masterCode, `%${rawTerm}%`),
+          ilike(schema.products.material, `%${term}%`),
+          exists(
+            db.select({ id: schema.productVariants.id })
+              .from(schema.productVariants)
+              .where(
+                and(
+                  eq(schema.productVariants.productId, schema.products.id),
+                  or(
+                    ilike(schema.productVariants.colorGroup, `%${term}%`),
+                    ilike(schema.productVariants.colorDescription, `%${term}%`),
+                    ...colorConditions
+                  )
+                )
+              )
+          )
         )!
       );
     }
