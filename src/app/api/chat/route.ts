@@ -32,16 +32,36 @@ const SwapSchema = z.object({
   justification: z.string()
 });
 
-// Función auxiliar para obtener contexto sin quemar tokens excesivos ni bucles de tools
+// Función auxiliar para obtener contexto cruzado y diverso sin quemar tokens excesivos ni bucles de tools
 async function getContextForLLM(queryTerm: string) {
   try {
-    let res = await getProductList({ search: queryTerm, limit: 40 });
-    if (!res || !res.products || res.products.length < 10) {
-      // Si la búsqueda por industria no da muchos frutos, traemos genéricos y populares
-      res = await getProductList({ limit: 40, sort: 'newest' });
+    // Definimos términos ancla para garantizar diversidad de categorías (evita sesgo a la última categoría importada, ej. todo textil)
+    const anchorTerms = ['libreta', 'botella', 'mochila', 'boligrafo', 'tecnologia', 'taza', 'paraguas'];
+    
+    const promises = anchorTerms.map(term => getProductList({ search: term, limit: 8 }));
+    
+    if (queryTerm && queryTerm.trim().toLowerCase() !== "general") {
+       promises.push(getProductList({ search: queryTerm, limit: 15 }));
+    }
+
+    const results = await Promise.all(promises);
+    const allProducts: any[] = [];
+    for (const res of results) {
+      if (res && res.products) allProducts.push(...res.products);
+    }
+
+    // Deduplicar por masterCode
+    const unique = new Map();
+    for (const p of allProducts) {
+      unique.set(p.masterCode, p);
     }
     
-    return res.products.map((p: any) => ({
+    // Barajar aleatoriamente para que cada interacción sea fresca y tomar máximo 60 opciones
+    const diverseList = Array.from(unique.values())
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 60);
+    
+    return diverseList.map((p: any) => ({
       masterCode: p.masterCode,
       name: p.name,
       price: p.startingPrice ? `${p.startingPrice}` : null,
@@ -49,7 +69,7 @@ async function getContextForLLM(queryTerm: string) {
       url: `/product/${p.masterCode}`
     }));
   } catch (e) {
-    console.error("Error obteniendo catálogo:", e);
+    console.error("Error obteniendo catálogo diverso:", e);
     return []; // fallback gracefully
   }
 }
