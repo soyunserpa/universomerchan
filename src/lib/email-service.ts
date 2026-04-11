@@ -155,7 +155,7 @@ export async function sendQuizProposalEmail(to: string, packData: any) {
       <div class="ab" style="background:#F9F9F9;text-align:center;">
         <p style="font-size:15px;color:#111;margin-bottom:16px;"><strong>¿Te encaja esta propuesta?</strong></p>
         <p style="font-size:13px;color:#666;margin-bottom:24px;">${packData.closing}</p>
-        <a href="${SITE_URL}/contacto" class="btn">Solicitar Presupuesto Final</a>
+        <a href="https://wa.me/34614446640" class="btn" style="background-color: #25D366; border-radius: 50px;">Hablar por WhatsApp</a>
       </div>
     `, "Aquí tienes tu pack corporativo recomendado")
   });
