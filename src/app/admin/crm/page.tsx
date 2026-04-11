@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/components/admin/AdminLayout";
-import { RefreshCw, Users, Mail, Phone, Building, Briefcase, Handshake, CheckCircle2, ChevronRight, XCircle } from "lucide-react";
+import { RefreshCw, Users, Mail, Phone, Building, Briefcase, Handshake, CheckCircle2, ChevronRight, XCircle, Download, Trash2 } from "lucide-react";
 
 type LeadStatus = "NEW" | "CONTACTED" | "PROPOSAL_SENT" | "WON" | "LOST";
 
@@ -75,6 +75,55 @@ export default function CRMDashboard() {
     }
   };
 
+  const deleteLead = async (id: number) => {
+    if (!confirm("¿Seguro que quieres eliminar este lead permanentemente?")) return;
+    try {
+      const res = await fetch(`/api/admin/crm?id=${id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLeads(prev => prev.filter(l => l.id !== id));
+      } else {
+        alert("Error al eliminar lead");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error borrando el lead");
+    }
+  };
+
+  const downloadCSV = () => {
+    if (!leads.length) return alert("No hay leads para exportar");
+    
+    const headers = ["ID", "Fecha", "Empresa", "Email", "Teléfono", "Sector", "Presupuesto", "Volumen", "Objetivo", "Estado"];
+    const rows = leads.map(l => [
+      l.id,
+      new Date(l.createdAt).toLocaleDateString(),
+      `"${l.companyName || ""}"`,
+      `"${l.email || ""}"`,
+      `"${l.phone || ""}"`,
+      `"${l.industry || ""}"`,
+      `"${l.budget || ""}"`,
+      `"${l.volume || ""}"`,
+      `"${l.objective || ""}"`,
+      l.status
+    ]);
+    
+    // Add BOM for correct Excel UTF-8 encoding
+    const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `leads_crm_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleDragStart = (e: React.DragEvent, id: number) => {
     setDraggingId(id);
     e.dataTransfer.setData("text/plain", id.toString());
@@ -110,9 +159,14 @@ export default function CRMDashboard() {
           <h1 className="font-display font-extrabold text-2xl text-gray-900">Pipeline de Ventas (CRM)</h1>
           <p className="text-sm text-gray-500 mt-1">Arrastra y suelta los leads capturados en el Visual Quiz.</p>
         </div>
-        <button onClick={fetchLeads} className="p-2 border border-surface-200 rounded-lg text-gray-500 hover:bg-surface-100 transition-colors">
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-        </button>
+        <div className="flex gap-2">
+          <button onClick={downloadCSV} className="flex items-center gap-2 px-3 py-2 border border-surface-200 bg-white rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm shadow-sm">
+            <Download size={16} /> <span className="hidden sm:inline">Exportar CSV</span>
+          </button>
+          <button onClick={fetchLeads} className="p-2 border border-surface-200 bg-white rounded-lg text-gray-500 hover:bg-gray-50 transition-colors shadow-sm">
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
       {/* KANBAN BOARD */}
@@ -150,9 +204,18 @@ export default function CRMDashboard() {
                     
                     <div className="flex justify-between items-start mb-3 ml-2">
                       <div className="flex-1 min-w-0 pr-2">
-                        <h4 className="font-bold text-gray-900 text-[15px] truncate flex items-center gap-1.5">
-                          {lead.companyName || "Sin Empresa"}
-                        </h4>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-gray-900 text-[15px] truncate flex items-center gap-1.5 pr-2">
+                            {lead.companyName || "Sin Empresa"}
+                          </h4>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); deleteLead(lead.id); }}
+                            className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Eliminar lead"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                         <a href={`mailto:${lead.email}`} className="text-xs text-brand-red truncate hover:underline flex items-center gap-1 mt-1 font-medium">
                           <Mail size={11} /> {lead.email}
                         </a>
