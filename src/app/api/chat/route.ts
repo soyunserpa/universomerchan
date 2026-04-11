@@ -44,7 +44,8 @@ DEBES usar SIEMPRE la herramienta 'searchCatalog' para encontrar opciones antes 
 REGLAS:
 1. No inventes productos. Usa SOLO lo que te devuelva la herramienta.
 2. Selecciona artículos de categorías variadas (por ejemplo: evita poner 3 bolígrafos o 3 libretas, mézclalo: 1 taza, 1 cuaderno, 1 bolsa, 1 bolígrafo premium).
-3. Tu salida FINAL debe ser ÚNICA y EXCLUSIVAMENTE en formato JSON válido. Ni una sola palabra fuera del JSON.
+3. UNA VEZ QUE TENGAS RESULTADOS DE LA HERRAMIENTA, ES OBLIGATORIO QUE TU RESPUESTA FINAL SEA EL TEXTO DEL JSON SOLICITADO. NO TE DETENGAS SIN EMITIR EL JSON.
+4. Tu salida FINAL debe ser ÚNICA y EXCLUSIVAMENTE en formato JSON válido. Ni una sola palabra fuera del JSON.
 
 ESTRUCTURA EXACTA REQUERIDA (JSON):
 {
@@ -68,8 +69,15 @@ ESTRUCTURA EXACTA REQUERIDA (JSON):
     }
   });
 
-  const cleaned = result.text.replace(/```json\s*/ig, "").replace(/```\s*/ig, "").trim();
-  return JSON.parse(cleaned);
+  console.log("GPT RAW TEXT (generatePack):", result.text);
+  if (!result.text || result.text.trim() === "") {
+    throw new Error("El modelo generó una respuesta vacía tras usar herramientas.");
+  }
+
+  const match = result.text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No se detectó un objeto JSON válido.");
+  
+  return JSON.parse(match[0]);
 }
 
 async function swapProduct(companyName: string, industry: string, objective: string, masterCodeToReplace: string, currentPackCodes: string[]) {
@@ -83,7 +91,8 @@ DEBES usar la herramienta 'searchCatalog' para buscar una alternativa.
 REGLAS:
 1. Usa SOLO productos devueltos por la herramienta.
 2. NO SUGIERAS ninguno de estos masterCodes que ya están en el pack: ${currentExcl} ni el actual ${masterCodeToReplace}.
-3. Responde FINALMENTE y solo como objeto JSON válido, sin bloques de markdown.
+3. DESPUÉS DE USAR LA HERRAMIENTA, DEBES GENERAR LA RESPUESTA FINAL COMO UN OBJETO JSON VÁLIDO. NO TE DETENGAS SIN EMITIR TEXTO.
+4. Responde FINALMENTE y solo como objeto JSON válido, sin bloques de markdown adicionales.
 
 ESTRUCTURA EXACTA REQUERIDA (JSON):
 {
@@ -100,8 +109,15 @@ ESTRUCTURA EXACTA REQUERIDA (JSON):
     }
   });
 
-  const cleaned = result.text.replace(/```json\s*/ig, "").replace(/```\s*/ig, "").trim();
-  return JSON.parse(cleaned);
+  console.log("GPT RAW TEXT (swapProduct):", result.text);
+  if (!result.text || result.text.trim() === "") {
+    throw new Error("El modelo generó un cambio vacío.");
+  }
+
+  const match = result.text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No se detectó JSON válido al cambiar.");
+  
+  return JSON.parse(match[0]);
 }
 
 export async function POST(req: NextRequest) {
