@@ -215,10 +215,19 @@ Dale un título inspirador al pack y justifica brevemente (en 1 línea) por qué
             )}
 
             <div className="space-y-4">
-              {messages
-                .filter((m: any) => !(m.content || m.text || m.parts?.[0]?.text || '').includes('[INTERNAL_SYSTEM_PROMPT]'))
-                .map((m: any) => (
-                <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {messages.map((m: any) => {
+                const isUser = m.role === 'user';
+                const hasToolInvocation = m.parts?.some((p: any) => p.type === 'tool-invocation') || (m.toolInvocations && m.toolInvocations.length > 0);
+                const textContent = m.content || m.text || m.parts?.[0]?.text || '';
+                
+                // Si es el prompt interno, lo maquillamos para que se vea bien y no confunda al usuario
+                const isInternalPrompt = textContent.includes('[INTERNAL_SYSTEM_PROMPT]');
+                const displayContent = isInternalPrompt 
+                  ? "📋 Perfil completado. Por favor, crea un pack corporativo variado acorde a mis respuestas."
+                  : textContent;
+
+                return (
+                <div key={m.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex gap-3 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
 
                     <div className="mt-1 flex-shrink-0">
@@ -244,7 +253,7 @@ Dale un título inspirador al pack y justifica brevemente (en 1 línea) por qué
                         </div>
                       ) : null}
 
-                      {(m.content || m.text || m.parts?.[0]?.text) && (
+                      {displayContent && (
                         <div className="prose prose-sm prose-p:leading-snug prose-a:text-brand-red prose-img:rounded-lg prose-img:w-full prose-img:max-h-40 prose-img:object-contain prose-img:my-1 font-medium break-words">
                           <ReactMarkdown
                             components={{
@@ -255,14 +264,15 @@ Dale un título inspirador al pack y justifica brevemente (en 1 línea) por qué
                                 <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline" {...props}>{children}</a>
                               ),
                             }}
-                          >{m.content || m.text || m.parts?.[0]?.text}</ReactMarkdown>
+                          >{displayContent}</ReactMarkdown>
                         </div>
                       )}
                     </div>
 
                   </div>
                 </div>
-              ))}
+              );
+            })}
               {isLoading && messages[messages.length - 1]?.role === 'user' && (
                 <div className="flex justify-start">
                   <div className="flex gap-3 max-w-[85%] flex-row">
