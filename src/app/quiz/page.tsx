@@ -251,11 +251,11 @@ export default function QuizPage() {
                 <button
                   key={choice.value}
                   onClick={() => handleChoice(choice.value)}
-                  className={\`flex items-center p-5 rounded-2xl border-2 text-left transition-all duration-200 \${
+                  className={`flex items-center p-5 rounded-2xl border-2 text-left transition-all duration-200 ${
                     answers[currentStep.field] === choice.value
                       ? "border-brand-red bg-red-50 text-brand-red ring-4 ring-brand-red/10"
                       : "border-gray-100 bg-white hover:border-brand-red/40 hover:shadow-md text-gray-700"
-                  }\`}
+                  }`}
                 >
                   <span className="font-medium text-lg">{choice.label}</span>
                 </button>
