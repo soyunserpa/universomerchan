@@ -125,3 +125,38 @@ export async function notifyAdminContactForm(d: { name: string; email: string; p
     </div>`) 
   });
 }
+
+export async function sendQuizProposalEmail(to: string, packData: any) {
+  const productsHtml = packData.products.map((p: any) => `
+    <div style="background:#FFFFFF;border-radius:12px;padding:16px;margin:16px 0;border:1px solid #E5E7EB;display:flex;gap:16px;align-items:center;">
+      <div style="flex-shrink:0;">
+        <img src="${p.image}" alt="${p.name}" style="width:100px;height:100px;object-fit:contain;border-radius:8px;background:#F9F9F9;" />
+      </div>
+      <div>
+        <h3 style="margin:0 0 4px;font-size:16px;">${p.name}</h3>
+        <p style="margin:0;font-size:12px;color:#888;">Ref: ${p.masterCode} ${p.price ? `&middot; Desde ${p.price}€/ud` : ""}</p>
+        <p style="margin:8px 0 0;font-size:13px;color:#444;font-style:italic;">"${p.justification}"</p>
+        <a href="${SITE_URL}${p.url}" style="display:inline-block;margin-top:8px;font-size:12px;color:#DE0121;text-decoration:none;font-weight:bold;">Ver producto →</a>
+      </div>
+    </div>
+  `).join("");
+
+  return sendEmail({
+    to,
+    subject: `Tu propuesta mágica: ${packData.title}`,
+    html: T(`
+      <h2 style="font-size:24px;font-weight:800;color:#111;">${packData.title}</h2>
+      <p style="color:#666;line-height:1.6;font-size:14px;">${packData.intro}</p>
+      
+      <div style="margin:24px 0;">
+        ${productsHtml}
+      </div>
+      
+      <div class="ab" style="background:#F9F9F9;text-align:center;">
+        <p style="font-size:15px;color:#111;margin-bottom:16px;"><strong>¿Te encaja esta propuesta?</strong></p>
+        <p style="font-size:13px;color:#666;margin-bottom:24px;">${packData.closing}</p>
+        <a href="${SITE_URL}/contacto" class="btn">Solicitar Presupuesto Final</a>
+      </div>
+    `, "Aquí tienes tu pack corporativo recomendado")
+  });
+}
