@@ -167,7 +167,7 @@ export function ChatbotBubble() {
     }
 
     // Chat libre normal (con OpenAI)
-    sendMessage({ content: input, role: 'user' });
+    sendMessage({ text: input });
     setInput('');
   };
 
