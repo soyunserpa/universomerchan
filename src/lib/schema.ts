@@ -141,6 +141,21 @@ export const leads = pgTable("leads", {
 }));
 
 // ============================================================
+// QUIZ ANALYTICS (Funnel tracking)
+// ============================================================
+
+export const quizEvents = pgTable("quiz_events", {
+  id: serial("id").primaryKey(),
+  sessionId: varchar("session_id", { length: 255 }).notNull(),
+  step: varchar("step", { length: 50 }).notNull(), // 'opened', 'company', 'industry', 'objective', 'email', 'phone'
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  sessionIdx: index("quiz_events_session_idx").on(table.sessionId),
+  stepIdx: index("quiz_events_step_idx").on(table.step),
+}));
+
+// ============================================================
 // PRODUCTS — Synced from Midocean Product Information 2.0 API
 // ============================================================
 
