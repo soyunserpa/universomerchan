@@ -257,6 +257,18 @@ export function ChatbotBubble() {
         })
       }).catch(e => console.error(e));
 
+      // Trigger Analytics Conversion
+      try {
+        if (typeof window !== "undefined") {
+          // @ts-ignore
+          if (typeof window.fbq === "function") window.fbq('track', 'Lead');
+          // @ts-ignore
+          if (typeof window.dataLayer !== "undefined") window.dataLayer.push({ event: "generate_lead" });
+        }
+      } catch (e) {
+        console.error("GTM Error:", e);
+      }
+
       // Send the proposal automatically via Email
       if (answers.email && answers.email.includes("@")) {
         fetch("/api/send-proposal-email", {
