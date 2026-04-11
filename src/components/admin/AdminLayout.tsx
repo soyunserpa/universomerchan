@@ -104,6 +104,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const navItems = [
     { href: "/admin/dashboard", icon: BarChart3, label: "Dashboard" },
     { href: "/admin/crm", icon: Briefcase, label: "CRM Leads" },
+    { href: "/admin/contacts", icon: Users, label: "Contactos" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
     { href: "/admin/quotes", icon: FileText, label: "Presupuestos" },
     { href: "/admin/clients", icon: Users, label: "Clientes" },
