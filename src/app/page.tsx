@@ -4,6 +4,7 @@ import { getCategories, getProductDetail } from "@/lib/catalog-api";
 import { Search, Palette, ShoppingCart, Truck, Star, Leaf, ArrowRight } from "lucide-react";
 import { AboutSection } from "@/components/home/AboutSection";
 import { ContactSection } from "@/components/home/ContactSection";
+import { HomeQuizButton } from "@/components/home/HomeQuizButton";
 import { CompanyLogos } from "@/components/home/CompanyLogos";
 
 
@@ -57,9 +58,7 @@ export default async function HomePage() {
               Regalos corporativos personalizados que generan emociones. Elige, personaliza, visualiza y recibe en menos de 10 días.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/catalog" className="inline-flex items-center gap-2 bg-white text-brand-red font-semibold text-sm px-7 py-3 rounded-full hover:shadow-lg transition-all">
-                Ver catálogo <ArrowRight size={16} />
-              </Link>
+              <HomeQuizButton />
               <a href="#como-funciona" className="inline-flex items-center gap-2 border-2 border-white/30 text-white font-medium text-sm px-7 py-3 rounded-full hover:bg-white/10 transition-all">
                 Cómo funciona
               </a>
