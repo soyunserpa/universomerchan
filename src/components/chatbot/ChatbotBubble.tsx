@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Replace,
 } from "lucide-react";
+import { QuizModal } from "@/components/quiz/QuizModal";
 
 // ════════════════════════════════════════════════════════════════
 // TYPES
@@ -90,6 +91,7 @@ export function ChatbotBubble() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasBeenOpened, setHasBeenOpened] = useState(false);
   const [input, setInput] = useState("");
+  const [showQuizModal, setShowQuizModal] = useState(false);
 
   // Mode
   const [mode, setMode] = useState<"menu" | "wizard" | "search" | "freetext">("menu");
@@ -159,15 +161,8 @@ export function ChatbotBubble() {
   // ════════════════════════════════════════════════════════════════
 
   function startWizard() {
-    resetAll();
-    setMode("wizard");
-    setWizardStep(0);
-    addMsg({
-      content: "¡Hola! 👋 Voy a crear un pack de merchandising a medida para tu empresa. Necesito 3 datos rápidos.",
-    });
-    setTimeout(() => {
-      addMsg({ content: WIZARD_QUESTIONS[0].question });
-    }, 500);
+    setIsOpen(false);
+    setShowQuizModal(true);
   }
 
   async function handleWizardAnswer(text: string) {
@@ -805,6 +800,8 @@ export function ChatbotBubble() {
           </form>
         </div>
       )}
+
+      {showQuizModal && <QuizModal onClose={() => setShowQuizModal(false)} />}
     </>
   );
 }
