@@ -1,15 +1,44 @@
 "use client";
 
-import { useChat } from '@ai-sdk/react';
-import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot, User, Loader2, Gift, Search } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  MessageSquare,
+  X,
+  Send,
+  Bot,
+  User,
+  Loader2,
+  Gift,
+  Search,
+  HelpCircle,
+  Package,
+  RotateCcw,
+  RefreshCw,
+  ArrowRight,
+  Sparkles,
+  ExternalLink,
+  Replace,
+} from "lucide-react";
 
-const WIZARD_QUESTIONS = [
-  '¿Cuál es el nombre de tu empresa?',
-  '¿A qué se dedica tu empresa?',
-  '¿Cuál es el objetivo específico de la campaña o acción?'
-];
+// ════════════════════════════════════════════════════════════════
+// TYPES
+// ════════════════════════════════════════════════════════════════
+
+type PackProduct = {
+  masterCode: string;
+  name: string;
+  image: string;
+  price: string | null;
+  url: string;
+  justification: string;
+};
+
+type Pack = {
+  title: string;
+  intro: string;
+  products: PackProduct[];
+  closing: string;
+};
 
 type CatalogProduct = {
   name: string;
@@ -20,300 +49,749 @@ type CatalogProduct = {
   colors: string;
 };
 
-export function ChatbotBubble() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [searchMode, setSearchMode] = useState(false);
+type ChatMsg = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  type?: "text" | "pack" | "product-cards" | "options";
+  pack?: Pack;
+  products?: CatalogProduct[];
+  options?: { label: string; icon?: string; action: string; data?: any }[];
+};
 
-  const { messages, setMessages, status, sendMessage } = useChat({
-    api: '/api/chat',
-    maxSteps: 5,
+// ════════════════════════════════════════════════════════════════
+// WIZARD QUESTIONS
+// ════════════════════════════════════════════════════════════════
+
+const WIZARD_QUESTIONS = [
+  {
+    question: "¿Cuál es el nombre de tu empresa?",
+    placeholder: "Ej: Acme Solutions",
+    field: "company_name",
+  },
+  {
+    question: "¿A qué se dedica tu empresa?",
+    placeholder: "Ej: Consultoría tecnológica",
+    field: "industry",
+  },
+  {
+    question: "¿Cuál es el objetivo del merchandising?",
+    placeholder: "Ej: Fidelizar clientes premium",
+    field: "objective",
+  },
+];
+
+// ════════════════════════════════════════════════════════════════
+// COMPONENT
+// ════════════════════════════════════════════════════════════════
+
+export function ChatbotBubble() {
+  // ─── State ───
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasBeenOpened, setHasBeenOpened] = useState(false);
+  const [input, setInput] = useState("");
+
+  // Mode
+  const [mode, setMode] = useState<"menu" | "wizard" | "search" | "freetext">("menu");
+
+  // Messages
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+
+  // Wizard
+  const [wizardStep, setWizardStep] = useState(-1);
+  const [wizardAnswers, setWizardAnswers] = useState({
+    company_name: "",
+    industry: "",
+    objective: "",
   });
 
-  const [wizardState, setWizardState] = useState({ step: -1, answers: { company_name: '', industry: '', objective: '' } });
-  const [isWizardLoading, setIsWizardLoading] = useState(false);
+  // Current pack (for regenerate/swap)
+  const [currentPack, setCurrentPack] = useState<Pack | null>(null);
 
-  const isLoading = status === 'submitted' || status === 'streaming' || isWizardLoading;
+  // Loading
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Pensando...");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // ─── Scroll ───
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 80);
+  }, []);
+
+  useEffect(scrollToBottom, [messages, isLoading, scrollToBottom]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (isOpen && !hasBeenOpened) setHasBeenOpened(true);
+  }, [isOpen, hasBeenOpened]);
+
+  useEffect(() => {
+    if ((mode === "search" || mode === "freetext" || (mode === "wizard" && wizardStep >= 0)) && inputRef.current) {
+      inputRef.current.focus();
     }
-  }, [messages, wizardState.step]);
+  }, [mode, wizardStep]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-  };
+  // ─── Helpers ───
+  function addMsg(msg: Partial<ChatMsg>) {
+    const full: ChatMsg = {
+      id: Date.now().toString() + Math.random().toString(36).slice(2, 5),
+      role: "assistant",
+      content: "",
+      type: "text",
+      ...msg,
+    };
+    setMessages((prev) => [...prev, full]);
+  }
 
-  const startWizard = () => {
-    setSearchMode(false);
-    setWizardState({ step: 0, answers: { company_name: '', industry: '', objective: '' } });
-    setMessages([
-      { id: Date.now().toString(), role: 'assistant', content: '¡Hola! Soy tu asistente de merchandising y te ayudaré a crear un pack emocionalmente memorable.' } as any,
-      { id: (Date.now() + 1).toString(), role: 'assistant', content: WIZARD_QUESTIONS[0] } as any
-    ]);
-  };
+  function resetAll() {
+    setMode("menu");
+    setMessages([]);
+    setWizardStep(-1);
+    setWizardAnswers({ company_name: "", industry: "", objective: "" });
+    setCurrentPack(null);
+    setInput("");
+    setIsLoading(false);
+  }
 
-  const startSearch = () => {
-    setSearchMode(true);
-    setWizardState({ step: -1, answers: { company_name: '', industry: '', objective: '' } });
-    setMessages([
-      { id: Date.now().toString(), role: 'assistant', content: '¿Qué producto buscas? Puedes escribir lo que necesites: mochilas, bolígrafos, camisetas, termos, libretas...' } as any,
-    ]);
-  };
+  // ════════════════════════════════════════════════════════════════
+  // WIZARD — Pack Corporativo
+  // ════════════════════════════════════════════════════════════════
 
-  const searchCatalog = async (query: string) => {
-    setIsWizardLoading(true);
-    setMessages(prev => [...prev, { id: Date.now().toString() + 'u', role: 'user', content: query } as any]);
+  function startWizard() {
+    resetAll();
+    setMode("wizard");
+    setWizardStep(0);
+    addMsg({
+      content: "¡Hola! 👋 Voy a crear un pack de merchandising a medida para tu empresa. Necesito 3 datos rápidos.",
+    });
+    setTimeout(() => {
+      addMsg({ content: WIZARD_QUESTIONS[0].question });
+    }, 500);
+  }
+
+  async function handleWizardAnswer(text: string) {
+    // Save user answer
+    addMsg({ role: "user", content: text });
+
+    const newAnswers = { ...wizardAnswers };
+    const field = WIZARD_QUESTIONS[wizardStep].field as keyof typeof wizardAnswers;
+    newAnswers[field] = text;
+    setWizardAnswers(newAnswers);
+
+    const nextStep = wizardStep + 1;
+    setWizardStep(nextStep);
+
+    if (nextStep < WIZARD_QUESTIONS.length) {
+      // Next question
+      setTimeout(() => {
+        addMsg({ content: WIZARD_QUESTIONS[nextStep].question });
+      }, 400);
+    } else {
+      // All answers collected → generate pack
+      await generatePack(newAnswers);
+    }
+  }
+
+  async function generatePack(answers: typeof wizardAnswers) {
+    setIsLoading(true);
+    setLoadingText("Analizando tu empresa...");
+
+    // Loading messages sequence
+    const loadingSteps = [
+      { text: "Buscando en +2.400 productos...", delay: 2000 },
+      { text: "Seleccionando los mejores para ti...", delay: 4000 },
+      { text: "Preparando tu pack personalizado...", delay: 6000 },
+    ];
+
+    for (const step of loadingSteps) {
+      setTimeout(() => {
+        if (isLoading) setLoadingText(step.text);
+      }, step.delay);
+    }
 
     try {
-      const res = await fetch('/api/catalog-search', {
-        method: 'POST',
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate_pack",
+          ...answers,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const pack: Pack = data.pack;
+      setCurrentPack(pack);
+      setIsLoading(false);
+
+      // Show pack
+      addMsg({
+        content: pack.intro,
+      });
+
+      setTimeout(() => {
+        addMsg({
+          type: "pack",
+          content: pack.title,
+          pack,
+        });
+      }, 600);
+
+      setTimeout(() => {
+        addMsg({
+          content: pack.closing,
+        });
+      }, 1200);
+
+      setTimeout(() => {
+        addMsg({
+          type: "options",
+          content: "¿Qué te parece?",
+          options: [
+            { label: "🔄 Generar otro pack", action: "regenerate" },
+            { label: "🔍 Buscar productos", action: "start_search" },
+            { label: "💬 Tengo una duda", action: "start_freetext" },
+          ],
+        });
+      }, 1800);
+    } catch (err: any) {
+      setIsLoading(false);
+      addMsg({
+        content: `Lo siento, hubo un error generando tu pack: ${err.message}. ¿Quieres intentarlo de nuevo?`,
+      });
+      addMsg({
+        type: "options",
+        content: "",
+        options: [
+          { label: "🔄 Intentar de nuevo", action: "regenerate" },
+          { label: "🏠 Volver al menú", action: "reset" },
+        ],
+      });
+    }
+  }
+
+  async function handleRegenerate() {
+    addMsg({ role: "user", content: "Quiero ver otro pack diferente" });
+    await generatePack(wizardAnswers);
+  }
+
+  async function handleSwapProduct(masterCode: string) {
+    addMsg({ role: "user", content: `Quiero cambiar el producto ${masterCode}` });
+    setIsLoading(true);
+    setLoadingText("Buscando alternativa...");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "swap_product",
+          masterCodeToReplace: masterCode,
+          currentPack,
+          ...wizardAnswers,
+        }),
+      });
+
+      const data = await res.json();
+      setIsLoading(false);
+
+      if (data.product) {
+        const newProduct: PackProduct = data.product;
+
+        // Update current pack
+        const updatedPack = { ...currentPack! };
+        updatedPack.products = updatedPack.products.map((p) =>
+          p.masterCode === masterCode ? newProduct : p
+        );
+        setCurrentPack(updatedPack);
+
+        addMsg({
+          content: `He cambiado **${masterCode}** por un nuevo producto:`,
+        });
+
+        setTimeout(() => {
+          addMsg({
+            type: "pack",
+            content: "Pack actualizado",
+            pack: updatedPack,
+          });
+        }, 400);
+
+        setTimeout(() => {
+          addMsg({
+            type: "options",
+            content: "¿Algo más?",
+            options: [
+              { label: "🔄 Generar otro pack", action: "regenerate" },
+              { label: "✅ Me gusta este pack", action: "start_freetext" },
+            ],
+          });
+        }, 1000);
+      }
+    } catch {
+      setIsLoading(false);
+      addMsg({ content: "Error buscando alternativa. Inténtalo de nuevo." });
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // SEARCH — Catálogo directo
+  // ════════════════════════════════════════════════════════════════
+
+  function startSearch() {
+    setMode("search");
+    setMessages([]);
+    setWizardStep(-1);
+    addMsg({
+      content: "¿Qué producto buscas? Escribe lo que necesites: mochilas, bolígrafos, camisetas, termos...",
+    });
+  }
+
+  async function handleSearch(query: string) {
+    addMsg({ role: "user", content: query });
+    setIsLoading(true);
+    setLoadingText("Buscando...");
+
+    try {
+      const res = await fetch("/api/catalog-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
       const data = await res.json();
       const products: CatalogProduct[] = data.products || [];
+      setIsLoading(false);
 
-      let resultContent = '';
       if (products.length === 0) {
-        resultContent = `No encontré resultados para "${query}". Prueba con otro término, por ejemplo: mochilas, bolígrafos, termos, camisetas...`;
-      } else {
-        products.forEach(p => {
-          if (p.image) {
-            resultContent += `[![${p.name}](${p.image})](${p.url})\n\n`;
-          }
-          resultContent += `**[${p.name}](${p.url})**`;
-          if (p.price) resultContent += ` — *desde ~${p.price}/ud*`;
-          if (p.colors) resultContent += `\n\n🎨 ${p.colors}`;
-          resultContent += `\n\n---\n\n`;
+        addMsg({
+          content: `No encontré resultados para "${query}". Prueba con: mochilas, bolígrafos, termos, camisetas...`,
         });
-        resultContent += `¿Quieres buscar otra cosa o necesitas más detalles de algún producto?`;
-      }
-
-      setMessages(prev =>
-        prev.concat({
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: resultContent,
-        } as any)
-      );
-    } catch {
-      setMessages(prev =>
-        prev.concat({
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: 'Hubo un error buscando productos. Inténtalo de nuevo.',
-        } as any)
-      );
-    } finally {
-      setIsWizardLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    // Modo búsqueda directa (sin OpenAI)
-    if (searchMode) {
-      const query = input.trim();
-      setInput('');
-      await searchCatalog(query);
-      return;
-    }
-
-    // Si estamos en modo Mago (Wizard)
-    if (wizardState.step >= 0 && wizardState.step < 3) {
-      const userText = input.trim();
-      setInput('');
-
-      const newAnswers = { ...wizardState.answers };
-      if (wizardState.step === 0) newAnswers.company_name = userText;
-      if (wizardState.step === 1) newAnswers.industry = userText;
-      if (wizardState.step === 2) newAnswers.objective = userText;
-
-      const nextStep = wizardState.step + 1;
-
-      setMessages(prev => [...prev, { id: Date.now().toString() + 'u', role: 'user', content: userText } as any]);
-      setWizardState({ step: nextStep, answers: newAnswers });
-
-      if (nextStep < 3) {
-        setTimeout(() => {
-          setMessages(prev => [...prev, { id: Date.now().toString() + 'a', role: 'assistant', content: WIZARD_QUESTIONS[nextStep] } as any]);
-        }, 300);
       } else {
-        setIsWizardLoading(false);
-        setWizardState(w => ({ ...w, step: 5 }));
-
-        const prompt = `[INTERNAL_SYSTEM_PROMPT]
-¡Hola! Me gustaría crear un pack corporativo estratégico. Mis datos:
-- Empresa: ${newAnswers.company_name}
-- Sector/Industria: ${newAnswers.industry}
-- Objetivo Principal: ${newAnswers.objective}
-
-Usa tu herramienta de catálogo para buscar posibles productos que encajen perfectos con este perfil. Luego, preséntame un solo Pack compuesto por de 4 a 5 productos variados.
-Dale un título inspirador al pack y justifica brevemente (en 1 línea) por qué eliges cada producto para nuestro objetivo. ¡Gracias!`;
-
-        sendMessage({ text: prompt });
+        addMsg({
+          type: "product-cards",
+          content: `${products.length} resultado${products.length > 1 ? "s" : ""} para "${query}"`,
+          products,
+        });
+        setTimeout(() => {
+          addMsg({
+            type: "options",
+            content: "",
+            options: [
+              { label: "🔍 Otra búsqueda", action: "start_search" },
+              { label: "🎁 Crear pack con IA", action: "start_wizard" },
+            ],
+          });
+        }, 600);
       }
-      return;
+    } catch {
+      setIsLoading(false);
+      addMsg({ content: "Error buscando productos. Inténtalo de nuevo." });
     }
+  }
 
-    // Chat libre normal (con OpenAI)
-    sendMessage({ text: input });
-    setInput('');
-  };
+  // ════════════════════════════════════════════════════════════════
+  // FREETEXT
+  // ════════════════════════════════════════════════════════════════
+
+  function startFreetext() {
+    setMode("freetext");
+    setMessages([]);
+    setWizardStep(-1);
+    addMsg({
+      content: "Escríbeme tu duda. Puedo ayudarte con plazos de entrega, técnicas de marcaje, cantidades mínimas, materiales...",
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // OPTION CLICK HANDLER
+  // ════════════════════════════════════════════════════════════════
+
+  function handleOptionClick(action: string, data?: any) {
+    switch (action) {
+      case "start_wizard":
+        startWizard();
+        break;
+      case "start_search":
+        startSearch();
+        break;
+      case "start_freetext":
+        startFreetext();
+        break;
+      case "regenerate":
+        handleRegenerate();
+        break;
+      case "swap":
+        handleSwapProduct(data);
+        break;
+      case "reset":
+        resetAll();
+        break;
+      default:
+        break;
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // SUBMIT
+  // ════════════════════════════════════════════════════════════════
+
+  function handleSubmit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    const text = input.trim();
+    if (!text || isLoading) return;
+    setInput("");
+
+    if (mode === "wizard" && wizardStep >= 0 && wizardStep < WIZARD_QUESTIONS.length) {
+      handleWizardAnswer(text);
+    } else if (mode === "search") {
+      handleSearch(text);
+    } else if (mode === "freetext") {
+      // Para dudas free text podrías conectar con otro endpoint de IA
+      addMsg({ role: "user", content: text });
+      addMsg({
+        content: "Para consultas personalizadas, escríbenos a **pedidos@universomerchan.com** o llámanos. ¿Te ayudo con algo más?",
+        type: "options",
+        options: [
+          { label: "🎁 Crear pack con IA", action: "start_wizard" },
+          { label: "🔍 Buscar productos", action: "start_search" },
+        ],
+      });
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // COMPUTED
+  // ════════════════════════════════════════════════════════════════
+
+  const showInput =
+    mode === "search" ||
+    mode === "freetext" ||
+    (mode === "wizard" && wizardStep >= 0 && wizardStep < WIZARD_QUESTIONS.length);
+
+  const currentPlaceholder =
+    mode === "wizard" && wizardStep >= 0 && wizardStep < WIZARD_QUESTIONS.length
+      ? WIZARD_QUESTIONS[wizardStep].placeholder
+      : mode === "search"
+        ? "Busca: mochilas, bolígrafos, termos..."
+        : mode === "freetext"
+          ? "Escribe tu pregunta..."
+          : "Selecciona una opción...";
+
+  // ════════════════════════════════════════════════════════════════
+  // RENDER
+  // ════════════════════════════════════════════════════════════════
 
   return (
     <>
+      {/* ═══ BUBBLE ═══ */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-[110px] right-6 md:bottom-[100px] md:right-8 z-50 p-4 bg-brand-red text-white rounded-full shadow-2xl hover:bg-red-700 transition-all transform hover:scale-110 flex items-center justify-center focus:outline-none"
-        aria-label="Abrir asistente de compras"
+        className="fixed bottom-6 right-6 z-50 w-[60px] h-[60px] bg-brand-red text-white rounded-full shadow-2xl hover:bg-red-700 transition-all transform hover:scale-110 flex items-center justify-center focus:outline-none"
+        aria-label={isOpen ? "Cerrar chat" : "Abrir asistente"}
       >
-        {isOpen ? <X size={26} /> : <MessageSquare size={26} />}
+        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+        {!hasBeenOpened && !isOpen && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+        )}
       </button>
 
+      {/* ═══ WINDOW ═══ */}
       {isOpen && (
-        <div className="fixed bottom-[180px] right-6 md:bottom-[170px] md:right-8 z-50 w-[90vw] md:w-[380px] h-[75vh] md:h-[600px] max-h-[800px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-4">
-
-          {/* Header */}
-          <div className="bg-brand-red px-5 py-4 text-white flex items-center justify-between">
+        <div className="fixed bottom-[88px] right-6 z-50 w-[92vw] sm:w-[400px] h-[75vh] sm:h-[580px] max-h-[700px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-4">
+          
+          {/* ─── Header ─── */}
+          <div className="bg-brand-red px-5 py-4 text-white flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-full">
                 <Bot size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Asistente Merchan</h3>
-                <p className="text-white/80 text-xs">Expertos en Regalo Corporativo</p>
+                <h3 className="font-bold text-sm leading-tight">Asistente Merchan</h3>
+                <p className="text-white/70 text-[11px] flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" />
+                  Respuesta inmediata
+                </p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} title="Cerrar chat" aria-label="Cerrar chat" className="text-white/80 hover:text-white transition-colors">
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-1">
+              {mode !== "menu" && (
+                <button
+                  onClick={resetAll}
+                  title="Volver al menú"
+                  className="text-white/60 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all"
+                >
+                  <RotateCcw size={16} />
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                title="Cerrar"
+                className="text-white/60 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
-          {/* Área de mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 bg-surface-50 scroll-smooth">
-            {messages.length === 0 && wizardState.step === -1 && !searchMode && (
-              <div className="text-center text-gray-500 mt-10">
-                <Bot size={40} className="mx-auto text-brand-red/50 mb-3" />
-                <p className="text-sm font-medium">¡Hola! Soy tu asistente de Universo Merchan.</p>
-                <p className="text-xs mt-1 opacity-70">¿Qué necesitas hoy?</p>
+          {/* ─── Messages ─── */}
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50/80 scroll-smooth">
+            
+            {/* MENU */}
+            {mode === "menu" && (
+              <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                <div className="bg-brand-red/5 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
+                  <Package size={28} className="text-brand-red" />
+                </div>
+                <p className="text-sm font-semibold text-gray-800 mb-1">¡Hola! Soy tu asistente.</p>
+                <p className="text-xs text-gray-500 mb-6 max-w-[260px]">
+                  Te ayudo a encontrar el merchandising perfecto para tu empresa
+                </p>
 
-                <div className="mt-8 flex flex-col gap-2 w-full px-4">
-                  <button type="button" onClick={startWizard} className="bg-white border border-brand-red text-brand-red py-2 px-4 rounded-xl text-sm shadow-sm hover:bg-red-50 flex items-center justify-center gap-2 font-medium">
-                    <Gift size={16} /> Crear Pack Corporativo
+                <div className="flex flex-col gap-2.5 w-full max-w-[280px]">
+                  <button
+                    onClick={startWizard}
+                    className="bg-brand-red text-white py-3.5 px-4 rounded-xl text-sm font-semibold shadow-md hover:bg-red-700 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
+                  >
+                    <Sparkles size={16} />
+                    Crear pack con IA
                   </button>
-                  <button type="button" onClick={startSearch} className="bg-white border border-gray-200 text-gray-700 py-2 px-4 rounded-xl text-sm shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2">
-                    <Search size={16} /> Buscar en Catálogo
+                  <button
+                    onClick={startSearch}
+                    className="bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
+                  >
+                    <Search size={16} />
+                    Buscar en catálogo
+                  </button>
+                  <button
+                    onClick={startFreetext}
+                    className="bg-white border border-gray-200 text-gray-500 py-2.5 px-4 rounded-xl text-xs shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  >
+                    <HelpCircle size={14} />
+                    Tengo una duda
                   </button>
                 </div>
               </div>
             )}
 
-            <div className="space-y-4">
-              {messages.map((m: any) => {
-                const isUser = m.role === 'user';
-                const hasToolInvocation = m.parts?.some((p: any) => p.type === 'tool-invocation') || (m.toolInvocations && m.toolInvocations.length > 0);
-                const textContent = m.content || m.text || m.parts?.[0]?.text || '';
-                
-                // Si es el prompt interno, lo maquillamos para que se vea bien y no confunda al usuario
-                const isInternalPrompt = textContent.includes('[INTERNAL_SYSTEM_PROMPT]');
-                const displayContent = isInternalPrompt 
-                  ? "📋 Perfil completado. Por favor, crea un pack corporativo variado acorde a mis respuestas."
-                  : textContent;
-
-                return (
-                <div key={m.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-3 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-
-                    <div className="mt-1 flex-shrink-0">
-                      {m.role === 'user' ? (
-                        <div className="w-8 h-8 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center">
-                          <User size={14} />
+            {/* MESSAGES */}
+            {mode !== "menu" && (
+              <div className="space-y-3">
+                {messages.map((msg, i) => (
+                  <div key={msg.id}>
+                    
+                    {/* ─── Text bubble ─── */}
+                    {msg.type !== "pack" && msg.type !== "product-cards" && msg.content && (
+                      <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`flex gap-2.5 max-w-[88%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                          <div className="mt-0.5 flex-shrink-0">
+                            {msg.role === "user" ? (
+                              <div className="w-7 h-7 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center">
+                                <User size={13} />
+                              </div>
+                            ) : (
+                              <div className="w-7 h-7 bg-brand-red text-white rounded-full flex items-center justify-center">
+                                <Bot size={13} />
+                              </div>
+                            )}
+                          </div>
+                          <div
+                            className={`px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                              msg.role === "user"
+                                ? "bg-brand-red text-white rounded-tr-sm"
+                                : "bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm"
+                            }`}
+                          >
+                            {msg.content.split(/(\*\*.*?\*\*)/).map((part, k) =>
+                              part.startsWith("**") && part.endsWith("**") ? (
+                                <strong key={k} className="font-semibold">{part.slice(2, -2)}</strong>
+                              ) : (
+                                <span key={k}>{part}</span>
+                              )
+                            )}
+                          </div>
                         </div>
-                      ) : (
-                        <div className="w-8 h-8 bg-brand-red text-white rounded-full flex items-center justify-center">
-                          <Bot size={14} />
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className={`px-4 py-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-red-50 text-gray-900 border border-brand-red/20 rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
-                      {m.toolInvocations?.some((t: any) => t.state !== 'result') ? (
-                        <div className="flex items-center gap-2 text-brand-red text-xs italic mb-2">
-                          <Loader2 size={12} className="animate-spin" /> Buscando catálogos...
+                    {/* ─── PACK CARD ─── */}
+                    {msg.type === "pack" && msg.pack && (
+                      <div className="ml-9 space-y-2 mt-2">
+                        {/* Pack title */}
+                        <div className="bg-gradient-to-r from-brand-red/5 to-transparent border border-brand-red/10 rounded-xl px-4 py-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Gift size={16} className="text-brand-red" />
+                            <span className="text-sm font-bold text-gray-900">{msg.pack.title}</span>
+                          </div>
+                          <span className="text-[11px] text-gray-400">{msg.pack.products.length} productos seleccionados</span>
                         </div>
-                      ) : m.toolInvocations?.length && !(m.content || m.text || m.parts?.[0]?.text) ? (
-                        <div className="text-gray-500 text-xs italic mb-2">
-                           ✓ Catálogo consultado
-                        </div>
-                      ) : null}
 
-                      {displayContent && (
-                        <div className="prose prose-sm prose-p:leading-snug prose-a:text-brand-red prose-img:rounded-lg prose-img:w-full prose-img:max-h-40 prose-img:object-contain prose-img:my-1 font-medium break-words">
-                          <ReactMarkdown
-                            components={{
-                              img: ({ src, alt }) => (
-                                <img src={src} alt={alt || ''} loading="lazy" className="rounded-lg w-full max-h-40 object-contain my-1 border border-gray-100" />
-                              ),
-                              a: ({ href, children, ...props }) => (
-                                <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline" {...props}>{children}</a>
-                              ),
-                            }}
-                          >{displayContent}</ReactMarkdown>
-                        </div>
-                      )}
-                    </div>
+                        {/* Product cards */}
+                        {msg.pack.products.map((product) => (
+                          <div
+                            key={product.masterCode}
+                            className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+                          >
+                            {/* Product image + info */}
+                            <div className="flex gap-3 p-3">
+                              {product.image && (
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="w-16 h-16 rounded-lg object-contain flex-shrink-0 bg-gray-50 border border-gray-50"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-semibold text-gray-800 leading-tight">{product.name}</p>
+                                <p className="text-[10px] text-gray-400 tracking-wide mt-0.5">{product.masterCode}</p>
+                                {product.price && (
+                                  <p className="text-sm font-bold text-brand-red mt-1">
+                                    desde ~{product.price}€
+                                    <span className="text-[10px] text-gray-400 font-normal">/ud</span>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
 
+                            {/* Justification */}
+                            <div className="px-3 pb-2">
+                              <p className="text-[11px] text-gray-500 italic leading-snug bg-gray-50 rounded-lg px-3 py-2">
+                                💡 {product.justification}
+                              </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex border-t border-gray-50">
+                              <a
+                                href={product.url}
+                                className="flex-1 py-2 text-[11px] font-medium text-brand-red hover:bg-red-50 transition-colors flex items-center justify-center gap-1 border-r border-gray-50"
+                              >
+                                <ExternalLink size={11} /> Ver producto
+                              </a>
+                              <button
+                                onClick={() => handleOptionClick("swap", product.masterCode)}
+                                className="flex-1 py-2 text-[11px] font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                              >
+                                <Replace size={11} /> Cambiar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* ─── SEARCH PRODUCT CARDS ─── */}
+                    {msg.type === "product-cards" && msg.products && (
+                      <div className="space-y-2 mt-1">
+                        <div className="flex justify-start">
+                          <div className="flex gap-2.5 max-w-[88%]">
+                            <div className="w-7 h-7 bg-brand-red text-white rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                              <Bot size={13} />
+                            </div>
+                            <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-white border border-gray-100 shadow-sm text-[13px] text-gray-800">
+                              {msg.content}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="ml-9 space-y-2">
+                          {msg.products.map((p) => (
+                            <a
+                              key={p.masterCode}
+                              href={p.url}
+                              className="flex gap-3 p-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-brand-red/30 hover:shadow-md transition-all group"
+                            >
+                              {p.image && (
+                                <img
+                                  src={p.image}
+                                  alt={p.name}
+                                  className="w-14 h-14 rounded-lg object-contain flex-shrink-0 bg-gray-50"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-semibold text-gray-800 truncate group-hover:text-brand-red transition-colors">
+                                  {p.name}
+                                </p>
+                                <p className="text-[10px] text-gray-400">{p.masterCode}</p>
+                                {p.price && (
+                                  <p className="text-sm font-bold text-brand-red mt-0.5">~{p.price}<span className="text-[10px] text-gray-400 font-normal">/ud</span></p>
+                                )}
+                                {p.colors && <p className="text-[10px] text-gray-500 mt-0.5">🎨 {p.colors}</p>}
+                              </div>
+                              <ArrowRight size={14} className="text-gray-300 group-hover:text-brand-red self-center flex-shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ─── OPTIONS (only on last message) ─── */}
+                    {msg.options && i === messages.length - 1 && !isLoading && (
+                      <div className="mt-2 ml-9 flex flex-wrap gap-1.5">
+                        {msg.options.map((opt, j) => (
+                          <button
+                            key={j}
+                            onClick={() => handleOptionClick(opt.action, opt.data)}
+                            className="bg-white border border-brand-red/20 text-brand-red px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-red-50 hover:border-brand-red/40 transition-all active:scale-95 shadow-sm"
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            })}
-              {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                <div className="flex justify-start">
-                  <div className="flex gap-3 max-w-[85%] flex-row">
-                    <div className="mt-1 flex-shrink-0">
-                      <div className="w-8 h-8 bg-brand-red text-white rounded-full flex items-center justify-center">
-                        <Bot size={14} />
+                ))}
+
+                {/* ─── Loading ─── */}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex gap-2.5">
+                      <div className="w-7 h-7 bg-brand-red text-white rounded-full flex items-center justify-center mt-0.5">
+                        <Bot size={13} />
+                      </div>
+                      <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white border border-gray-100 shadow-sm flex items-center gap-2 text-brand-red text-xs italic">
+                        <Loader2 size={14} className="animate-spin" />
+                        {loadingText}
                       </div>
                     </div>
-                    <div className="px-4 py-3 rounded-2xl text-sm bg-white border border-gray-100 shadow-sm text-brand-red rounded-tl-sm flex items-center gap-2 italic">
-                      <Loader2 size={16} className="animate-spin" /> {searchMode ? 'Buscando...' : 'Dame 10 segundos...'}
-                    </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-gray-100">
-            <div className="flex items-center relative">
+          {/* ─── Input ─── */}
+          <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-gray-100 flex-shrink-0">
+            <div className="flex items-center gap-2">
               <input
+                ref={inputRef}
                 value={input}
-                onChange={handleInputChange}
-                placeholder={searchMode ? "Busca: mochilas, bolígrafos, termos..." : "Escribe tu mensaje..."}
-                className="w-full bg-surface-50 border border-gray-200 rounded-full pl-5 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/50 focus:border-brand-red transition-all"
-                disabled={isLoading}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={currentPlaceholder}
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-full pl-4 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:border-brand-red/50 transition-all disabled:opacity-40"
+                disabled={isLoading || !showInput}
               />
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-red text-white rounded-full hover:bg-red-700 disabled:opacity-50 transition-colors"
-                aria-label="Enviar mensaje"
+                disabled={!input.trim() || isLoading || !showInput}
+                className="p-2.5 bg-brand-red text-white rounded-full hover:bg-red-700 disabled:opacity-30 transition-all flex-shrink-0 active:scale-95"
+                aria-label="Enviar"
               >
-                <Send size={16} />
+                <Send size={15} />
               </button>
             </div>
-            <div className="text-center mt-2">
-              <span className="text-[10px] text-gray-400 font-medium tracking-wide">Desarrollado con IA - Universo Merchan</span>
-            </div>
+            <p className="text-center mt-1.5 text-[9px] text-gray-300 tracking-widest uppercase">
+              Universo Merchan · universomerchan.com
+            </p>
           </form>
-
         </div>
       )}
     </>
