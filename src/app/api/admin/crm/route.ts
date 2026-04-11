@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 import { leads } from "@/lib/schema";
 import { eq, desc } from "drizzle-orm";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
