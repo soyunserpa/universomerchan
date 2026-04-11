@@ -228,6 +228,8 @@ export default function QuizPage() {
                  WhatsApp
                </a>
              </div>
+          </div>
+        </div>
         <Footer />
       </main>
     );
