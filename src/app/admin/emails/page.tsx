@@ -82,6 +82,7 @@ const DEFAULT_TEMPLATES: Record<string, { label: string; audience: string; subje
 
 // ── Email type labels ──
 const EMAIL_TYPE_LABELS: Record<string, string> = {
+    quiz_proposal: "Propuesta Mágica (Lead)",
     welcome: "Bienvenida",
     order_confirmation: "Confirmación pedido",
     proof_ready: "Boceto listo",
