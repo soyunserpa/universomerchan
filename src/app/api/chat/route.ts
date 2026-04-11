@@ -9,7 +9,7 @@ export const maxDuration = 60; // Allow enough time for tool calling and reasoni
 // Shared search tool definition to reuse in generate and swap
 const searchCatalogTool = tool({
   description: 'Busca productos promocionales y de empresa en el catálogo de Universo Merchan.',
-  parameters: z.object({ 
+  inputSchema: z.object({ 
     query: z.string().describe('Término de búsqueda descriptivo de lo que se busca (ej. libretas ecologicas, mochilas, termos, etc)') 
   }),
   execute: async ({ query }) => {
