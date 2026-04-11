@@ -37,3 +37,27 @@ export async function PUT(req: Request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const leadId = searchParams.get("id");
+
+    if (!leadId) {
+      return NextResponse.json({ success: false, error: "Missing lead ID" }, { status: 400 });
+    }
+
+    const deletedLead = await db.delete(leads)
+      .where(eq(leads.id, Number(leadId)))
+      .returning();
+
+    if (!deletedLead.length) {
+      return NextResponse.json({ success: false, error: "Lead not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, lead: deletedLead[0] });
+  } catch (err: any) {
+    console.error("Error deleting lead:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
