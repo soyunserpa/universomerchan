@@ -1,123 +1,106 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateText, tool } from "ai";
+import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { getProductList } from "../../../lib/catalog-api";
 
-export const maxDuration = 60; // Allow enough time for tool calling and reasoning
+export const maxDuration = 60;
 
-// Shared search tool definition to reuse in generate and swap
-const searchCatalogTool = tool({
-  description: 'Busca productos promocionales y de empresa en el catálogo de Universo Merchan.',
-  inputSchema: z.object({ 
-    query: z.string().describe('Término de búsqueda descriptivo de lo que se busca (ej. libretas ecologicas, mochilas, termos, etc)') 
-  }),
-  execute: async ({ query }) => {
-    try {
-      const res = await getProductList({
-        search: query && query.toLowerCase() !== "general" ? query : undefined,
-        limit: 30, // Get a good variety
-        sort: 'newest'
-      });
-      
-      return res.products.map((p: any) => ({
-        masterCode: p.masterCode,
-        name: p.name,
-        price: p.startingPrice ? `${p.startingPrice}` : null,
-        image: p.mainImage || '',
-        url: `/product/${p.masterCode}`
-      }));
-    } catch (e) {
-      console.error("Error searching catalog in tool:", e);
-      return [];
-    }
-  }
+// Esquema Zod garantizado para la salida
+const PackSchema = z.object({
+  title: z.string().describe("Nombre creativo e inspirador del pack"),
+  intro: z.string().describe("Breve bienvenida mencionando a la empresa y objetivo"),
+  products: z.array(
+    z.object({
+      masterCode: z.string(),
+      name: z.string(),
+      image: z.string(),
+      price: z.string().nullable(),
+      url: z.string(),
+      justification: z.string().describe("Por qué encaja con la empresa")
+    })
+  ).describe("Array de 4-5 productos variados"),
+  closing: z.string().describe("Mensaje de cierre animando a pedir presupuesto")
 });
 
+const SwapSchema = z.object({
+  masterCode: z.string(),
+  name: z.string(),
+  image: z.string(),
+  price: z.string().nullable(),
+  url: z.string(),
+  justification: z.string()
+});
+
+// Función auxiliar para obtener contexto sin quemar tokens excesivos ni bucles de tools
+async function getContextForLLM(queryTerm: string) {
+  try {
+    let res = await getProductList({ search: queryTerm, limit: 40 });
+    if (!res || !res.products || res.products.length < 10) {
+      // Si la búsqueda por industria no da muchos frutos, traemos genéricos y populares
+      res = await getProductList({ limit: 40, sort: 'newest' });
+    }
+    
+    return res.products.map((p: any) => ({
+      masterCode: p.masterCode,
+      name: p.name,
+      price: p.startingPrice ? `${p.startingPrice}` : null,
+      image: p.mainImage || '',
+      url: `/product/${p.masterCode}`
+    }));
+  } catch (e) {
+    console.error("Error obteniendo catálogo:", e);
+    return []; // fallback gracefully
+  }
+}
+
 async function generatePack(companyName: string, industry: string, objective: string) {
-  const result = await generateText({
-    model: openai('gpt-4o-mini'),
-    maxSteps: 3, // Allowing the model to use the tool and then respond
-    system: `Eres un experto en merchandising corporativo B2B. Tu objetivo es armar un pack de regalo corporativo (4 a 5 artículos variados) usando productos REALES del catálogo.
-DEBES usar SIEMPRE la herramienta 'searchCatalog' para encontrar opciones antes de recomendar.
-
-REGLAS:
-1. No inventes productos. Usa SOLO lo que te devuelva la herramienta.
-2. Selecciona artículos de categorías variadas (por ejemplo: evita poner 3 bolígrafos o 3 libretas, mézclalo: 1 taza, 1 cuaderno, 1 bolsa, 1 bolígrafo premium).
-3. UNA VEZ QUE TENGAS RESULTADOS DE LA HERRAMIENTA, ES OBLIGATORIO QUE TU RESPUESTA FINAL SEA EL TEXTO DEL JSON SOLICITADO. NO TE DETENGAS SIN EMITIR EL JSON.
-4. Tu salida FINAL debe ser ÚNICA y EXCLUSIVAMENTE en formato JSON válido. Ni una sola palabra fuera del JSON.
-
-ESTRUCTURA EXACTA REQUERIDA (JSON):
-{
-  "title": "Nombre creativo e inspirador del pack",
-  "intro": "Párrafo breve dando la bienvenida a la empresa y elogiando su objetivo (1-2 frases)",
-  "products": [
-    {
-      "masterCode": "CÓDIGO del artículo devuelto",
-      "name": "Nombre original devuelto",
-      "image": "URL de la imagen devuelta",
-      "price": "precio devuelto (sin símbolos de moneda, solo el número o null)",
-      "url": "url relativa devuelta",
-      "justification": "Escribe un breve motivo específico de por qué este producto encaja con su sector y objetivo"
-    }
-  ],
-  "closing": "Mensaje final animándoles a solicitar el presupuesto o buscar más opciones."
-}`,
-    prompt: `Empresa: ${companyName}\nSector/Industria: ${industry}\nObjetivo: ${objective}\nRevisa el catálogo y genera el pack exacto en formato JSON tal y como se indica.`,
-    tools: {
-      searchCatalog: searchCatalogTool
-    }
-  });
-
-  console.log("GPT RAW TEXT (generatePack):", result.text);
-  if (!result.text || result.text.trim() === "") {
-    throw new Error("El modelo generó una respuesta vacía tras usar herramientas.");
+  // Buscamos productos localmente usando la industria como base heurística
+  const catalogSubset = await getContextForLLM(industry);
+  
+  if (catalogSubset.length === 0) {
+    throw new Error("El catálogo está vacío o no responde. Intenta más tarde.");
   }
 
-  const match = result.text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("No se detectó un objeto JSON válido.");
-  
-  return JSON.parse(match[0]);
+  const { object } = await generateObject({
+    model: openai('gpt-4o-mini'),
+    schema: PackSchema,
+    system: `Eres un experto en merchandising corporativo B2B. Crea un pack de regalo corporativo (4 a 5 artículos variados) seleccionando EXCLUSIVAMENTE de los productos provistos en el Catálogo a continuación.
+REGLAS:
+1. No inventes productos. Usa SOLO los del Catálogo provisto.
+2. Mezcla artículos de distintas categorías (ej: no repitas prendas o libretas idénticas).
+3. Conserva escrupulosamente el masterCode, name, image, price y url exactamente como vienen en el Catálogo.
+
+CATÁLOGO DISPONIBLE:
+${JSON.stringify(catalogSubset, null, 2)}
+`,
+    prompt: `Empresa: ${companyName}\nSector/Industria: ${industry}\nObjetivo: ${objective}\nSelecciona los mejores y crea el pack para ellos.`
+  });
+
+  return object;
 }
 
 async function swapProduct(companyName: string, industry: string, objective: string, masterCodeToReplace: string, currentPackCodes: string[]) {
-  const currentExcl = currentPackCodes.join(", ");
-  const result = await generateText({
+  const catalogSubset = await getContextForLLM(industry);
+  
+  if (catalogSubset.length === 0) throw new Error("Catálogo no disponible.");
+
+  const { object } = await generateObject({
     model: openai('gpt-4o-mini'),
-    maxSteps: 3,
-    system: `Eres un experto en merchandising B2B. El cliente quiere reemplazar uno de los productos que le habías sugerido por una opción diferente y novedosa.
-DEBES usar la herramienta 'searchCatalog' para buscar una alternativa. 
-
+    schema: SwapSchema,
+    system: `Eres un experto en merchandising B2B. El cliente quiere reemplazar uno de los productos de su pack actual por otro diferente de este Catálogo.
 REGLAS:
-1. Usa SOLO productos devueltos por la herramienta.
-2. NO SUGIERAS ninguno de estos masterCodes que ya están en el pack: ${currentExcl} ni el actual ${masterCodeToReplace}.
-3. DESPUÉS DE USAR LA HERRAMIENTA, DEBES GENERAR LA RESPUESTA FINAL COMO UN OBJETO JSON VÁLIDO. NO TE DETENGAS SIN EMITIR TEXTO.
-4. Responde FINALMENTE y solo como objeto JSON válido, sin bloques de markdown adicionales.
+1. Elige un producto del Catálogo Exclusivo provisto.
+2. NO SUGIERAS los que ya están en el pack: ${currentPackCodes.join(", ")} ni tampoco el actual ${masterCodeToReplace}.
+3. Conserva escrupulosamente las URLs e imágenes tal cual vienen en el Catálogo provisto.
 
-ESTRUCTURA EXACTA REQUERIDA (JSON):
-{
-  "masterCode": "NUEVO_CÓDIGO",
-  "name": "Nombre original",
-  "image": "URL imagen",
-  "price": "Precio",
-  "url": "Url",
-  "justification": "Por qué es una excelente alternativa para ellos."
-}`,
-    prompt: `Empresa: ${companyName}\nSector/Industria: ${industry}\nObjetivo: ${objective}\nEl cliente ya no quiere el producto con masterCode "${masterCodeToReplace}". Busca algo distinto y entrégame el JSON del nuevo producto de reemplazo.`,
-    tools: {
-      searchCatalog: searchCatalogTool
-    }
+CATÁLOGO EXCLUSIVO:
+${JSON.stringify(catalogSubset, null, 2)}
+`,
+    prompt: `Empresa: ${companyName}\nObjetivo: ${objective}\nEl cliente ya no quiere el producto "${masterCodeToReplace}". Busca y devuelve una estupenda alternativa.`
   });
 
-  console.log("GPT RAW TEXT (swapProduct):", result.text);
-  if (!result.text || result.text.trim() === "") {
-    throw new Error("El modelo generó un cambio vacío.");
-  }
-
-  const match = result.text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("No se detectó JSON válido al cambiar.");
-  
-  return JSON.parse(match[0]);
+  return object;
 }
 
 export async function POST(req: NextRequest) {
@@ -125,36 +108,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, company_name, industry, objective } = body;
 
-    // Acción para generar un pack inicial o re-generar otro
     if (action === "generate_pack" || action === "regenerate_pack") {
-      if (!company_name || !industry || !objective) {
-        return NextResponse.json(
-          { error: "Faltan datos obligatorios requeridos (company_name, industry, objective)" },
-          { status: 400 }
-        );
-      }
-      
-      const rawPackObj = await generatePack(company_name, industry, objective);
-      return NextResponse.json({ pack: rawPackObj });
+      if (!company_name || !industry || !objective) return NextResponse.json({ error: "Faltan datos obligatorios." }, { status: 400 });
+      const pack = await generatePack(company_name, industry, objective);
+      return NextResponse.json({ pack });
     }
 
-    // Acción para reemplazar puntualmente un producto
     if (action === "swap_product") {
       const { masterCodeToReplace, currentPack } = body;
-      if (!masterCodeToReplace || !currentPack || !currentPack.products) {
-        return NextResponse.json({ error: "Faltan datos del pack o producto a reemplazar" }, { status: 400 });
-      }
-
+      if (!masterCodeToReplace || !currentPack || !currentPack.products) return NextResponse.json({ error: "Faltan datos del pack." }, { status: 400 });
       const currentCodes = currentPack.products.map((p: any) => p.masterCode);
-      const newProductObj = await swapProduct(
-        company_name || "Cliente Corporativo",
-        industry || "General",
-        objective || "Regalo promocional",
-        masterCodeToReplace,
-        currentCodes
-      );
-      
-      return NextResponse.json({ product: newProductObj });
+      const product = await swapProduct(company_name || "", industry || "", objective || "", masterCodeToReplace, currentCodes);
+      return NextResponse.json({ product });
     }
 
     return NextResponse.json({ error: "Acción no reconocida" }, { status: 400 });
