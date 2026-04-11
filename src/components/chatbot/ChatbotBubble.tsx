@@ -238,17 +238,17 @@ export function ChatbotBubble() {
 
                     <div className={`px-4 py-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-red-50 text-gray-900 border border-brand-red/20 rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
                       {m.toolInvocations?.some((t: any) => t.state !== 'result') ? (
-                        <div className="flex items-center gap-2 text-brand-red text-xs italic">
+                        <div className="flex items-center gap-2 text-brand-red text-xs italic mb-2">
                           <Loader2 size={12} className="animate-spin" /> Buscando catálogos...
                         </div>
-                      ) : m.toolInvocations?.length && !m.content ? (
-                        <div className="text-gray-500 text-xs italic">
+                      ) : m.toolInvocations?.length && !(m.content || m.text || m.parts?.[0]?.text) ? (
+                        <div className="text-gray-500 text-xs italic mb-2">
                            ✓ Catálogo consultado
                         </div>
                       ) : null}
 
-                      {m.content && (
-                        <div className="prose prose-sm prose-p:leading-snug prose-a:text-brand-red prose-img:rounded-lg prose-img:w-full prose-img:max-h-40 prose-img:object-contain prose-img:my-1 font-medium">
+                      {(m.content || m.text || m.parts?.[0]?.text) && (
+                        <div className="prose prose-sm prose-p:leading-snug prose-a:text-brand-red prose-img:rounded-lg prose-img:w-full prose-img:max-h-40 prose-img:object-contain prose-img:my-1 font-medium break-words">
                           <ReactMarkdown
                             components={{
                               img: ({ src, alt }) => (
@@ -258,7 +258,7 @@ export function ChatbotBubble() {
                                 <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline" {...props}>{children}</a>
                               ),
                             }}
-                          >{m.content}</ReactMarkdown>
+                          >{m.content || m.text || m.parts?.[0]?.text}</ReactMarkdown>
                         </div>
                       )}
                     </div>
