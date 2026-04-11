@@ -32,16 +32,35 @@ const SwapSchema = z.object({
   justification: z.string()
 });
 
-// Función auxiliar para obtener contexto cruzado y diverso sin quemar tokens excesivos ni bucles de tools
-async function getContextForLLM(queryTerm: string) {
+const SearchQueriesSchema = z.object({
+  queries: z.array(z.string()).max(5).describe("Array de 3 a 5 palabras clave de búsqueda (1-2 palabras máximo cada una) ultra-relacionadas con el sector u objetivo")
+});
+
+// Función auxiliar para obtener contexto sin quemar tokens excesivos ni bucles de tools
+async function getContextForLLM(companyName: string, industry: string, objective: string) {
   try {
-    // Definimos términos ancla para garantizar diversidad de categorías (evita sesgo a la última categoría importada, ej. todo textil)
-    const anchorTerms = ['libreta', 'botella', 'mochila', 'boligrafo', 'tecnologia', 'taza', 'paraguas'];
-    
-    const promises = anchorTerms.map(term => getProductList({ search: term, limit: 8 }));
-    
-    if (queryTerm && queryTerm.trim().toLowerCase() !== "general") {
-       promises.push(getProductList({ search: queryTerm, limit: 15 }));
+    // Paso 1: Agente pre-buscador. Le preguntamos a la IA qué categorías o keywords serían perfectas.
+    const { object: searchPlan } = await generateObject({
+      model: openai('gpt-4o-mini'),
+      schema: SearchQueriesSchema,
+      system: `Eres un estratega de merchandising. Tu tarea es generar 3 a 5 palabras clave en español para buscar en una base de datos de productos promocionales. 
+Ejemplos:
+- Gimnasio -> ["toalla", "botella", "deporte", "mochila"]
+- Club de lujo -> ["vino", "cuero", "premium", "funda"]
+- Oficina tech -> ["usb", "auriculares", "raton", "libreta"]
+Limítate a palabras muy genéricas y sustantivos simples para maximizar los resultados.`,
+      prompt: `Empresa: ${companyName}\nSector/Industria: ${industry}\nObjetivo: ${objective}\nGenera las búsquedas exactas.`
+    });
+
+    let queries = searchPlan.queries;
+    if (!queries || queries.length === 0) {
+      queries = ['libreta', 'botella', 'boligrafo', 'mochila'];
+    }
+
+    // Paso 2: Ejecutamos todas las búsquedas sugeridas en paralelo
+    const promises = queries.map(term => getProductList({ search: term, limit: 12 }));
+    if (industry && industry.trim().toLowerCase() !== "general") {
+       promises.push(getProductList({ search: industry, limit: 10 }));
     }
 
     const results = await Promise.all(promises);
@@ -56,10 +75,24 @@ async function getContextForLLM(queryTerm: string) {
       unique.set(p.masterCode, p);
     }
     
-    // Barajar aleatoriamente para que cada interacción sea fresca y tomar máximo 60 opciones
-    const diverseList = Array.from(unique.values())
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 60);
+    let diverseList = Array.from(unique.values());
+
+    // Si la IA fue demasiado restrictiva y no encontró casi nada, rellenamos con genéricos
+    if (diverseList.length < 15) {
+       const anchorTerms = ['taza', 'boligrafo', 'paraguas', 'bolsa'];
+       const fallbackRes = await Promise.all(anchorTerms.map(t => getProductList({ search: t, limit: 5 })));
+       for (const res of fallbackRes) {
+         if (res && res.products) {
+           for (const p of res.products) {
+             unique.set(p.masterCode, p);
+           }
+         }
+       }
+       diverseList = Array.from(unique.values());
+    }
+
+    // Barajar aleatoriamente y seleccionar top 60 opciones altamente relevantes
+    diverseList = diverseList.sort(() => Math.random() - 0.5).slice(0, 60);
     
     return diverseList.map((p: any) => ({
       masterCode: p.masterCode,
@@ -69,14 +102,14 @@ async function getContextForLLM(queryTerm: string) {
       url: `/product/${p.masterCode}`
     }));
   } catch (e) {
-    console.error("Error obteniendo catálogo diverso:", e);
+    console.error("Error obteniendo catálogo semántico:", e);
     return []; // fallback gracefully
   }
 }
 
 async function generatePack(companyName: string, industry: string, objective: string) {
   // Buscamos productos localmente usando la industria como base heurística
-  const catalogSubset = await getContextForLLM(industry);
+  const catalogSubset = await getContextForLLM(companyName, industry, objective);
   
   if (catalogSubset.length === 0) {
     throw new Error("El catálogo está vacío o no responde. Intenta más tarde.");
@@ -101,7 +134,7 @@ ${JSON.stringify(catalogSubset, null, 2)}
 }
 
 async function swapProduct(companyName: string, industry: string, objective: string, masterCodeToReplace: string, currentPackCodes: string[]) {
-  const catalogSubset = await getContextForLLM(industry);
+  const catalogSubset = await getContextForLLM(companyName, industry, objective);
   
   if (catalogSubset.length === 0) throw new Error("Catálogo no disponible.");
 
