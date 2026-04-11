@@ -80,6 +80,16 @@ const WIZARD_QUESTIONS = [
     placeholder: "Ej: Fidelizar clientes premium",
     field: "objective",
   },
+  {
+    question: "Genial. ¿Y a qué email corporativo te gustaría que te enviáramos una copia de esta propuesta mágica?",
+    placeholder: "Ej: hola@empresa.com",
+    field: "email",
+  },
+  {
+    question: "¡Anotado! Por último, ¿Qué número de teléfono dejamos guardado para que ventas te contacte (opcional)?",
+    placeholder: "Ej: 600 000 000",
+    field: "phone",
+  },
 ];
 
 // ════════════════════════════════════════════════════════════════
@@ -105,6 +115,8 @@ export function ChatbotBubble() {
     company_name: "",
     industry: "",
     objective: "",
+    email: "",
+    phone: "",
   });
 
   // Current pack (for regenerate/swap)
@@ -150,7 +162,7 @@ export function ChatbotBubble() {
     setMode("menu");
     setMessages([]);
     setWizardStep(-1);
-    setWizardAnswers({ company_name: "", industry: "", objective: "" });
+    setWizardAnswers({ company_name: "", industry: "", objective: "", email: "", phone: "" });
     setCurrentPack(null);
     setInput("");
     setIsLoading(false);
@@ -235,6 +247,25 @@ export function ChatbotBubble() {
 
       const pack: Pack = data.pack;
       setCurrentPack(pack);
+      // Register Lead in CRM silently
+      fetch('/api/quiz-leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...answers,
+          companyName: answers.company_name
+        })
+      }).catch(e => console.error(e));
+
+      // Send the proposal automatically via Email
+      if (answers.email && answers.email.includes("@")) {
+        fetch("/api/send-proposal-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: answers.email, pack: data.pack })
+        }).catch(e => console.error("Email send failed:", e));
+      }
+
       setIsLoading(false);
 
       // Show pack
