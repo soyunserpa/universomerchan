@@ -160,9 +160,21 @@ export function ChatbotBubble() {
   // WIZARD — Pack Corporativo
   // ════════════════════════════════════════════════════════════════
 
-  function startWizard() {
+  function startMegaQuiz() {
     setIsOpen(false);
     setShowQuizModal(true);
+  }
+
+  function startWizard() {
+    resetAll();
+    setMode("wizard");
+    setWizardStep(0);
+    addMsg({
+      content: "¡Hola! 👋 Voy a crear un pack de merchandising a medida para tu empresa. Necesito 3 datos rápidos.",
+    });
+    setTimeout(() => {
+      addMsg({ content: WIZARD_QUESTIONS[0].question });
+    }, 500);
   }
 
   async function handleWizardAnswer(text: string) {
@@ -409,6 +421,9 @@ export function ChatbotBubble() {
 
   function handleOptionClick(action: string, data?: any) {
     switch (action) {
+      case "start_mega_quiz":
+        startMegaQuiz();
+        break;
       case "start_wizard":
         startWizard();
         break;
@@ -550,11 +565,18 @@ export function ChatbotBubble() {
 
                 <div className="flex flex-col gap-2.5 w-full max-w-[280px]">
                   <button
-                    onClick={startWizard}
+                    onClick={startMegaQuiz}
                     className="bg-brand-red text-white py-3.5 px-4 rounded-xl text-sm font-semibold shadow-md hover:bg-red-700 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Sparkles size={16} />
-                    Crear pack corporativo
+                    Test Visual Recomendado
+                  </button>
+                  <button
+                    onClick={startWizard}
+                    className="bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
+                  >
+                    <Gift size={16} />
+                    Asistente Inteligente (Chat)
                   </button>
                   <button
                     onClick={startSearch}
