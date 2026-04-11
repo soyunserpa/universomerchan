@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Eye, EyeOff, LayoutTemplate } from "lucide-react";
+import { Plus, Trash2, Edit2, Eye, EyeOff, LayoutTemplate, Linkedin, Send } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/components/admin/AdminLayout";
@@ -20,6 +20,7 @@ type BlogPost = {
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [publishingLi, setPublishingLi] = useState<number | null>(null);
   const router = useRouter();
   const { authHeaders, logout } = useAdminAuth();
 
@@ -63,6 +64,26 @@ export default function AdminBlogPage() {
     } catch (error) {
       alert("Error al eliminar el artículo");
     }
+  };
+
+  const handleLinkedInPush = async (id: number) => {
+    if (!confirm("¿Quieres publicar este artículo en tu cuenta de LinkedIn ahora mismo?")) return;
+    setPublishingLi(id);
+    try {
+      const res = await fetch(`/api/admin/blog/${id}/linkedin`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("¡Publicado con éxito en LinkedIn!");
+      } else {
+        alert(`Error: ${data.error || 'Algo salió mal'}\n${data.details || ''}`);
+      }
+    } catch (e) {
+      alert("Error de conexión al publicar en LinkedIn");
+    }
+    setPublishingLi(null);
   };
 
   return (
@@ -118,6 +139,16 @@ export default function AdminBlogPage() {
                   {new Date(post.updatedAt).toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric' })}
                 </td>
                 <td className="px-6 py-4 text-right space-x-3">
+                  {post.isPublished && (
+                    <button 
+                       onClick={() => handleLinkedInPush(post.id)} 
+                       disabled={publishingLi === post.id}
+                       className={`${publishingLi === post.id ? 'text-gray-300' : 'text-gray-400 hover:text-blue-700'} transition-colors`} 
+                       title="Lanzar a LinkedIn"
+                    >
+                      <Linkedin size={18} />
+                    </button>
+                  )}
                   <button onClick={() => router.push(`/admin/blog/${post.id}`)} className="text-gray-400 hover:text-blue-600 transition-colors" title="Editar"><Edit2 size={18} /></button>
                   <button onClick={() => handleDelete(post.id)} className="text-gray-400 hover:text-red-600 transition-colors" title="Eliminar"><Trash2 size={18} /></button>
                 </td>
