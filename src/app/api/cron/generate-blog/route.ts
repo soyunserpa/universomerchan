@@ -207,22 +207,25 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
 
         if (authorUrn) {
           const absoluteUrl = `https://universomerchan.com/blog/${newPost.slug}`;
+          let postText = articleData.linkedinPost || `¡Nuevo artículo en el blog! ${articleData.title}`;
+          postText = postText.replace(/\[enlace\]/gi, absoluteUrl);
           
           const linkedinPayload = {
             author: authorUrn,
             lifecycleState: "PUBLISHED",
             specificContent: {
               "com.linkedin.ugc.ShareContent": {
-                shareCommentary: {
-                  text: articleData.linkedinPost || `¡Nuevo artículo en el blog! ${articleData.title}`
-                },
+                shareCommentary: { text: postText },
                 shareMediaCategory: "ARTICLE",
                 media: [
                   {
                     status: "READY",
                     description: { text: articleData.metaDescription },
                     originalUrl: absoluteUrl,
-                    title: { text: articleData.title }
+                    title: { text: articleData.title },
+                    thumbnails: [
+                      { url: featuredImageUrl.startsWith('http') ? featuredImageUrl : `https://universomerchan.com${featuredImageUrl}` }
+                    ]
                   }
                 ]
               }

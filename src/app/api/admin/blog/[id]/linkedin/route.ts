@@ -71,19 +71,31 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     // 3. Post to LinkedIn
     const absoluteUrl = `https://universomerchan.com/blog/${post.slug}`;
+    
+    // Replace [enlace] if AI generated it explicitly, or just append it at the end.
+    let finalShareText = shareText;
+    if (/\[enlace\]/gi.test(finalShareText)) {
+      finalShareText = finalShareText.replace(/\[enlace\]/gi, absoluteUrl);
+    } else {
+      finalShareText = `${finalShareText} \n\n🔗 ${absoluteUrl}`;
+    }
+
     const linkedinPayload = {
         author: authorUrn,
         lifecycleState: "PUBLISHED",
         specificContent: {
           "com.linkedin.ugc.ShareContent": {
-            shareCommentary: { text: shareText },
+            shareCommentary: { text: finalShareText },
             shareMediaCategory: "ARTICLE",
             media: [
               {
                 status: "READY",
-                description: { text: post.metaDescription || post.excerpt },
+                description: { text: post.metaDescription || post.excerpt || post.title },
                 originalUrl: absoluteUrl,
-                title: { text: post.title }
+                title: { text: post.title },
+                thumbnails: post.featuredImageUrl ? [
+                  { url: post.featuredImageUrl.startsWith('http') ? post.featuredImageUrl : `https://universomerchan.com${post.featuredImageUrl}` }
+                ] : []
               }
             ]
           }
