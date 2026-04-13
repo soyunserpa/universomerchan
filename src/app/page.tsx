@@ -6,6 +6,7 @@ import { AboutSection } from "@/components/home/AboutSection";
 import { ContactSection } from "@/components/home/ContactSection";
 import { HomeQuizButton } from "@/components/home/HomeQuizButton";
 import { CompanyLogos } from "@/components/home/CompanyLogos";
+import { GoogleReviewsSection } from "@/components/home/GoogleReviewsSection";
 
 
 export default async function HomePage() {
@@ -184,6 +185,9 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ── REVIEWS ───────────────────────────────────────── */}
+      <GoogleReviewsSection />
 
       {/* ── CONTACT ───────────────────────────────────────── */}
       <ContactSection />
