@@ -17,6 +17,7 @@
     "sync:stock": "tsx --env-file=.env scripts/sync-stock.ts",
     "sync:orders": "tsx --env-file=.env scripts/sync-orders.ts",
     "sync:print": "tsx --env-file=.env src/scripts/sync-print.ts",
+    "sync:cleanup": "tsx scripts/cleanup-catalog.ts",
     "admin:create": "tsx --env-file=.env scripts/create-admin.ts",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
