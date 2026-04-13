@@ -81,6 +81,28 @@ export async function sendCartAbandonedEmail(to: string, d: { firstName: string;
   return sendEmail({ to, subject: "Tu configuración guardada en Universo Merchan", html: T(`<h2 style="font-size:24px;font-weight:800">¿Retomamos tu configuración?</h2><p style="color:#666;line-height:1.6;margin-bottom:24px;">Hola ${d.firstName}, hemos guardado los productos en los que mostraste interés para que no tengas que volver a configurarlos.</p><div style="margin-bottom:24px;">${list}</div><p style="font-weight:800;font-size:20px;color:#DE0121;text-align:right;margin-bottom:32px;">Importe total: ${d.totalPrice}</p><p style="text-align:center"><a href="${d.cartUrl}" class="btn">Retomar mi configuración</a></p>`) });
 }
 
+export async function sendReviewRequestEmail(to: string, d: { firstName: string; orderNumber: string; couponCode: string; googleReviewUrl: string }) {
+  return sendEmail({ 
+    to, 
+    subject: "Tu opinión tiene premio: 5% de descuento en Universo Merchan", 
+    html: T(`
+      <h2 style="font-size:24px;font-weight:800;color:#111;">¡Esperamos que todo haya llegado perfecto!</h2>
+      <p style="color:#666;line-height:1.6;font-size:14px;">Hola ${d.firstName},</p>
+      <p style="color:#666;line-height:1.6;font-size:14px;">Tu pedido <strong>${d.orderNumber}</strong> debería estar ya en vuestras oficinas haciéndoos disfrutar.</p>
+      <p style="color:#666;line-height:1.6;font-size:14px;">Para nosotros, la mayor garantía B2B sois vosotros. Si pudieras tomarte exactamente 30 segundos en valorar positivamente nuestra rapidez y calidad en Google, <strong>te lo recompensaremos automáticamente con este código del 5% de descuento directo</strong> para la próxima campaña corporativa de tu equipo (válido durante todo 1 año).</p>
+      
+      <div style="background:#F9F9F9;border-radius:12px;padding:24px;margin:24px 0;text-align:center;border:1px dashed #DE0121;">
+        <p style="font-size:13px;color:#888;margin:0 0 8px">Tu Código de Descuento Exclusivo (5%)</p>
+        <p style="font-size:32px;font-weight:900;color:#111;margin:0;letter-spacing:2px;">${d.couponCode}</p>
+      </div>
+      
+      <p style="text-align:center;margin-top:32px;">
+        <a href="${d.googleReviewUrl}" class="btn" style="padding:16px 40px;font-size:16px;">⭐ Valorar en Google</a>
+      </p>
+    `, "Tu pedido ha sido entregado. Consigue tu cupón de regalo.") 
+  });
+}
+
 // ── ADMIN EMAILS (6) ─────────────────────────────────────────
 
 export async function notifyAdminNewOrder(d: { orderNumber: string; clientName: string; clientEmail: string; totalPrice: string; items: Array<{ name: string; quantity: number }>; hasCustomization: boolean }) {
