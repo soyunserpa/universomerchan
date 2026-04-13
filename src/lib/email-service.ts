@@ -160,3 +160,19 @@ export async function sendQuizProposalEmail(to: string, packData: any) {
     `, "Aquí tienes tu pack corporativo recomendado")
   });
 }
+
+export async function notifyAdminSystemAlert(d: { subject: string; message: string; alertLevel?: "INFO" | "WARNING" | "CRITICAL" }) {
+  let bgColor = "#DBEAFE"; // INFO blue
+  if (d.alertLevel === "WARNING") bgColor = "#FEF3C7"; // yellow
+  if (d.alertLevel === "CRITICAL") bgColor = "#FEE2E2"; // red
+  
+  return sendEmail({ 
+    to: ADMIN_EMAIL, 
+    subject: `[Sistema] ${d.subject}`, 
+    html: T(`<h2>Alerta del Sistema</h2>
+    <div class="ab" style="background:${bgColor}">
+      <p style="margin:0"><strong>Nivel:</strong> ${d.alertLevel || "INFO"}</p>
+      <p style="margin:8px 0 0;line-height:1.6">${d.message}</p>
+    </div>`) 
+  });
+}
