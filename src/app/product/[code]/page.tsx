@@ -109,9 +109,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
             ...(product.isGreen ? { additionalProperty: { "@type": "PropertyValue", name: "Sostenible", value: "Sí" } } : {}),
             offers: {
               "@type": "AggregateOffer",
-              url: `https://universomerchan.com/product/${params.code.toLowerCase()}`,
+              url: `https://universomerchan.com/product/${product.masterCode.toLowerCase()}-${product.name ? product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : ""}`,
               priceCurrency: "EUR",
-              lowPrice: product.startingPriceRaw || 0,
+              lowPrice: product.priceScales?.length > 0 ? Math.min(...product.priceScales.map(s => s.pricePerUnitRaw)) : (product.startingPriceRaw || 0),
+              highPrice: product.priceScales?.length > 0 ? Math.max(...product.priceScales.map(s => s.pricePerUnitRaw)) : (product.startingPriceRaw || 0),
               offerCount: product.variants?.length || 1,
               availability: product.totalStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
               seller: {
@@ -123,7 +124,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             isRelatedTo: relatedProducts.slice(0, 3).map(rp => ({
               "@type": "Product",
               name: rp.name,
-              url: `https://universomerchan.com/product/${rp.masterCode.toLowerCase()}`,
+              url: `https://universomerchan.com/product/${rp.masterCode.toLowerCase()}-${rp.name ? rp.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : ""}`,
               image: rp.mainImage,
             })),
           }),
@@ -138,16 +139,20 @@ export async function generateMetadata({ params }: ProductPageProps) {
   const product = await getProductDetail(masterCode);
   if (!product) return { title: "Producto no encontrado" };
 
+  const slug = product.name ? product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : "";
+  const deterministicUrl = `/product/${product.masterCode.toLowerCase()}-${slug}`;
+
   return {
     title: `${product.name} — Universo Merchan`,
     description: product.shortDescription,
     alternates: {
-      canonical: `/product/${params.code.toLowerCase()}`
+      canonical: deterministicUrl
     },
     openGraph: {
       title: `${product.name} — Personalízalo con tu marca`,
       description: product.shortDescription,
       images: product.mainImage ? [product.mainImage] : undefined,
+      url: `https://universomerchan.com${deterministicUrl}`,
     },
   };
 }
