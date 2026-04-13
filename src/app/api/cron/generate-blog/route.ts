@@ -3,6 +3,7 @@ import { OpenAI } from "openai";
 import { db } from "@/lib/database";
 import { blogPosts } from "@/lib/schema";
 import { uploadArtwork } from "@/lib/artwork-upload";
+import { notifyAdminSystemAlert } from "@/lib/email-service";
 import { revalidatePath } from "next/cache";
 
 function generateSlug(title: string): string {
@@ -50,6 +51,28 @@ export async function POST(req: Request) {
     const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
     console.log(`[Blog Cron] Iniciando generación automática. Categoría elegida: ${randomCategory}`);
+
+    // ======================================
+    // 0. COMPROBAR CADUCIDAD DE TOKEN LINKEDIN
+    // ======================================
+    try {
+      const EXPIRATION_DATE = new Date("2027-04-12T00:00:00Z"); // Token generado el 12 de Abril de 2026
+      const today = new Date();
+      const diffTime = EXPIRATION_DATE.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      
+      // Si quedan 15 días o menos, o ya ha caducado, enviar alerta (sólo una vez al día porque es un cron diario)
+      if (diffDays <= 15 && diffDays > -5) {
+        await notifyAdminSystemAlert({
+          subject: diffDays <= 0 ? "¡URGENTE! El Token de LinkedIn ha CADUCADO" : `El Token de LinkedIn caduca en ${diffDays} días`,
+          message: `El token de autenticación configurado para publicar en LinkedIn caduca el 12 de Abril de 2027. Por favor, genera un nuevo Token entrando en el portal de LinkedIn Developers (https://www.linkedin.com/developers/tools/oauth/token-generator) y actualízalo en el servidor.`,
+          alertLevel: diffDays <= 3 ? "CRITICAL" : "WARNING"
+        });
+        console.log(`[Blog Cron] Alerta de caducidad de token enviada. Quedan ${diffDays} días.`);
+      }
+    } catch (e) {
+      console.error("[Blog Cron] Error comprobando caducidad de token", e);
+    }
 
     // ======================================
     // 1. GENERAR TEXTO CON GPT-4o
