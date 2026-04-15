@@ -28,6 +28,7 @@ export async function GET(req: Request) {
       productName: products.productName,
       shortDescription: products.shortDescription,
       digitalAssets: products.digitalAssets,
+      rawApiData: products.rawApiData,
       categoryLevel1: products.categoryLevel1
     })
     .from(products)
@@ -41,24 +42,57 @@ export async function GET(req: Request) {
       if (topProducts.length >= 3) break;
       
       let imageUrl = "";
+      
       // Search for a main image in the digital assets array
       if (Array.isArray(prod.digitalAssets) && prod.digitalAssets.length > 0) {
-        const mainImage = prod.digitalAssets.find(a => a.type === "image" && a.subtype === "MAIN") 
-          || prod.digitalAssets.find(a => a.type === "image")
-          || prod.digitalAssets[0]; // agnostico al formato
+        const mainImage = prod.digitalAssets.find((a: any) => a.type === "image" && a.subtype === "MAIN") 
+          || prod.digitalAssets.find((a: any) => a.type === "image");
 
         if (mainImage) {
           imageUrl = mainImage.url || mainImage.link || mainImage.src || (typeof mainImage === 'string' ? mainImage : "");
         }
       }
 
-      // Añadimos el producto exista su imagen HQ o no temporalmente para no fallar
+      // Fallback: extract from rawApiData
+      if (!imageUrl && prod.rawApiData && typeof prod.rawApiData === 'object') {
+          const raw = prod.rawApiData as any;
+          if (Array.isArray(raw.images) && raw.images.length > 0) {
+              const mainImg = raw.images.find((i: any) => i.is_main) || raw.images[0];
+              imageUrl = mainImg.url || mainImg.url_highres || "";
+          } else if (Array.isArray(raw.digital_assets) && raw.digital_assets.length > 0) {
+              const mainImg = raw.digital_assets.find((a: any) => a.type === "image" && a.subtype === "MAIN") || raw.digital_assets.find((a: any) => a.type === "image");
+              if (mainImg) imageUrl = mainImg.url || mainImg.url_highress || mainImg.src || "";
+          }
+          
+          if (!imageUrl && Array.isArray(raw.variants) && raw.variants.length > 0) {
+              for (const variant of raw.variants) {
+                  if (Array.isArray(variant.digital_assets) && variant.digital_assets.length > 0) {
+                      const mainImg = variant.digital_assets.find((a: any) => a.type === "image" && a.subtype === "item_picture_front") 
+                        || variant.digital_assets.find((a: any) => a.type === "image");
+                      if (mainImg) {
+                          imageUrl = mainImg.url || mainImg.url_highress || "";
+                          break;
+                      }
+                  }
+              }
+          }
+      }
+
+      // Skip invalid images
+      if (!imageUrl || imageUrl.trim() === '' || imageUrl.toLowerCase().endsWith('.eps') || imageUrl.toLowerCase().endsWith('.pdf')) {
+        continue;
+      }
+      
+      if (imageUrl.startsWith('//')) {
+        imageUrl = 'https:' + imageUrl;
+      }
+
       topProducts.push({
         masterCode: prod.masterCode,
         productName: prod.productName,
         description: prod.shortDescription,
         category: prod.categoryLevel1,
-        imageUrl: imageUrl || "https://universomerchan.com/placeholder.png",
+        imageUrl: imageUrl,
         productUrl: `https://universomerchan.com/catalog/product/${prod.masterCode}`
       });
     }
