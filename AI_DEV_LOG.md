@@ -15,7 +15,18 @@ Este archivo se utiliza para mantener un registro y contexto continuo de las tar
 
 ---
 
+## 🛑 Reglas Críticas Anti-Regresiones (Lessons Learned)
+
+1. **Extracción de Imágenes (Midocean API):** Cuando se busque una imagen de producto para un automatismo, Flyer o feed XML, **NUNCA depender ciegamente de `products.digitalAssets[0]`**. Muchos productos de Midocean devuelven documentos `.pdf` o `.eps` (certificados, manuales) en ese array. 
+   - **Solución Obligatoria:** Siempre hacer *fallback* a `products.rawApiData.images` o `products.rawApiData.digital_assets` y filtrar estrictamente la URL final: `if(url.endsWith('.pdf') || url.endsWith('.eps')) continue;`. Si se pasa un PDF a un sistema que espera imágenes (como Satori, n8n, ImageResponse o Plantillas de Correo), el proceso crasheará o enviará correos rotos.
+
+---
+
 ## ✅ Historial Reciente de Cambios 
+
+### 15/04/2026 - Corrección de Webhooks para Flyers (n8n / API)
+- **Bug Fix:** El flujo de correos automáticos semanales de n8n ("Flyer de los Lunes") fallaba silenciosamente por intentar pasar PDFs como si fueran imágenes de producto.
+- **Solución:** Se igualó la lógica de `/api/webhooks/flyer-data` con la extracción blindada usada en `/api/webhooks/flyer-image`. Ahora interroga correctamente el objeto `rawApiData` de la base de datos y esquiva cualquier archivo `.pdf` / `.eps`. Desplegado a producción mediante script SSH.
 
 ### 05/04/2026 - Motor Autónomo de Despliegue y Autenticaciones
 - **Despliegue a Producción (Script Recursivo):** Refactorizado completamente el script `deploy-to-linux.js` para usar lectura recursiva. Ya no depende de una lista ciega, sino que clona intacta toda la estructura de carpetas `src` y `public`, y construye los árboles de directorios remotos automáticamente con `conn.exec(mkdir -p)`. Corregida la sincronización de +150 archivos faltantes, reviviendo rutas como `/admin/coupons`, reseteo de contraseñas y webhooks.
