@@ -69,6 +69,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fbq('track', 'PageView');
         `}
       </Script>
+      <Script id="microsoft-clarity" strategy="afterInteractive">
+        {`
+          (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", "s21obhozfe");
+        `}
+      </Script>
       <body className={`bg-surface-50 text-gray-900 min-h-screen font-sans antialiased ${poppins.variable}`}>
         {/* JSON-LD: Organization + LocalBusiness structured data for Google */}
         <script
