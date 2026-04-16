@@ -1,0 +1,22 @@
+# REGLA CRÍTICA NÚMERO 1: PROHIBICIÓN TOTAL DE n8n
+Bajo ningún concepto se debe mencionar, asumir, instalar o configurar `n8n` en este repositorio. Universo Merchan NO utiliza n8n. Todas las menciones antiguas a tokens de `n8n-blog` son código legacy ("basura visual"). 
+
+# ARQUITECTURA DE AUTOMATIZACIONES (LA REALIDAD ACTUAL)
+Todo el sistema de marketing automatizado está orquestado exclusivamente mediante **Google Apps Script** (Alojado en la cuenta de Google de los administradores). 
+El servidor NextJS / VPS actúa únicamente de *Servidor Tonto/Recibidor*.
+
+**¿Cómo funciona el Flyer Semanal?**
+1. Google Apps Script tiene un temporizador que llama por GET a `https://universomerchan.com/api/webhooks/flyer-image`.
+2. NextJS renderiza la imagen a través de `@vercel/og` y devuelve el binario (Blob) `.jpg`.
+3. Google Apps Script recibe la foto y la reenvía por correo tradicional usando `GmailApp`.
+
+**¿Cómo funciona el Blog SEO (Autoblog)?**
+1. Google Apps Script tiene un temporizador que se despierta.
+2. Google Apps Script hace una petición POST a la API nativa de OpenAI (GPT-4o) mandándole prompts SEO complejos para generar título y body.
+3. Google Apps Script hace una petición a la ruta `https://universomerchan.com/api/webhooks/n8n-blog` (Ruta cuyo nombre es legacy, pero es usada por Apps Script) pasándole el Payload en JSON.
+4. El webhook guarda el artículo en la base de datos PostgreSQL de la web.
+
+**¿Qué pasa con los Cronjobs Nativos del PM2/Ubuntu?**
+El servidor interno sólo ejecuta crons de base de datos (`sync:stock`, `sync:orders`, `clean-mockups`, `request-reviews` y `check-abandoned-carts`). El Marketing lo maneja el Apps Script externo descrito arriba.
+
+RECUERDA SIEMPRE consultar `docs/APPS_SCRIPT_PROD.js` para ver el código fuente exacto que ejecuta Google externamente.

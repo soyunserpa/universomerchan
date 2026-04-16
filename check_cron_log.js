@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('crontab -l && echo "---" && pm2 logs universo-tienda --lines 50 --nostream', (err, stream) => {
+    conn.exec('cat /var/log/universomerchan/cron-blog.log | tail -n 20', (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())
               .on('data', data => process.stdout.write(data))

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 import { db } from "@/lib/database";
-import { blogPosts } from "@/lib/schema";
+import { blogPosts, products } from "@/lib/schema";
 import { uploadArtwork } from "@/lib/artwork-upload";
 import { notifyAdminSystemAlert } from "@/lib/email-service";
 import { revalidatePath } from "next/cache";
@@ -39,18 +39,82 @@ export async function POST(req: Request) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const categories = [
-      "Regalos Corporativos",
-      "Merchandising Sostenible (Eco)",
-      "Bienestar del Empleado (Welcome Packs)",
-      "Retención de talento con Merchandising",
-      "Tendencias de Merchandising 2024",
-      "Regalos para fidelizar Clientes"
+    const strategies = [
+      {
+        type: "Guía de Compra",
+        topics: [
+          "Cómo elegir el mejor regalo corporativo según tu presupuesto",
+          "Guía de botellas personalizadas: materiales y precios",
+          "Regalos para clientes VIP: ideas premium",
+          "Regalos empresa por menos de 3€ que no parecen baratos",
+          "Guía de tazas personalizadas para empresas"
+        ],
+        prompt: `Escribe una guía de compra de [TEMA] para empresas españolas que buscan merchandising personalizado. Estructura exacta: 1. Título H1 con keyword (máx 65 char), 2. Intro de 100 palabras: problema + para quién es esta guía, 3. H2: Qué mirar antes de comprar, 4. H2: Comparativa de opciones, 5. H2: Recomendación según tipo de empresa/evento, 6. H2: Preguntas frecuentes (3-4), 7. CTA final. Tono profesional, directo, sin frases vacías y con precios orientativos reales.`
+      },
+      {
+        type: "Comparativa Técnica",
+        topics: [
+          "Serigrafía vs grabado láser vs DTF vs sublimación",
+          "Acero inoxidable vs vidrio vs bambú para botellas",
+          "Algodón orgánico vs RPET vs yute para bolsas",
+          "Cerámica vs vidrio vs acero para tazas"
+        ],
+        prompt: `Escribe una comparativa técnica entre [TEMA] para merchandising corporativo en España. Estructura: 1. Título H1 formato '[A] vs [B]: guía', 2. Intro breve, 3. Tabla comparativa HTML con 5 criterios, 4. H2 detalle de cada opción, 5. H2 'Cuándo elegir cada una', 6. CTA final. Precios reales en euros, tono directo.`
+      },
+      {
+        type: "Checklist / How-To",
+        topics: [
+          "Checklist: cómo preparar el merchandising para una feria",
+          "Cómo hacer tu primer pedido de merchandising personalizado",
+          "Cómo calcular el coste real de un regalo corporativo",
+          "7 errores al pedir merchandising por primera vez"
+        ],
+        prompt: `Escribe un artículo práctico tipo checklist sobre [TEMA] para responsables de RRHH o compras. Estructura: 1. Título práctico H1, 2. Intro del problema, 3. Checklist de 6-10 pasos numerados, 4. Sección de 3-5 errores comunes, 5. CTA final. Tono directo, sin relleno, aportando valor práctico.`
+      },
+      {
+        type: "Caso de Uso por Sector",
+        topics: [
+          "Merchandising para gimnasios y centros fitness",
+          "Regalos corporativos para empresas tech y startups",
+          "Merchandising para el sector educativo",
+          "Regalos empresa para el sector salud y farmacéutico"
+        ],
+        prompt: `Escribe un artículo sobre cómo el sector de [TEMA] puede usar merchandising. Estructura: 1. Título H1 'Merchandising para [sector]: X ideas', 2. Intro del contexto, 3. 4-5 ideas de productos concretos con link, 4. Ejemplo práctico realista (sin inventar marcas), 5. CTA a landing. Sin emojis ni relleno.`
+      },
+      {
+        type: "FAQ / Educativo corto",
+        topics: [
+          "¿Cuál es la cantidad mínima para personalizar productos?",
+          "¿Cuánto tarda un pedido de merchandising personalizado?",
+          "¿Qué diferencia hay entre serigrafía y tampografía?",
+          "¿Se puede personalizar con colores Pantone exactos?"
+        ],
+        prompt: `Responde la pregunta «[TEMA]» para alguien que busca merchandising en España. Estructura: 1. H1: la pregunta exacta, 2. Respuesta directa en 2 frases, 3. Explicación detallada, 4. Ejemplo práctico, 5. CTA breve. Al grano y muy útil.`
+      }
     ];
-    
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
-    console.log(`[Blog Cron] Iniciando generación automática. Categoría elegida: ${randomCategory}`);
+    const randomStrategy = strategies[Math.floor(Math.random() * strategies.length)];
+    const randomTopic = randomStrategy.topics[Math.floor(Math.random() * randomStrategy.topics.length)];
+    const specificPrompt = randomStrategy.prompt.replace("[TEMA]", randomTopic);
+
+    console.log(`[Blog Cron] Iniciando estrategia: ${randomStrategy.type} | Tema: ${randomTopic}`);
+
+    let productContext = "";
+    try {
+      const dbProducts = await db.select({
+        masterCode: products.masterCode,
+        productName: products.productName
+      }).from(products).limit(300);
+      
+      const shuffled = dbProducts.sort(() => 0.5 - Math.random()).slice(0, 3);
+      if (shuffled.length > 0) {
+        productContext = `\n\nPRODUCTOS DESTACADOS (OBLIGATORIO):
+Encuentra una forma natural de mencionar y enlazar al menos 1 o 2 de los siguientes productos TOP VENTAS de nuestro catálogo. Usa la URL exacta proporcionada en el href del tag <a>:
+${shuffled.map(p => `- ${p.productName} -> URL: https://universomerchan.com/product/${p.masterCode}`).join('\n')}`;
+      }
+    } catch (err) {
+      console.error("[Blog Cron] No se pudieron cargar productos para el contexto", err);
+    }
 
     // ======================================
     // 0. COMPROBAR CADUCIDAD DE TOKEN LINKEDIN
@@ -83,23 +147,28 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: `Eres el creador principal de contenido para 'Universo Merchan', una de las principales tiendas online B2B en España que vende regalos corporativos personalizados y merchandising para empresas. 
+          content: `Eres el creador principal de contenido experto en SEO y B2B para 'Universo Merchan', tienda de merchandising en España.
+REGLAS DE ORO:
+- Tono profesional pero directo. Escribe como alguien del sector.
+- PROHIBIDOS los emojis en el artículo del blog. Prohibidas frases vacías como "¡tu marca merece lo mejor!".
+- Nunca empieces con frases genéricas como "En el mundo actual...".
+- Usa "tú", no "usted". Máximo 1 exclamación por artículo.
+- Integra mínimo 3 hipervínculos internamente a categorías en el HTML simulado de manera natural y no forzada.
 
-Tu tono debe ser profesional pero cercano, enfocado 50% en ser un 'blog informativo B2B' y 50% en 'Catálogo/Venta B2B'. Escribe con fluidez en español de España. Tus artículos deben ayudar a las empresas a tomar decisiones sobre sus campañas promocionales, fidelización de clientes o retención de empleados mediante el uso de tus productos.
-
-Estructura tu respuesta exactamente como un archivo JSON con los siguientes campos sin usar backticks extra en la salida (debes responder SÓLO JSON puro):
+Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
 {
-  "title": "Un título pegadizo para el artículo (máx. 65 caracteres)",
-  "metaDescription": "Metadescripción apta para SEO (máx. 155 caracteres)",
-  "excerpt": "Un breve párrafo resumen para mostrar en el catálogo del blog",
-  "linkedinPost": "Un micro-post brutal y viral para publicar en LinkedIn con emojis y hashtags B2B (máximo 1200 caracteres, con un final de 'Lee el artículo completo en nuestro blog').",
-  "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para DALL-E 3 que genere la imagen perfecta para acompañar el artículo (sin texto en la imagen, estilo foto de estudio, alta calidad, fotorealista, producto corporativo)",
-  "body": "El artículo en MERO CÓDIGO HTML semántico (usando <h2>, <h3>, <p>, <ul>, <strong>). No incluyas tags <html>, <head> o <body>, solo el interior (empezando directamente desde tu primer <p> introductorio). Evita estilos en línea, usa puros tags estructurales y cuida el SEO (palabras clave)."
+  "title": "Título con keyword (máx. 65 caracteres)",
+  "metaDescription": "Metadescripción con CTA (máx. 155 caracteres)",
+  "excerpt": "Párrafo breve introductorio.",
+  "linkedinPost": "Un micro-post B2B para LinkedIn: 1) Hook inicial sin emoji, 2) Cuerpo aportando valor real, 3) 3 hashtags del sector. NO incluyas emojis ni el enlace aquí.",
+  "linkedinComment": "Texto simple exacto: 'La guía completa la tienes aquí: [enlace]'.",
+  "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para DALL-E 3 que genere la imagen corporativa fotorealista perfecta para el artículo. (Sin texto)",
+  "body": "El artículo en HTML semántico (<h2>, <p>, <ul>, <strong>). Siguiendo las instrucciones de estructura exactas pedidas por el usuario. Directamente los elementos interiores sin html ni body."
 }`
         },
         {
           role: "user",
-          content: `Genera un post extenso e interesante alrededor del nicho: '${randomCategory}'. Crea un artículo de valor para empresas españolas.`
+          content: specificPrompt + productContext
         }
       ],
       response_format: { type: "json_object" }
@@ -190,6 +259,7 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
         
         // 1. Obtener la Identidad del Autor (Member o Company)
         let authorUrn = "";
+        let isPerson = false;
         if (process.env.LINKEDIN_ORGANIZATION_ID) {
           authorUrn = `urn:li:organization:${process.env.LINKEDIN_ORGANIZATION_ID}`;
           console.log(`[Blog Cron] Publicando como Empresa: ${authorUrn}`);
@@ -201,14 +271,60 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
           const meData = await meRes.json();
           if (meData.sub) {
             authorUrn = `urn:li:person:${meData.sub}`;
+            isPerson = true;
             console.log(`[Blog Cron] Publicando como Persona: ${authorUrn}`);
           }
         }
 
         if (authorUrn) {
           const absoluteUrl = `https://universomerchan.com/blog/${newPost.slug}`;
-          let postText = articleData.linkedinPost || `¡Nuevo artículo en el blog! ${articleData.title}`;
-          postText = postText.replace(/\[enlace\]/gi, absoluteUrl);
+          
+          // --- STEP 1: Register Image Upload ---
+          console.log(`[Blog Cron] Registrando imagen en LinkedIn...`);
+          const registerRes = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "X-Restli-Protocol-Version": "2.0.0",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              registerUploadRequest: {
+                recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+                owner: authorUrn,
+                serviceRelationships: [
+                  { identifier: "urn:li:userGeneratedContent", relationshipType: "OWNER" }
+                ]
+              }
+            })
+          });
+          
+          if (!registerRes.ok) {
+            throw new Error(`Failed to register image: ${await registerRes.text()}`);
+          }
+          
+          const registerData = await registerRes.json();
+          const uploadUrl = registerData.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"].uploadUrl;
+          const assetUrn = registerData.value.asset;
+          
+          // --- STEP 2: Upload Image Binary ---
+          console.log(`[Blog Cron] Subiendo binario de imagen a LinkedIn...`);
+          const uploadRes = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: {
+               "Authorization": `Bearer ${token}`,
+               "Content-Type": "image/png" // the image uploaded is an ai-generated png from buffer
+            },
+            body: buffer
+          });
+          
+          if (!uploadRes.ok) {
+            throw new Error(`Failed to upload image binary: ${await uploadRes.text()}`);
+          }
+          console.log(`[Blog Cron] Imagen subida a LinkedIn correctamente: ${assetUrn}`);
+
+          // --- STEP 3: Create Post ---
+          let postText = articleData.linkedinPost || `Nuevo artículo en el blog.`;
           
           const linkedinPayload = {
             author: authorUrn,
@@ -216,16 +332,13 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
             specificContent: {
               "com.linkedin.ugc.ShareContent": {
                 shareCommentary: { text: postText },
-                shareMediaCategory: "ARTICLE",
+                shareMediaCategory: "IMAGE",
                 media: [
                   {
                     status: "READY",
                     description: { text: articleData.metaDescription },
-                    originalUrl: absoluteUrl,
                     title: { text: articleData.title },
-                    thumbnails: [
-                      { url: featuredImageUrl.startsWith('http') ? featuredImageUrl : `https://universomerchan.com${featuredImageUrl}` }
-                    ]
+                    media: assetUrn
                   }
                 ]
               }
@@ -235,7 +348,7 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
             }
           };
 
-          const linkedinRes = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+          const linkedinPostRes = await fetch("https://api.linkedin.com/v2/ugcPosts", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -245,13 +358,45 @@ Estructura tu respuesta exactamente como un archivo JSON con los siguientes camp
             body: JSON.stringify(linkedinPayload)
           });
 
-          if (linkedinRes.ok) {
-            const data = await linkedinRes.json();
-            linkedinStatus = `Success (URN: ${data.id})`;
-            console.log(`[Blog Cron] LinkedIn postiado con éxito: ${data.id}`);
+          if (linkedinPostRes.ok) {
+            const data = await linkedinPostRes.json();
+            const createdUgUrn = data.id; 
+            console.log(`[Blog Cron] LinkedIn postiado con éxito: ${createdUgUrn}`);
+            
+            // --- STEP 4: Add Comment with Link ---
+            console.log(`[Blog Cron] Añadiendo primer comentario con el enlace...`);
+            let commentText = articleData.linkedinComment || `La guía completa la tienes aquí: [enlace]`;
+            commentText = commentText.replace(/\[enlace\]/gi, absoluteUrl);
+            
+            const commentPayload = {
+               actor: authorUrn,
+               object: createdUgUrn,
+               message: { text: commentText }
+            };
+            
+            const commentRes = await fetch(`https://api.linkedin.com/rest/socialActions/${encodeURIComponent(createdUgUrn)}/comments`, {
+               method: "POST",
+               headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "LinkedIn-Version": "202401", 
+                  "X-Restli-Protocol-Version": "2.0.0",
+                  "Content-Type": "application/json"
+               },
+               body: JSON.stringify(commentPayload)
+            });
+            
+            if (commentRes.ok) {
+               console.log(`[Blog Cron] Comentario añadido correctamente.`);
+               linkedinStatus = `Success Post & Comment (URN: ${createdUgUrn})`;
+            } else {
+               const errText = await commentRes.text();
+               console.error(`[Blog Cron] Fallo al añadir comentario:`, errText);
+               linkedinStatus = `Success Post (URN: ${createdUgUrn}) but Comment Failed: ${commentRes.status}`;
+            }
+
           } else {
-            const errBody = await linkedinRes.text();
-            linkedinStatus = `API Error: ${linkedinRes.status}`;
+            const errBody = await linkedinPostRes.text();
+            linkedinStatus = `API Error: ${linkedinPostRes.status}`;
             console.error(`[Blog Cron] Error de LinkedIn API:`, errBody);
           }
         } else {
