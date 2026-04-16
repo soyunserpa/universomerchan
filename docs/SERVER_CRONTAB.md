@@ -23,8 +23,8 @@ Para modificar el crontab del servidor de producción:
 # [CRITICAL / MEMORY FIX]: 
 # CRÍTICO: La cabecera Authorization DEBE ir siempre envuelta con comillas dobles "". 
 # De lo contrario cURL falla porque interpreta la palabra 'Bearer' como el nombre de página a visitar e ignora el resto.
-# Funciona a las 09:00 AM Europe/Madrid.
-0 9 * * * curl -X POST -H "Authorization: Bearer universomerchancron!123" https://universomerchan.com/api/cron/generate-blog >> /var/log/universomerchan/cron-blog.log 2>&1
+# Funciona a las 09:00 AM Europe/Madrid (07:00 UTC en el servidor).
+0 7 * * * curl -X POST -H "Authorization: Bearer universomerchancron!123" https://universomerchan.com/api/cron/generate-blog >> /var/log/universomerchan/cron-blog.log 2>&1
 
 # =======================================================
 # RECORDATORIOS DE CARRITOS ABANDONADOS Y MOCKUPS
