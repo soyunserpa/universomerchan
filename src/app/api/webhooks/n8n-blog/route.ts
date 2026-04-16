@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { uploadArtwork } from "@/lib/artwork-upload";
 
 // Replace this with a strong secret key in production .env -> process.env.N8N_WEBHOOK_SECRET
-const N8N_SECRET = process.env.N8N_WEBHOOK_SECRET || "n8n_super_secret_universe_123!";
+const N8N_SECRET = process.env.N8N_WEBHOOK_SECRET || "whsec_UMblog_9XqP2rL4vA3c8B3V";
 
 function generateSlug(title: string): string {
   return title
