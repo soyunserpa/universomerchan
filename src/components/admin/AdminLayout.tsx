@@ -113,6 +113,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     { href: "/admin/blog", icon: BookOpen, label: "Blog & SEO" },
     { href: "/admin/media", icon: FolderOpen, label: "Gestor Medios" },
     { href: "/admin/searches", icon: Search, label: "Búsquedas" },
+    { href: "/admin/clarity", icon: Eye, label: "Mapas de Calor" },
     { href: "/admin/settings", icon: Percent, label: "Márgenes" },
     { href: "/admin/emails", icon: Mail, label: "Emails" },
     { href: "/admin/sync", icon: Database, label: "Sincronización" },
