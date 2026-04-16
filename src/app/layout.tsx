@@ -14,7 +14,6 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
 import { CookieBanner } from "@/components/layout/CookieBanner";
-import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { ChatbotBubble } from "@/components/chatbot/ChatbotBubble";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
@@ -145,7 +144,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Header />
             <MiniCart />
             <main className="min-h-[60vh]">{children}</main>
-            <WhatsAppButton />
             <ChatbotBubble />
             <Footer />
             <CookieBanner />
