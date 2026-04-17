@@ -4,26 +4,26 @@ import { Star } from "lucide-react";
 const REVIEWS = [
   {
     id: 1,
-    author: "Laura M.",
-    role: "Directora de Marketing",
-    date: "Hace 1 semana",
-    text: "El servicio B2B de Universo Merchan es increíble. Hicimos un pedido de 500 agendas corporativas y la calidad del marcaje láser superó con creces nuestras expectativas. Cero intermediarios lentos.",
+    author: "Maria Alejandra Quintero Ferro",
+    role: "Cliente en Google Maps",
+    date: "Hace 12 horas",
+    text: "Encargamos varias maletas personalizadas para un evento corporativo y la experiencia con esta empresa de merchandising fue excelente de principio a fin. Desde el primer contacto, el equipo se mostró muy atento. La calidad de las maletas superó nuestras expectativas.",
     rating: 5,
   },
   {
     id: 2,
-    author: "Carlos T.",
-    role: "Agencia de Eventos",
-    date: "Hace 3 semanas",
-    text: "Teníamos un evento a nivel nacional con plazos súper ajustados y nos salvaron. Todo el catálogo es fácil de consultar de forma digital y cumplieron los plazos de entrega que prometieron al milímetro.",
+    author: "Natalia Scalici",
+    role: "Cliente en Google Maps",
+    date: "Hace 1 día",
+    text: "La experiencia con ellos ha sido excelente! La calidad y tejido de sus productos (...) son muy buenos, cómodos y duraderos. El diseño adaptados a lo que necesitábamos. Tiempos de entrega rápidos, buena comunicación y una atención muy personalizada. Repetiremos!",
     rating: 5,
   },
   {
     id: 3,
-    author: "Elena R.",
-    role: "Tech Startup CEO",
-    date: "Hace 1 mes",
-    text: "Buscábamos merchandising premium para el onboarding de empleados y no queríamos el típico regalo barato. Nos decidimos por su línea tecnológica y botellas técnicas. ¡Un éxito rotundo en la oficina!",
+    author: "jose garcia",
+    role: "Cliente en Google Maps",
+    date: "Hace 1 día",
+    text: "Amable trato y muy profesional, a destacar la rapidez y calidad del pedido, ya he repetido 3 veces.",
     rating: 5,
   }
 ];
