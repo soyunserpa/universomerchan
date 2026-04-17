@@ -378,7 +378,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
                method: "POST",
                headers: {
                   "Authorization": `Bearer ${token}`,
-                  "LinkedIn-Version": "202401", 
+                  "LinkedIn-Version": "202604", 
                   "X-Restli-Protocol-Version": "2.0.0",
                   "Content-Type": "application/json"
                },
