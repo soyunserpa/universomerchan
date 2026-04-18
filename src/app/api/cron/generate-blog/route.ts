@@ -160,7 +160,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
   "title": "Título con keyword (máx. 65 caracteres)",
   "metaDescription": "Metadescripción con CTA (máx. 155 caracteres)",
   "excerpt": "Párrafo breve introductorio.",
-  "linkedinPost": "Un micro-post B2B para LinkedIn: 1) Hook inicial sin emoji, 2) Cuerpo aportando valor real, 3) 3 hashtags del sector. NO incluyas emojis ni el enlace aquí.",
+  "linkedinPost": "Un micro-post B2B para LinkedIn: 1) Hook inicial sin emoji, 2) Cuerpo aportando valor real, 3) 3 hashtags del sector.",
   "linkedinComment": "Texto simple exacto: 'La guía completa la tienes aquí: [enlace]'.",
   "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para DALL-E 3 que genere la imagen corporativa fotorealista perfecta para el artículo. (Sin texto)",
   "body": "El artículo en HTML semántico (<h2>, <p>, <ul>, <strong>). Siguiendo las instrucciones de estructura exactas pedidas por el usuario. Directamente los elementos interiores sin html ni body."
@@ -325,6 +325,8 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
 
           // --- STEP 3: Create Post ---
           let postText = articleData.linkedinPost || `Nuevo artículo en el blog.`;
+          // The user specifically wants the text string in the post, and because of 403 Forbidden errors with socialActions API, we also explicitly inject the link as fallback.
+          postText = `\${postText}\n\n👇 Enlace de la entrada completa en el primer comentario (o aquí debajo):\n🔗 \${absoluteUrl}`;
           
           const linkedinPayload = {
             author: authorUrn,
