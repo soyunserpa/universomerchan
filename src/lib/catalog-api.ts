@@ -14,8 +14,7 @@ import { db } from "@/lib/database";
 import { eq, and, like, sql, desc, asc, ilike, or, exists, inArray } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { getStartingPrice, formatPriceShort } from "@/lib/price-calculator";
-
-// Default margins (loaded from admin_settings on startup, cached in Redis)
+import { type CategoryMargin, resolveMarginsForCategory } from "@/lib/admin-dashboard-api";
 
 // Helper: safely parse JSONB that may be double-encoded
 function safeParseJsonArray(val: any): any[] {
@@ -36,6 +35,44 @@ const DEFAULT_MARGINS = {
   productMarginPct: 40,
   printMarginPct: 50,
 };
+
+/** Load global + category margins from admin_settings (one query). */
+async function loadMargins(): Promise<{
+  global: { productMarginPct: number; printMarginPct: number };
+  byCategory: Record<string, CategoryMargin>;
+}> {
+  const rows = await db.query.adminSettings.findMany({
+    where: or(
+      eq(schema.adminSettings.key, "margin_product_pct"),
+      eq(schema.adminSettings.key, "margin_print_pct"),
+      eq(schema.adminSettings.key, "category_margins"),
+    ),
+  });
+  const map: Record<string, string> = {};
+  for (const r of rows) map[r.key] = r.value;
+
+  let byCategory: Record<string, CategoryMargin> = {};
+  try {
+    if (map.category_margins) byCategory = JSON.parse(map.category_margins);
+  } catch { /* ignore */ }
+
+  return {
+    global: {
+      productMarginPct: parseFloat(map.margin_product_pct || "40"),
+      printMarginPct: parseFloat(map.margin_print_pct || "50"),
+    },
+    byCategory,
+  };
+}
+
+/** Resolve product margin % for a specific category. */
+function getProductMarginForCategory(
+  category: string,
+  byCategory: Record<string, CategoryMargin>,
+  globalPct: number
+): number {
+  return byCategory[category]?.productPct ?? globalPct;
+}
 
 // ============================================================
 // GET /api/catalog/products
@@ -278,6 +315,9 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     orderBy: [desc(hasStockSql), primaryOrderBy],
   });
 
+  // Load margin settings (global + per-category)
+  const margins = await loadMargins();
+
   // Enrich with variants, stock, and prices (BATCHED FOR N+1 PERFORMANCE)
   const enriched: CatalogProductResponse[] = [];
 
@@ -371,10 +411,15 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
       costPrice: typeof s.price === "string" ? parseFloat(s.price.replace(",", ".")) : Number(s.price || 0),
     }));
 
+    // Resolve margin for this product's category (category-specific or global fallback)
+    const productMargin = getProductMarginForCategory(
+      product.categoryLevel1 || "", margins.byCategory, margins.global.productMarginPct
+    );
+
     // Use custom price if admin set one, otherwise calculate from Midocean
     const startingPriceRaw = product.customPrice
       ? parseFloat(product.customPrice.toString())
-      : getStartingPrice(priceScales, DEFAULT_MARGINS.productMarginPct);
+      : getStartingPrice(priceScales, productMargin);
 
     // Main image from first variant that has one
     let mainImage = "";
@@ -515,6 +560,8 @@ export interface ProductDetailResponse extends CatalogProductResponse {
       pricePerUnit: number;      // Cost in € per unit
     };
   }>;
+  // Resolved margins for this product (category-specific or global fallback)
+  margins: { productMarginPct: number; printMarginPct: number };
 }
 
 export async function getProductDetail(masterCode: string): Promise<ProductDetailResponse | null> {
@@ -532,14 +579,22 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
   if (!catalogData.products.length) return null;
   const base = catalogData.products[0];
 
+  // Load margins (global + per-category)
+  const margins = await loadMargins();
+  const productCategory = product.categoryLevel1 || "";
+  const resolvedMargins = resolveMarginsForCategory(
+    productCategory, margins.byCategory,
+    margins.global.productMarginPct, margins.global.printMarginPct
+  );
+
   // Get price scales with margin applied
   const priceEntry = await db.query.productPrices.findFirst({
     where: eq(schema.productPrices.masterCode, masterCode),
   });
-  
+
   const priceScales = safeParseJsonArray(priceEntry?.priceScales).map((s: any) => {
     const cost = typeof s.price === "string" ? parseFloat(s.price.replace(",", ".")) : Number(s.price || 0);
-    const sell = cost * (1 + DEFAULT_MARGINS.productMarginPct / 100);
+    const sell = cost * (1 + resolvedMargins.productMarginPct / 100);
     return {
       minQuantity: parseInt(s.minimum_quantity),
       pricePerUnit: formatPriceShort(sell),
@@ -657,7 +712,7 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
     const vpRows = await db.execute(
       sql`SELECT sku, price, price_scales::text as scales_json FROM variant_prices WHERE master_code = ${masterCode}`
     );
-    const margin = 1 + DEFAULT_MARGINS.productMarginPct / 100;
+    const margin = 1 + resolvedMargins.productMarginPct / 100;
     for (const row of ((vpRows as any).rows || vpRows) as any[]) {
       const cost = parseFloat(row.price?.toString() || "0");
       const sell = Math.round(cost * margin * 100) / 100;
@@ -694,6 +749,7 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
     variantPrices,
     hasSize,
     printPositions,
+    margins: resolvedMargins,
   };
 }
 

@@ -16,6 +16,7 @@ import {
   getAdminSettings,
   updateAdminSetting,
   updateMargins,
+  updateCategoryMargins,
   getSyncStatus,
   getErrorLog,
   resolveError,
@@ -47,6 +48,12 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     await updateMargins(body.productMarginPct, body.printMarginPct);
+
+    // Save per-category margins if provided
+    if (body.categoryMargins && typeof body.categoryMargins === "object") {
+      await updateCategoryMargins(body.categoryMargins);
+    }
+
     return NextResponse.json({
       success: true,
       message: `Márgenes actualizados: Producto ${body.productMarginPct}% / Marcaje ${body.printMarginPct}%`,
