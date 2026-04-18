@@ -603,11 +603,18 @@ export async function getAdminProducts(params?: {
     offset,
   });
 
-  // Get margin setting
-  const marginSetting = await db.query.adminSettings.findFirst({
-    where: eq(schema.adminSettings.key, "margin_product_pct"),
+  // Get margin settings (global + per-category)
+  const allMarginSettings = await db.query.adminSettings.findMany({
+    where: or(
+      eq(schema.adminSettings.key, "margin_product_pct"),
+      eq(schema.adminSettings.key, "category_margins"),
+    ),
   });
-  const marginPct = parseFloat(marginSetting?.value || "40");
+  const marginMap: Record<string, string> = {};
+  for (const s of allMarginSettings) marginMap[s.key] = s.value;
+  const globalMarginPct = parseFloat(marginMap.margin_product_pct || "40");
+  let categoryMarginsMap: Record<string, CategoryMargin> = {};
+  try { if (marginMap.category_margins) categoryMarginsMap = JSON.parse(marginMap.category_margins); } catch {}
 
   const enriched: AdminProduct[] = [];
 
@@ -623,7 +630,9 @@ export async function getAdminProducts(params?: {
       totalStock += s?.quantity || 0;
     }
 
-    // Price
+    // Price — resolve margin for this product's category
+    const marginPct = categoryMarginsMap[product.categoryLevel1 || ""]?.productPct ?? globalMarginPct;
+
     const priceEntry = await db.query.productPrices.findFirst({
       where: eq(schema.productPrices.masterCode, product.masterCode),
     });
@@ -795,9 +804,15 @@ export async function deleteClient(clientId: number): Promise<void> {
 // 5. MARGIN & SETTINGS
 // ============================================================
 
+export interface CategoryMargin {
+  productPct: number;
+  printPct: number;
+}
+
 export interface AdminSettings {
   marginProductPct: number;
   marginPrintPct: number;
+  categoryMargins: Record<string, CategoryMargin>;
   adminEmail: string;
   syncProductsIntervalHours: number;
   syncStockIntervalMinutes: number;
@@ -813,9 +828,15 @@ export async function getAdminSettings(): Promise<AdminSettings> {
     map[s.key] = s.value;
   }
 
+  let categoryMargins: Record<string, CategoryMargin> = {};
+  try {
+    if (map.category_margins) categoryMargins = JSON.parse(map.category_margins);
+  } catch { /* ignore malformed JSON */ }
+
   return {
     marginProductPct: parseFloat(map.margin_product_pct || "40"),
     marginPrintPct: parseFloat(map.margin_print_pct || "50"),
+    categoryMargins,
     adminEmail: map.admin_email || "pedidos@universomerchan.com",
     syncProductsIntervalHours: parseInt(map.sync_products_interval_hours || "6"),
     syncStockIntervalMinutes: parseInt(map.sync_stock_interval_minutes || "30"),
@@ -838,6 +859,38 @@ export async function updateMargins(
 ): Promise<void> {
   await updateAdminSetting("margin_product_pct", String(productMarginPct));
   await updateAdminSetting("margin_print_pct", String(printMarginPct));
+}
+
+export async function updateCategoryMargins(
+  margins: Record<string, CategoryMargin>
+): Promise<void> {
+  const existing = await db.query.adminSettings.findFirst({
+    where: eq(schema.adminSettings.key, "category_margins"),
+  });
+  if (existing) {
+    await updateAdminSetting("category_margins", JSON.stringify(margins));
+  } else {
+    await db.execute(
+      sql`INSERT INTO admin_settings (key, value, description, updated_at) VALUES ('category_margins', ${JSON.stringify(margins)}, 'Márgenes específicos por categoría (JSON)', NOW())`
+    );
+  }
+}
+
+/** Resolve the effective margins for a product category. Falls back to global. */
+export function resolveMarginsForCategory(
+  category: string,
+  categoryMargins: Record<string, CategoryMargin>,
+  globalProductPct: number,
+  globalPrintPct: number
+): { productMarginPct: number; printMarginPct: number } {
+  const cat = categoryMargins[category];
+  if (cat) {
+    return {
+      productMarginPct: cat.productPct,
+      printMarginPct: cat.printPct,
+    };
+  }
+  return { productMarginPct: globalProductPct, printMarginPct: globalPrintPct };
 }
 
 // ============================================================

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
 import * as schema from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
+import type { CategoryMargin } from "@/lib/admin-dashboard-api";
 
 export const dynamic = "force-dynamic";
 
@@ -76,8 +77,25 @@ export async function GET() {
 <description>Catálogo de regalos corporativos y merchandising para empresas</description>
 `;
 
+    // Load margin settings (global + per-category)
+    const marginRows = await db.query.adminSettings.findMany({
+      where: or(
+        eq(schema.adminSettings.key, "margin_product_pct"),
+        eq(schema.adminSettings.key, "category_margins"),
+      ),
+    });
+    const mMap: Record<string, string> = {};
+    for (const r of marginRows) mMap[r.key] = r.value;
+    const globalMargin = parseFloat(mMap.margin_product_pct || "40");
+    let catMargins: Record<string, CategoryMargin> = {};
+    try { if (mMap.category_margins) catMargins = JSON.parse(mMap.category_margins); } catch {}
+
     for (const p of result) {
       if (!p.id || !p.title) continue;
+
+      // Resolve margin for this product's category
+      const catPct = catMargins[p.category || ""]?.productPct ?? globalMargin;
+      const marginMultiplier = 1 + catPct / 100;
 
       let price = "0.00";
       if (p.priceScales) {
@@ -91,7 +109,7 @@ export async function GET() {
           });
           if (sorted[0]) {
             const cheapest = sorted[0].price || sorted[0].costPrice || 0;
-            price = (Math.round(cheapest * 1.40 * 100) / 100).toFixed(2);
+            price = (Math.round(cheapest * marginMultiplier * 100) / 100).toFixed(2);
           }
         } catch (e) { }
       }
@@ -99,7 +117,7 @@ export async function GET() {
       if (price === "0.00" || parseFloat(price) <= 0) {
         const fallback = variantPriceMap.get(p.id);
         if (fallback && fallback > 0) {
-          price = (Math.round(fallback * 1.40 * 100) / 100).toFixed(2);
+          price = (Math.round(fallback * marginMultiplier * 100) / 100).toFixed(2);
         }
       }
 

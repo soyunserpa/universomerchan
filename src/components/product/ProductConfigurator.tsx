@@ -16,8 +16,8 @@ import { useEffect } from "react";
 // CONSTANTS
 // ============================================================
 
-// Default margins (in production these come from admin_settings via API)
-const MARGINS = { productMarginPct: 40, printMarginPct: 50, clientDiscountPct: 0 };
+// Default margins — overridden by product.margins (resolved per-category from DB)
+const DEFAULT_MARGINS = { productMarginPct: 40, printMarginPct: 50, clientDiscountPct: 0 };
 const CANVAS_SIZE = 600;
 
 // ============================================================
@@ -161,6 +161,13 @@ interface Props {
 }
 
 export function ProductConfigurator({ product }: Props) {
+  // Use per-category margins from server, falling back to defaults
+  const MARGINS = useMemo(() => ({
+    productMarginPct: product.margins?.productMarginPct ?? DEFAULT_MARGINS.productMarginPct,
+    printMarginPct: product.margins?.printMarginPct ?? DEFAULT_MARGINS.printMarginPct,
+    clientDiscountPct: DEFAULT_MARGINS.clientDiscountPct,
+  }), [product.margins]);
+
   const { addItem } = useCart();
   const { user } = useAuth();
   const canvasEditorRef = useRef<CanvasEditorRef>(null);
