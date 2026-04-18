@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/database";
-import { products, users } from "@/lib/schema";
-import { eq, sql } from "drizzle-orm";
+import { products, users, adminSettings } from "@/lib/schema";
+import { eq, sql, and, notInArray } from "drizzle-orm";
 
 const N8N_SECRET = process.env.N8N_WEBHOOK_SECRET || "n8n_super_secret_universe_123!";
 
@@ -22,7 +22,18 @@ export async function GET(req: Request) {
       .from(users)
       .where(eq(users.role, "customer"));
 
-    // 2. Fetch 15 random visible, printable products
+    // 1.5 Fetch Flyer History to prevent repetition (last 15 items config)
+    const historySetting = await db.select().from(adminSettings).where(eq(adminSettings.key, "flyer_history"));
+    let historicalCodes: string[] = [];
+    if (historySetting.length > 0) {
+       try { historicalCodes = JSON.parse(historySetting[0].value) || []; } catch(e){}
+    }
+
+    // 2. Fetch 15 random visible products, explicitly EXCLUDING historical ones
+    const productFilter = historicalCodes.length > 0 
+      ? and(eq(products.isVisible, true), notInArray(products.masterCode, historicalCodes))
+      : eq(products.isVisible, true);
+
     const candidateProducts = await db.select({
       masterCode: products.masterCode,
       productName: products.productName,
@@ -32,7 +43,7 @@ export async function GET(req: Request) {
       categoryLevel1: products.categoryLevel1
     })
     .from(products)
-    .where(eq(products.isVisible, true))
+    .where(productFilter)
     .orderBy(sql`RANDOM()`)
     .limit(15);
 
@@ -97,11 +108,28 @@ export async function GET(req: Request) {
       });
     }
 
+    // 4. Save newly selected products to memory (Keep max 15 to allow 5 weeks of rotation)
+    if (topProducts.length > 0) {
+      const newChosenCodes = topProducts.map(p => p.masterCode);
+      const updatedHistory = [...newChosenCodes, ...historicalCodes].slice(0, 15);
+      
+      await db.insert(adminSettings)
+        .values({
+           key: "flyer_history",
+           value: JSON.stringify(updatedHistory),
+           description: "Historial de productos del flyer para evitar repetidos semanales"
+        })
+        .onConflictDoUpdate({
+           target: adminSettings.key,
+           set: { value: JSON.stringify(updatedHistory), updatedAt: new Date() }
+        });
+    }
+
     return NextResponse.json({
       success: true,
       customers: customerList,
       products: topProducts,
-      debugInfo: candidateProducts
+      debugInfo: { candidateCount: candidateProducts.length, excluded: historicalCodes }
     });
 
   } catch (error: any) {
