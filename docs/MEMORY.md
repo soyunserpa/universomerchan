@@ -2,6 +2,8 @@
 
 Este documento guarda un registro estructurado de las grandes modificaciones y nuevas capacidades que Universo Merchan ha adquirido esta semana para que sirva de contexto para futuros desarrollos.
 
+> 🗺️ **VER MAPA DE ARQUITECTURA DETALLADO:** Para conocer todas las rutas de la App separadas por roles y su lógica interna, consulta [`docs/PROJECT_MAP.md`](./PROJECT_MAP.md).
+
 ---
 
 ### 1. Sistema Automatizado de Blog & LinkedIn Nativos
