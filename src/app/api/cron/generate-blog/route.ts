@@ -326,7 +326,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
           // --- STEP 3: Create Post ---
           let postText = articleData.linkedinPost || `Nuevo artículo en el blog.`;
           // The user specifically wants the text string in the post, and because of 403 Forbidden errors with socialActions API, we also explicitly inject the link as fallback.
-          postText = `\${postText}\n\n👇 Enlace de la entrada completa en el primer comentario (o aquí debajo):\n🔗 \${absoluteUrl}`;
+          postText = `${postText}\n\n👇 Enlace de la entrada completa en el primer comentario (o aquí debajo):\n🔗 ${absoluteUrl}`;
           
           const linkedinPayload = {
             author: authorUrn,
