@@ -10,7 +10,7 @@ Este documento guarda un registro estructurado de las grandes modificaciones y n
 - **El Cambio:** El Google Apps Script (obsoleto y propenso a ser bloqueado por Cloudflare 1015) se deshabilitó para la publicación de blogs.
 - **La Nueva Arquitectura:** El blog y su promoción en redes está 100% alojado de forma nativa en el servidor (VPS) de Next.js mediante el endpoint `/api/cron/generate-blog/route.ts`.
 - **Ejecución Crontab:** El servidor Linux dispara un Cronjob de forma autónoma todos los días a las `0 7 * * *` (09:00 AM Hora de Madrid).
-- **Control de API LinkedIn:** Dado que el Endpoint de Comentarios devolvía `403 Forbidden` (por las restricciones estrictas de permisos sociales de LinkedIn en 2026) y `426 Upgrade Required`, se ha **actualizado la versión de API a 202604**. Además, la llamada a la acción (`👇 Enlace de la entrada completa...`) y la **URL del blog se incrustan nativamente dentro del cuerpo del texto general de los posts de LinkedIn**.
+- **Control de API LinkedIn:** Dado que el Endpoint de Comentarios devolvía `403 Forbidden` (por restricciones de permisos sociales de la API de LinkedIn en 2026), se ha **actualizado la versión de API a 202604**. Sin embargo, al confirmarse la falta de scope para comentarios, **se eliminaron todas las frases de "enlace en el primer comentario"** y en su lugar, la URL del blog se incrusta limpia y de forma permanente en el cuerpo principal de todos los posts para asegurar el SEO sin generar confusión.
 
 ### 2. Memoria Inteligente del Flyer (WhatsApp)
 - **El Problema:** El antiguo seleccionador de flyers (`/api/webhooks/flyer-data`) arrastraba productos aleatorios con riesgo de repetirlos entre semanas.
