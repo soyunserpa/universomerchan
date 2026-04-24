@@ -72,6 +72,7 @@ export async function checkAbandonedCarts(): Promise<{
     const totalPrice = `${parseFloat(order.totalPrice?.toString() || "0").toFixed(2)} €`;
 
     const sent = await sendCartAbandonedEmail(user.email, {
+      orderId: order.id,
       firstName: user.firstName || "Cliente",
       items,
       totalPrice,
@@ -80,16 +81,6 @@ export async function checkAbandonedCarts(): Promise<{
 
     if (sent) {
       emailsSent24h++;
-      // @ts-ignore - Bypass Drizzle ORM strict type inference bug
-      await db.insert(schema.emailLog).values({
-        recipientEmail: user.email,
-        recipientType: "customer",
-        emailType: "cart_abandoned",
-        subject: "Tienes productos esperándote",
-        orderId: order.id,
-        sentAt: new Date(),
-        deliveryStatus: "sent",
-      });
     }
   }
 
@@ -134,6 +125,7 @@ export async function checkAbandonedCarts(): Promise<{
     const totalPrice = `${parseFloat(order.totalPrice?.toString() || "0").toFixed(2)} €`;
 
     const sent = await sendCartAbandonedEmail(user.email, {
+      orderId: order.id,
       firstName: user.firstName || "Cliente",
       items,
       totalPrice,
@@ -142,15 +134,6 @@ export async function checkAbandonedCarts(): Promise<{
 
     if (sent) {
       emailsSent72h++;
-      await db.insert(schema.emailLog).values({
-        recipientEmail: user.email,
-        recipientType: "customer",
-        emailType: "cart_abandoned",
-        subject: "Tienes productos esperándote (recordatorio)",
-        orderId: order.id,
-        sentAt: new Date(),
-        deliveryStatus: "sent",
-      });
     }
   }
 
