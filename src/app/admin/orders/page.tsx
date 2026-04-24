@@ -46,7 +46,7 @@ export default function AdminOrdersPage() {
   useEffect(() => { fetchOrders(); }, [filter, search, page]);
 
   const filters = [
-    { v: "all", l: "Todos" }, { v: "paid", l: "Pagados" }, { v: "submitted", l: "En Midocean" },
+    { v: "all", l: "Todos" }, { v: "draft", l: "Borradores" }, { v: "paid", l: "Pagados" }, { v: "submitted", l: "En Midocean" },
     { v: "proof_pending", l: "Proof pendiente" }, { v: "in_production", l: "Producción" },
     { v: "shipped", l: "Enviados" }, { v: "completed", l: "Completados" }, { v: "error", l: "Errores" },
   ];
