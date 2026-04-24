@@ -204,6 +204,20 @@ export async function createCheckoutSession(params: {
 }): Promise<{ sessionUrl: string; sessionId: string }> {
   const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost } = params;
 
+  // EMERGENCY BYPASS: If no Stripe key is configured, do not crash. Save the order as pending_transfer.
+  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.trim() === "") {
+    console.warn(`[Checkout] STRIPE_SECRET_KEY is missing! Bypassing Stripe for order ${orderNumber} to prevent order loss.`);
+    await db.update(schema.orders).set({
+      status: "pending_transfer",
+      updatedAt: new Date(),
+    }).where(eq(schema.orders.id, orderId));
+
+    return {
+      sessionUrl: `${SITE_URL}/checkout/success?order=${orderNumber}`,
+      sessionId: `offline_transfer_${Date.now()}_${orderId}`
+    };
+  }
+
   // ── TAX RATES (IVA 21%) ────────────────────────────────────
   const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
   let ivaRate = taxRatesList.data.find(t => t.percentage === 21 && t.display_name === "IVA");
