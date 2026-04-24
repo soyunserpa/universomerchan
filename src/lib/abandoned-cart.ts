@@ -19,32 +19,41 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.co
 
 // ============================================================
 // Check for abandoned draft orders (created but never paid)
+// Now heavily batched: Sends at 10 AM (Madrid) for all of yesterday.
 // ============================================================
 
 export async function checkAbandonedCarts(): Promise<{
   emailsSent24h: number;
   emailsSent72h: number;
 }> {
+  const now = new Date();
   let emailsSent24h = 0;
   let emailsSent72h = 0;
 
-  const now = new Date();
+  // We only want to execute the mail blast at 10:00 AM Europe/Madrid
+  const madridFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false });
+  const madridHour = parseInt(madridFormatter.format(now), 10);
 
-  // ── 24-hour reminder ───────────────────────────────────────
-  // Orders in "draft" status created 24-26 hours ago (2h window)
-  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const twentySixHoursAgo = new Date(now.getTime() - 26 * 60 * 60 * 1000);
+  if (madridHour !== 10) {
+    console.log(`[Abandoned Carts] Current Madrid hour is ${madridHour}. Skips mail blast until 10 AM.`);
+    return { emailsSent24h, emailsSent72h };
+  }
 
-  const abandoned24h = await db.query.orders.findMany({
+  // ── "Next Day" reminder (Day 1) at 10 AM ─────────────
+  // A cart abandoned yesterday at 23:59 is ~10 hours old at 10 AM.
+  // A cart abandoned yesterday at 00:00 is ~34 hours old at 10 AM.
+  const tenHoursAgo = new Date(now.getTime() - 10 * 60 * 60 * 1000);
+  const thirtyFourHoursAgo = new Date(now.getTime() - 34 * 60 * 60 * 1000);
+
+  const abandonedDay1 = await db.query.orders.findMany({
     where: and(
       eq(schema.orders.status, "draft"),
-      lt(schema.orders.createdAt, twentyFourHoursAgo),
-      gt(schema.orders.createdAt, twentySixHoursAgo),
+      lt(schema.orders.createdAt, tenHoursAgo),
+      gt(schema.orders.createdAt, thirtyFourHoursAgo),
     ),
   });
 
-  for (const order of abandoned24h) {
-    // Check if we already sent a 24h reminder
+  for (const order of abandonedDay1) {
     const alreadySent = await db.query.emailLog.findFirst({
       where: and(
         eq(schema.emailLog.orderId, order.id),
@@ -59,7 +68,6 @@ export async function checkAbandonedCarts(): Promise<{
     });
     if (!user?.email) continue;
 
-    // Get order lines for the email
     const lines = await db.query.orderLines.findMany({
       where: eq(schema.orderLines.orderId, order.id),
     });
@@ -79,26 +87,23 @@ export async function checkAbandonedCarts(): Promise<{
       cartUrl: `${SITE_URL}/cart?restore=${order.orderNumber}`,
     });
 
-    if (sent) {
-      emailsSent24h++;
-    }
+    if (sent) emailsSent24h++;
   }
 
-  // ── 72-hour reminder ───────────────────────────────────────
-  // Orders in "draft" status created 72-74 hours ago
-  const seventyTwoHoursAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
-  const seventyFourHoursAgo = new Date(now.getTime() - 74 * 60 * 60 * 1000);
+  // ── "3 Days Later" reminder (Day 3) at 10 AM ─────────────
+  // Shift the window back by exactly 48 hours
+  const fiftyEightHoursAgo = new Date(now.getTime() - 58 * 60 * 60 * 1000); // 10h + 48h
+  const eightyTwoHoursAgo = new Date(now.getTime() - 82 * 60 * 60 * 1000); // 34h + 48h
 
-  const abandoned72h = await db.query.orders.findMany({
+  const abandonedDay3 = await db.query.orders.findMany({
     where: and(
       eq(schema.orders.status, "draft"),
-      lt(schema.orders.createdAt, seventyTwoHoursAgo),
-      gt(schema.orders.createdAt, seventyFourHoursAgo),
+      lt(schema.orders.createdAt, fiftyEightHoursAgo),
+      gt(schema.orders.createdAt, eightyTwoHoursAgo),
     ),
   });
 
-  for (const order of abandoned72h) {
-    // Check if we already sent a 72h reminder
+  for (const order of abandonedDay3) {
     const remindersSent = await db.query.emailLog.findMany({
       where: and(
         eq(schema.emailLog.orderId, order.id),
@@ -106,7 +111,7 @@ export async function checkAbandonedCarts(): Promise<{
       ),
     });
 
-    if (remindersSent.length >= 2) continue; // Already sent both reminders
+    if (remindersSent.length >= 2) continue; // Already received both
 
     const user = await db.query.users.findFirst({
       where: eq(schema.users.id, order.userId),
@@ -132,14 +137,9 @@ export async function checkAbandonedCarts(): Promise<{
       cartUrl: `${SITE_URL}/cart?restore=${order.orderNumber}`,
     });
 
-    if (sent) {
-      emailsSent72h++;
-    }
+    if (sent) emailsSent72h++;
   }
 
-  console.log(
-    `[Abandoned Carts] Sent ${emailsSent24h} emails (24h) + ${emailsSent72h} emails (72h)`
-  );
-
+  console.log(`[Abandoned Carts] Sent ${emailsSent24h} emails (Day 1) + ${emailsSent72h} emails (Day 3) @ 10:00 AM Madrid`);
   return { emailsSent24h, emailsSent72h };
 }
