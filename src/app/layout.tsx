@@ -17,6 +17,7 @@ import { CookieBanner } from "@/components/layout/CookieBanner";
 import { ChatbotBubble } from "@/components/chatbot/ChatbotBubble";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
