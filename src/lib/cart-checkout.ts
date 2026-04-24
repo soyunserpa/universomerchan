@@ -306,7 +306,7 @@ export async function createCheckoutSession(params: {
         funding_type: "bank_transfer",
         bank_transfer: { 
           type: "eu_bank_transfer",
-          eu_bank_transfer: { country: "ES" }
+          eu_bank_transfer: { country: "DE" }
         },
       },
     } : undefined,
