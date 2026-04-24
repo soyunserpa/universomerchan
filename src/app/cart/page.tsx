@@ -1,21 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Gift, Trash2, Minus, Plus, ArrowLeft, ArrowRight, ShoppingCart,
   Download, Tag, Palette, Package, ShieldCheck, Truck, CreditCard,
+  RefreshCw
 } from "lucide-react";
 
-export default function CartPage() {
-  const { state, removeItem, updateQuantity, clearCart, subtotal, itemCount, totalItems } = useCart();
+function CartContent() {
+  const { state, removeItem, updateQuantity, clearCart, subtotal, itemCount, totalItems, restoreFromOrder } = useCart();
   const { isAuthenticated, user, token } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteMessage, setQuoteMessage] = useState("");
+
+  useEffect(() => {
+    const restoreOrder = searchParams.get("restore");
+    if (restoreOrder) {
+      restoreFromOrder(restoreOrder).catch(() => {});
+      router.replace("/cart");
+    }
+  }, [searchParams, restoreFromOrder, router]);
   
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -320,5 +330,13 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><RefreshCw className="animate-spin text-brand-red w-8 h-8" /></div>}>
+      <CartContent />
+    </Suspense>
   );
 }
