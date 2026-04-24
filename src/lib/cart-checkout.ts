@@ -304,7 +304,10 @@ export async function createCheckoutSession(params: {
     payment_method_options: paymentMethod === "transfer" ? {
       customer_balance: {
         funding_type: "bank_transfer",
-        bank_transfer: { type: "eu_bank_transfer" },
+        bank_transfer: { 
+          type: "eu_bank_transfer",
+          eu_bank_transfer: { country: "ES" }
+        },
       },
     } : undefined,
 
