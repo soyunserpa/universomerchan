@@ -160,7 +160,7 @@ export async function notifyAdminProofRejected(d: { orderId?: number; orderNumbe
 }
 
 export async function notifyAdminOrderError(d: { orderId?: number; orderNumber: string; errorType: string; message: string }) {
-  return sendEmail({ emailType: "admin_order_error", recipientType: "admin", orderId: d.orderId, to: ADMIN_EMAIL, subject: `Error: ${d.orderNumber}`, html: T(`<h2>Error en pedido</h2><div class="ab" style="background:#FEE2E2"><p><strong>Pedido:</strong> ${d.orderNumber}</p><p><strong>Tipo:</strong> ${d.errorType}</p><p><strong>Detalle:</strong> ${d.message}</p></div>`) });
+  return sendEmail({ emailType: "admin_order_error", recipientType: "admin", orderId: d.orderId, to: "universomerchan7@gmail.com", subject: `Error: ${d.orderNumber}`, html: T(`<h2>Error en pedido</h2><div class="ab" style="background:#FEE2E2"><p><strong>Pedido:</strong> ${d.orderNumber}</p><p><strong>Tipo:</strong> ${d.errorType}</p><p><strong>Detalle:</strong> ${d.message}</p></div>`) });
 }
 
 export async function notifyAdminOrderShipped(d: { orderId?: number; orderNumber: string; clientName: string; trackingNumber: string }) {
