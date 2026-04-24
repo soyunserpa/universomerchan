@@ -1,7 +1,7 @@
 "use client";
 
 import posthog from "posthog-js";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 if (typeof window !== "undefined") {
@@ -12,16 +12,16 @@ if (typeof window !== "undefined") {
   if (posthogKey && posthogKey !== "phc_your_key_here") {
     posthog.init(posthogKey, {
       api_host: posthogHost,
-      person_profiles: "identified_only", // or "always" to capture profiles for all users
+      person_profiles: "identified_only",
       loaded: (posthog) => {
         if (process.env.NODE_ENV === "development") posthog.debug(false);
       },
-      capture_pageview: false // we handle this manually below
+      capture_pageview: false 
     });
   }
 }
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+function PostHogPageView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -37,5 +37,16 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, searchParams]);
 
-  return <>{children}</>;
+  return null;
+}
+
+export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <PostHogPageView />
+      </Suspense>
+      {children}
+    </>
+  );
 }
