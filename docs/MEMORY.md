@@ -21,6 +21,9 @@ Este documento guarda un registro estructurado de las grandes modificaciones y n
 - **Integración Global:** Se ha inyectado el pixel avanzado e invisible (ID: `s21obhozfe`) de Microsoft Clarity en el nodo maestro `<head>` de la tienda mediante carga asíncrona (`src/app/layout.tsx`), asegurando coste cero de retraso en la página web.
 - **Panel Intranet:** Se ha inaugurado la funcionalidad de **Mapas de Calor** en el panel de Administrador bajo la ruta de `/admin/clarity`. Debido a las políticas antibot de los iFrames puros de Microsoft, incluye un redireccionamiento cifrado a pantalla completa para el administrador.
 
-### 4. Prueba Social Genuina: Google My Business en Home
+### 5. Configuración de Interfaz Admin y Filtros
+- **Filtro de Carritos Abandonados:** Se añadió el filtro explícito de `Borradores` (`draft`) directamente al panel de `/admin/orders` para facilitar el rescate rápido y visibilidad de los leads de carritos abandonados.
+
+### 6. Prueba Social Genuina: Google My Business en Home
 - **La Mejora de Confianza:** La sección inferior de Reseñas ha saltado de los placeholders artificiales a reviews orgánicos recolectados en abril del propio perfil público en Google Maps de Universo Merchan.
 - **Detalles Importantes:** En la zona frontal principal de la web ahora figuran valoraciones textualmente orgánicas de grandes cuentas como Julio Llopis, Maria Alejandra o Natalia Scalici con sus roles reales con una acreditación rotunda de **5 de 5 estrellas en su medalla verificada de Google**. 
