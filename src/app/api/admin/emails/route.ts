@@ -20,15 +20,17 @@ export async function GET(req: NextRequest) {
         const countResult = await db.execute(
             sql`SELECT COUNT(*) as total FROM email_log ${whereClause}`
         );
-        const total = parseInt((countResult.rows[0] as any)?.total || "0");
+        const countArray = Array.isArray(countResult) ? countResult : (countResult as any).rows;
+        const total = parseInt((countArray?.[0] as any)?.total || "0");
 
         // Get logs
-        const logs = await db.execute(
+        const logsResult = await db.execute(
             sql`SELECT * FROM email_log ${whereClause} ORDER BY sent_at DESC LIMIT ${limit} OFFSET ${offset}`
         );
+        const logs = Array.isArray(logsResult) ? logsResult : (logsResult as any).rows;
 
         return NextResponse.json({
-            logs: logs.rows,
+            logs: logs || [],
             total,
             page,
             totalPages: Math.ceil(total / limit),
