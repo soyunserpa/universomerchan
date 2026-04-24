@@ -106,6 +106,8 @@ function CheckoutAddressPage() {
   const baseTotal = subtotal - discountAmount + finalShippingCost;
   const taxAmount = baseTotal * 0.21;
   const finalTotal = baseTotal + taxAmount;
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -127,6 +129,7 @@ function CheckoutAddressPage() {
           customerNotes: notes || undefined,
           userId: user?.id,
           couponCode: couponCode || undefined,
+          paymentMethod, // NEW: send payment method choice
         }),
       });
 
@@ -257,6 +260,37 @@ function CheckoutAddressPage() {
             </div>
           </div>
 
+          {/* Payment Method Selection */}
+          <div className="bg-white rounded-2xl border border-surface-200 p-6">
+             <h2 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
+                <CreditCard size={18} className="text-brand-red" /> Método de pago
+             </h2>
+             <div className="space-y-3">
+                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "card" ? "border-brand-red bg-brand-red/5" : "border-surface-200 hover:border-surface-300"}`}>
+                   <input type="radio" name="paymentMethod" value="card" checked={paymentMethod === "card"} onChange={() => setPaymentMethod("card")} className="mt-1 w-4 h-4 accent-brand-red cursor-pointer" />
+                   <div className="flex flex-col gap-1 w-full">
+                      <div className="flex items-center justify-between w-full">
+                        <p className="text-sm font-semibold">Pago Integrado (Recomendado)</p>
+                        <div className="flex items-center gap-1 opacity-70">
+                           <CreditCard size={14}/> <Zap size={14}/>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500">Pago instantáneo con Tarjeta de Crédito, Débito, Apple Pay y Google Pay.</p>
+                   </div>
+                </label>
+
+                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "transfer" ? "border-brand-red bg-brand-red/5" : "border-surface-200 hover:border-surface-300"}`}>
+                   <input type="radio" name="paymentMethod" value="transfer" checked={paymentMethod === "transfer"} onChange={() => setPaymentMethod("transfer")} className="mt-1 w-4 h-4 accent-brand-red cursor-pointer" />
+                   <div className="flex flex-col gap-1 w-full">
+                      <div className="flex items-center justify-between w-full">
+                        <p className="text-sm font-semibold">Transferencia Bancaria SEPA</p>
+                      </div>
+                      <p className="text-xs text-gray-500">Recibirás unas instrucciones de pago y un IBAN en la siguiente pantalla para emitir una transferencia digital manual.</p>
+                   </div>
+                </label>
+             </div>
+          </div>
+
           {/* Notes */}
           <div className="bg-white rounded-2xl border border-surface-200 p-6">
             <h2 className="font-display font-bold text-lg mb-3">Notas del pedido <span className="text-gray-400 font-normal text-sm">(opcional)</span></h2>
@@ -285,15 +319,14 @@ function CheckoutAddressPage() {
             className="w-full bg-brand-red text-white py-4 rounded-full font-semibold text-base flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50"
           >
             {loading ? (
-              <><RefreshCw size={18} className="animate-spin" /> Procesando...</>
+              <><RefreshCw size={18} className="animate-spin" /> Procesando pago...</>
             ) : (
-              <><Lock size={16} /> Pagar {finalTotal.toFixed(2)}€ con Stripe</>
+              <><Lock size={16} /> Confirmar pedido: Pago Seguro</>
             )}
           </button>
 
           <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-            <span className="flex items-center gap-1"><ShieldCheck size={12} /> Pago seguro</span>
-            <span>Visa · Mastercard · Apple Pay · Google Pay · SEPA</span>
+            <span className="flex items-center gap-1"><ShieldCheck size={12} /> Procesado con seguridad bancaria estandarizada</span>
           </div>
         </form>
 

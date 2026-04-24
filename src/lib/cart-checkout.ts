@@ -195,14 +195,16 @@ export async function createOrderFromCart(params: {
 export async function createCheckoutSession(params: {
   orderId: number;
   orderNumber: string;
+  customerName: string;
   customerEmail: string;
   totalPrice: number;
   items: CartItem[];
   expressShipping: boolean;
   couponCode?: string;
   finalShippingCost: number;
+  paymentMethod?: "card" | "transfer";
 }): Promise<{ sessionUrl: string; sessionId: string }> {
-  const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost } = params;
+  const { orderId, orderNumber, customerName, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost, paymentMethod } = params;
 
   // ── TAX RATES (IVA 21%) ────────────────────────────────────
   const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
@@ -273,9 +275,21 @@ export async function createCheckoutSession(params: {
     }
   }
 
-  const session = await stripe.checkout.sessions.create({
+  let stripeCustomerId: string | undefined = undefined;
+
+  // SEPA (Bank Transfer) inherently requires a Customer object in Stripe.
+  if (paymentMethod === "transfer") {
+    const existingSearch = await stripe.customers.list({ email: customerEmail, limit: 1 });
+    if (existingSearch.data.length > 0) {
+      stripeCustomerId = existingSearch.data[0].id;
+    } else {
+      const newCustomer = await stripe.customers.create({ email: customerEmail, name: customerName });
+      stripeCustomerId = newCustomer.id;
+    }
+  }
+
+  const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
-    customer_email: customerEmail,
     line_items: lineItems,
     metadata: {
       order_id: String(orderId),
@@ -285,8 +299,14 @@ export async function createCheckoutSession(params: {
     cancel_url: `${SITE_URL}/checkout/cancel?order=${orderNumber}`,
     locale: "es",
 
-    // Card = Visa/MC/Amex + Apple Pay + Google Pay
-    payment_method_types: ["card"],
+    payment_method_types: paymentMethod === "transfer" ? ["customer_balance"] : ["card"],
+    
+    payment_method_options: paymentMethod === "transfer" ? {
+      customer_balance: {
+        funding_type: "bank_transfer",
+        bank_transfer: { type: "eu_bank_transfer" },
+      },
+    } : undefined,
 
     // Auto-generate invoice (useful for B2B clients with CIF)
     invoice_creation: {
@@ -301,11 +321,12 @@ export async function createCheckoutSession(params: {
 
     // Collect billing address (needed for invoices)
     billing_address_collection: "required",
-
+    
     // Phone number for shipping coordination
     phone_number_collection: {
       enabled: true,
     },
+
 
     // Shipping options dynamically updated via finalShippingCost
     shipping_options: [
@@ -324,7 +345,16 @@ export async function createCheckoutSession(params: {
         },
       },
     ],
-  });
+  };
+
+  // Stripe validation strictly prohibits using both customer and customer_email
+  if (stripeCustomerId) {
+    sessionConfig.customer = stripeCustomerId;
+  } else {
+    sessionConfig.customer_email = customerEmail;
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionConfig);
 
   // Update order with Stripe session
   await db.update(schema.orders).set({
