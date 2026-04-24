@@ -224,6 +224,16 @@ export default function CRMDashboard() {
                             <Phone size={11} /> {lead.phone}
                           </a>
                         )}
+                        <a 
+                          href={`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_KEY || 'current'}/person/${lead.email}#recordings`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Ver grabaciones de sesión en PostHog"
+                          className="bg-red-50 text-brand-red hover:bg-brand-red hover:text-white transition-colors px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 w-max mt-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                          VER VÍDEOS
+                        </a>
                       </div>
                     </div>
                     

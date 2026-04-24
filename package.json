@@ -45,6 +45,7 @@
     "node-cron": "^3.0.3",
     "openai": "^6.33.0",
     "postgres": "^3.4.0",
+    "posthog-js": "^1.371.4",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-markdown": "^10.1.0",
