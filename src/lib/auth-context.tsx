@@ -82,6 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok || !data.success) return { success: false, error: data.error || "Error al iniciar sesión" };
       setToken(data.token);
       setUser(data.user);
+      
+      try {
+        if (typeof window !== "undefined" && window.posthog) {
+          window.posthog.identify(data.user.email, {
+            name: data.user.firstName + ' ' + data.user.lastName,
+            email: data.user.email
+          });
+        }
+      } catch {}
+
       return { success: true };
     } catch {
       return { success: false, error: "Error de conexión" };
@@ -99,6 +109,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok || !data.success) return { success: false, error: data.error || "Error en el registro" };
       setToken(data.token);
       setUser(data.user);
+      
+      try {
+        if (typeof window !== "undefined" && window.posthog) {
+          window.posthog.identify(data.user.email, {
+            name: data.user.firstName + ' ' + data.user.lastName,
+            email: data.user.email
+          });
+        }
+      } catch {}
+
       return { success: true };
     } catch {
       return { success: false, error: "Error de conexión" };
@@ -110,6 +130,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    
+    try {
+      if (typeof window !== "undefined" && window.posthog) {
+        window.posthog.reset();
+      }
+    } catch {}
   }, []);
 
   const updateUser = useCallback((data: Partial<User>) => {

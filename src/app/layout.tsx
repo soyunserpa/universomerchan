@@ -79,85 +79,87 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}
       </Script>
       <body className={`bg-surface-50 text-gray-900 min-h-screen font-sans antialiased ${poppins.variable}`}>
-        {/* JSON-LD: Organization + LocalBusiness structured data for Google */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@graph": [
-                {
-                  "@type": "Organization",
-                  "@id": "https://universomerchan.com/#organization",
-                  name: "Universo Merchan",
-                  url: "https://universomerchan.com",
-                  logo: {
-                    "@type": "ImageObject",
-                    url: "https://universomerchan.com/images/logo.svg",
-                  },
-                  description: "Regalos corporativos personalizados que generan emociones. +2.000 productos con entrega en menos de 10 días.",
-                  email: "pedidos@universomerchan.com",
-                  sameAs: [],
-                  contactPoint: {
-                    "@type": "ContactPoint",
-                    email: "pedidos@universomerchan.com",
-                    contactType: "sales",
-                    availableLanguage: ["Spanish"],
-                  },
-                },
-                {
-                  "@type": "LocalBusiness",
-                  "@id": "https://universomerchan.com/#localbusiness",
-                  name: "Universo Merchan",
-                  url: "https://universomerchan.com",
-                  logo: "https://universomerchan.com/images/logo.svg",
-                  image: "https://universomerchan.com/images/about-us-hero-new.webp",
-                  description: "Tienda online de merchandising y regalos corporativos personalizados. Serigrafía, grabado láser, bordado y más de 17 técnicas de impresión.",
-                  email: "pedidos@universomerchan.com",
-                  address: {
-                    "@type": "PostalAddress",
-                    addressLocality: "Madrid",
-                    addressCountry: "ES",
-                  },
-                  priceRange: "€€",
-                  currenciesAccepted: "EUR",
-                  paymentAccepted: "Credit Card, Stripe",
-                  openingHoursSpecification: {
-                    "@type": "OpeningHoursSpecification",
-                    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                    opens: "09:00",
-                    closes: "18:00",
-                  },
-                },
-                {
-                  "@type": "WebSite",
-                  "@id": "https://universomerchan.com/#website",
-                  url: "https://universomerchan.com",
-                  name: "Universo Merchan",
-                  publisher: { "@id": "https://universomerchan.com/#organization" },
-                  potentialAction: {
-                    "@type": "SearchAction",
-                    target: {
-                      "@type": "EntryPoint",
-                      urlTemplate: "https://universomerchan.com/catalog?search={search_term_string}",
+        <PostHogProvider>
+          {/* JSON-LD: Organization + LocalBusiness structured data for Google */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@graph": [
+                  {
+                    "@type": "Organization",
+                    "@id": "https://universomerchan.com/#organization",
+                    name: "Universo Merchan",
+                    url: "https://universomerchan.com",
+                    logo: {
+                      "@type": "ImageObject",
+                      url: "https://universomerchan.com/images/logo.svg",
                     },
-                    "query-input": "required name=search_term_string",
+                    description: "Regalos corporativos personalizados que generan emociones. +2.000 productos con entrega en menos de 10 días.",
+                    email: "pedidos@universomerchan.com",
+                    sameAs: [],
+                    contactPoint: {
+                      "@type": "ContactPoint",
+                      email: "pedidos@universomerchan.com",
+                      contactType: "sales",
+                      availableLanguage: ["Spanish"],
+                    },
                   },
-                },
-              ],
-            }),
-          }}
-        />
-        <AuthProvider>
-          <CartProvider>
-            <Header />
-            <MiniCart />
-            <main className="min-h-[60vh]">{children}</main>
-            <ChatbotBubble />
-            <Footer />
-            <CookieBanner />
-          </CartProvider>
-        </AuthProvider>
+                  {
+                    "@type": "LocalBusiness",
+                    "@id": "https://universomerchan.com/#localbusiness",
+                    name: "Universo Merchan",
+                    url: "https://universomerchan.com",
+                    logo: "https://universomerchan.com/images/logo.svg",
+                    image: "https://universomerchan.com/images/about-us-hero-new.webp",
+                    description: "Tienda online de merchandising y regalos corporativos personalizados. Serigrafía, grabado láser, bordado y más de 17 técnicas de impresión.",
+                    email: "pedidos@universomerchan.com",
+                    address: {
+                      "@type": "PostalAddress",
+                      addressLocality: "Madrid",
+                      addressCountry: "ES",
+                    },
+                    priceRange: "€€",
+                    currenciesAccepted: "EUR",
+                    paymentAccepted: "Credit Card, Stripe",
+                    openingHoursSpecification: {
+                      "@type": "OpeningHoursSpecification",
+                      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                      opens: "09:00",
+                      closes: "18:00",
+                    },
+                  },
+                  {
+                    "@type": "WebSite",
+                    "@id": "https://universomerchan.com/#website",
+                    url: "https://universomerchan.com",
+                    name: "Universo Merchan",
+                    publisher: { "@id": "https://universomerchan.com/#organization" },
+                    potentialAction: {
+                      "@type": "SearchAction",
+                      target: {
+                        "@type": "EntryPoint",
+                        urlTemplate: "https://universomerchan.com/catalog?search={search_term_string}",
+                      },
+                      "query-input": "required name=search_term_string",
+                    },
+                  },
+                ],
+              }),
+            }}
+          />
+          <AuthProvider>
+            <CartProvider>
+              <Header />
+              <MiniCart />
+              <main className="min-h-[60vh]">{children}</main>
+              <ChatbotBubble />
+              <Footer />
+              <CookieBanner />
+            </CartProvider>
+          </AuthProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

@@ -127,11 +127,23 @@ export default function ContactsDashboard() {
                       <a href={`mailto:${c.email}`} className="text-brand-red hover:underline font-medium flex items-center gap-1.5">
                         <Mail size={12} /> {c.email}
                       </a>
-                      {c.telefono && (
-                        <div className="text-gray-500 text-xs mt-1.5 flex items-center gap-1.5">
-                           {c.telefono}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-3 mt-2">
+                        {c.telefono && (
+                          <div className="text-gray-500 text-xs flex items-center gap-1.5">
+                            {c.telefono}
+                          </div>
+                        )}
+                        <a 
+                          href={`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_KEY || 'current'}/person/${c.email}#recordings`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Ver grabaciones de sesión en PostHog"
+                          className="bg-red-50 text-brand-red hover:bg-brand-red hover:text-white transition-colors px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                          VER VÍDEOS
+                        </a>
+                      </div>
                     </td>
                     <td className="px-6 py-4 align-top">
                       <div className="font-semibold text-gray-800">{c.empresa || "—"}</div>
