@@ -444,12 +444,23 @@ async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentInte
   }).where(eq(schema.orders.id, order.id));
 
   // If this is just a transition from pending_payment to paid (async_payment_succeeded),
-  // we do NOT want to resubmit to Midocean or decrement coupons again. We just update status and stop.
+  // we do NOT want to decrement coupons again or resend confirmation emails.
   if (order.status === "pending_payment" && isPaid) {
     console.log(`[Checkout] Order ${order.orderNumber} funds finally received`);
+    
+    // If it was a NORMAL order, we intentionally deferred the Midocean submission 
+    // until funds were settled to avoid them shipping unpaid goods.
+    if (order.orderType === "NORMAL" && !order.midoceanOrderNumber) {
+      console.log(`[Checkout] Submitting deferred NORMAL order ${order.orderNumber} to Midocean now that funds cleared`);
+      try {
+        await submitOrderToMidocean(order.id);
+      } catch (error: any) {
+        console.error(`[Checkout] Deferred submission failed for ${order.orderNumber}:`, error.message);
+      }
+    }
+    
     return;
   }
-
   // Increment coupon usage if an actual coupon code was stored
   if (order.couponCode) {
     const matchingCoupon = await db.query.coupons.findFirst({ where: eq(schema.coupons.code, order.couponCode) });
@@ -497,7 +508,11 @@ async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentInte
 
   // Submit to Midocean
   try {
-    await submitOrderToMidocean(order.id);
+    if (!isPaid && order.orderType === "NORMAL") {
+      console.log(`[Checkout] Delaying Midocean submission for pending NORMAL order ${order.orderNumber} until bank transfer clears`);
+    } else {
+      await submitOrderToMidocean(order.id);
+    }
   } catch (error: any) {
     console.error(`[Checkout] Failed to submit to Midocean: ${error.message}`);
     // Don't fail the payment — log error for admin to handle manually
