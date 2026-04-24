@@ -204,11 +204,11 @@ export async function createCheckoutSession(params: {
 }): Promise<{ sessionUrl: string; sessionId: string }> {
   const { orderId, orderNumber, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost } = params;
 
-  // EMERGENCY BYPASS: If no Stripe key is configured, do not crash. Save the order as pending_transfer.
+  // EMERGENCY BYPASS: If no Stripe key is configured, do not crash. Save the order as pending_payment.
   if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.trim() === "") {
     console.warn(`[Checkout] STRIPE_SECRET_KEY is missing! Bypassing Stripe for order ${orderNumber} to prevent order loss.`);
     await db.update(schema.orders).set({
-      status: "pending_transfer",
+      status: "pending_payment",
       updatedAt: new Date(),
     }).where(eq(schema.orders.id, orderId));
 
@@ -423,7 +423,7 @@ async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentInte
     }
   }
 
-  const newStatus = isPaid ? "paid" : "pending_transfer";
+  const newStatus = isPaid ? "paid" : "pending_payment";
 
   // Update order status
   await db.update(schema.orders).set({
@@ -433,10 +433,10 @@ async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentInte
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, order.id));
 
-  // If this is just a transition from pending_transfer to paid (async_payment_succeeded),
+  // If this is just a transition from pending_payment to paid (async_payment_succeeded),
   // we do NOT want to resubmit to Midocean or decrement coupons again. We just update status and stop.
-  if (order.status === "pending_transfer" && isPaid) {
-    console.log(`[Checkout] Order ${order.orderNumber} funds finally received via Bank Transfer`);
+  if (order.status === "pending_payment" && isPaid) {
+    console.log(`[Checkout] Order ${order.orderNumber} funds finally received`);
     return;
   }
 
