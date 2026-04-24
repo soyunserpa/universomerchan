@@ -286,16 +286,7 @@ export async function createCheckoutSession(params: {
     locale: "es",
 
     // Card = Visa/MC/Amex + Apple Pay + Google Pay
-    // customer_balance = SEPA Bank Transfers
-    payment_method_types: ["card", "customer_balance"],
-    payment_method_options: {
-      customer_balance: {
-        funding_type: "bank_transfer",
-        bank_transfer: {
-          type: "eu_bank_transfer",
-        },
-      },
-    },
+    payment_method_types: ["card"],
 
     // Auto-generate invoice (useful for B2B clients with CIF)
     invoice_creation: {
