@@ -27,3 +27,7 @@ Este documento guarda un registro estructurado de las grandes modificaciones y n
 ### 6. Prueba Social Genuina: Google My Business en Home
 - **La Mejora de Confianza:** La sección inferior de Reseñas ha saltado de los placeholders artificiales a reviews orgánicos recolectados en abril del propio perfil público en Google Maps de Universo Merchan.
 - **Detalles Importantes:** En la zona frontal principal de la web ahora figuran valoraciones textualmente orgánicas de grandes cuentas como Julio Llopis, Maria Alejandra o Natalia Scalici con sus roles reales con una acreditación rotunda de **5 de 5 estrellas en su medalla verificada de Google**. 
+
+### 7. Interceptor Global de Logs de Emails
+- **El Problema:** El Gestor de Emails (`/admin/emails`) mostraba una tabla vacía porque los correos del sistema (Bienvenida, Confirmación, Alertas Administrativas) se enviaban correctamente a través de Apps Script pero nunca se insertaban en la base de datos `email_log`.
+- **Efecto de Arquitectura:** Se ha modificado el motor base en `src/lib/email-service.ts` para capturar e inyectar de forma obligatoria en la base de datos PostgreSQL cualquier correo que salga exitosamente del sistema. Esta actualización unifica el seguimiento de correos del cliente y del administrador.
