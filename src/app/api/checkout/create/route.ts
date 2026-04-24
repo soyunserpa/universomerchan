@@ -9,13 +9,14 @@ import type { CartItem } from "@/lib/configurator-engine";
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { items, shippingAddress, expressShipping, customerNotes, userId, couponCode } = body as {
+        const { items, shippingAddress, expressShipping, customerNotes, userId, couponCode, paymentMethod } = body as {
             items: CartItem[];
             shippingAddress: { name: string; company?: string; cif?: string; street: string; postalCode: string; city: string; country: string; email: string; phone: string; };
             expressShipping?: boolean;
             customerNotes?: string;
             userId: number;
             couponCode?: string;
+            paymentMethod?: "card" | "transfer";
         };
 
         if (!items || items.length === 0) return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 });
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, orderNumber, checkoutUrl: `/checkout/success?order=${orderNumber}` });
         }
 
-        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerEmail: shippingAddress.email, totalPrice, items, expressShipping: expressShipping || false, couponCode, finalShippingCost });
+        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerName: shippingAddress.name, customerEmail: shippingAddress.email, totalPrice, items, expressShipping: expressShipping || false, couponCode, finalShippingCost, paymentMethod });
 
         return NextResponse.json({ success: true, orderNumber, checkoutUrl: sessionUrl, sessionId });
     } catch (error: any) {
