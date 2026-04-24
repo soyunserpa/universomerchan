@@ -223,7 +223,7 @@ export async function createCheckoutSession(params: {
       product_data: {
         name: item.productName,
         description: `${item.color}${item.customization ? ` — ${item.customization.positions.map(p => p.techniqueName).join(" + ")}` : ""}`,
-        images: item.productImage ? [item.productImage] : undefined,
+        images: item.productImage && !item.productImage.startsWith("data:image") && item.productImage.length < 2000 ? [item.productImage] : undefined,
       },
       unit_amount: Math.round(item.unitPriceTotal * 100), // Stripe uses cents
     },
