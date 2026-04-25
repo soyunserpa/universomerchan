@@ -174,6 +174,11 @@ export function ProductConfigurator({ product }: Props) {
 
   // State
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const changeStep = useCallback((newStep: 1 | 2 | 3) => {
+    setStep(newStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const [variantIdx, setVariantIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [baseQty, setBaseQty] = useState(1);
@@ -611,7 +616,7 @@ export function ProductConfigurator({ product }: Props) {
       {/* Step indicator */}
       <div className="flex gap-1 mb-8">
         {[{ n: 1, l: "Producto" }, { n: 2, l: "Personalización" }, { n: 3, l: "Resumen" }].map(s => (
-          <div key={s.n} className="flex-1 cursor-pointer" onClick={() => s.n <= step ? setStep(s.n as any) : null}>
+          <div key={s.n} className="flex-1 cursor-pointer" onClick={() => s.n <= step ? changeStep(s.n as any) : null}>
             <div className={`h-1 rounded-full mb-2 transition-colors duration-300 ${step >= s.n ? "bg-brand-red" : "bg-surface-200"}`} />
             <span className={`text-xs font-medium ${step === s.n ? "text-brand-red font-semibold" : "text-gray-400"}`}>
               Paso {s.n}: {s.l}
@@ -794,7 +799,7 @@ export function ProductConfigurator({ product }: Props) {
 
             <div className="flex gap-3 mt-5">
               <button
-                onClick={() => { setStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
+                onClick={() => { changeStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
                 disabled={!canProceed}
                 title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
                 className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -963,7 +968,7 @@ export function ProductConfigurator({ product }: Props) {
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact />
 
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
+              <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
               <button onClick={async () => {
                 if (canvasEditorRef.current && hasLogos) {
                   const mockups = await canvasEditorRef.current.exportAllMockups();
@@ -972,7 +977,7 @@ export function ProductConfigurator({ product }: Props) {
                 } else {
                   console.log("[DEBUG] No canvasEditorRef or no logos", !!canvasEditorRef.current, hasLogos);
                 }
-                setStep(3);
+                changeStep(3);
               }} disabled={!selectedTechnique || !hasLogos} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {selectedTechnique && hasLogos ? <>Previsualizar <Eye size={16} /></> : "Selecciona técnica y sube logo"}
               </button>
@@ -1082,7 +1087,7 @@ export function ProductConfigurator({ product }: Props) {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(selectedTechnique ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
+              <button onClick={() => changeStep(selectedTechnique ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
               <button
                 onClick={handleAddToCart}
                 disabled={isAddingToCart || !canProceed}
