@@ -8,6 +8,8 @@ export default function ProspectsPage() {
   const [industry, setIndustry] = useState("");
   const [targetEmail, setTargetEmail] = useState("");
   const [notes, setNotes] = useState("");
+  const [logoDataUrl, setLogoDataUrl] = useState<string>("");
+  const [logoFileName, setLogoFileName] = useState<string>("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [draft, setDraft] = useState<{ subject: string; htmlBody: string } | null>(null);
@@ -24,14 +26,40 @@ export default function ProspectsPage() {
     setSendSuccess(false);
 
     try {
-      const res = await fetch("/api/admin/prospects", {
+      let finalLogoUrl = "";
+      // Subir el logo temporalmente para que el email lo inyecte y genere Mockups
+      if (logoDataUrl) {
+         try {
+           const extMatch = logoFileName.match(/\.([a-zA-Z0-9]+)$/);
+           const ext = extMatch ? extMatch[1] : undefined;
+           const upRes = await fetch("/api/uploads/artwork", {
+             method: "POST", headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({
+               dataUrl: logoDataUrl,
+               ref: companyName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() + "-prospect",
+               extension: ext
+             })
+           });
+           if (upRes.ok) {
+             const upData = await upRes.json();
+             finalLogoUrl = upData.url;
+           }
+         } catch (e) {
+           console.error("No se pudo pre-subir el logo:", e);
+         }
+      }
+
+      const res = await fetch("/api/admin/prospects/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyName, industry, notes }),
+        body: JSON.stringify({ companyName, industry, notes, logoUrl: finalLogoUrl }),
       });
       const data = await res.json();
       if (data.success && data.emailDraft) {
-        setDraft(data.emailDraft);
+        setDraft({
+          subject: data.emailDraft.subject,
+          htmlBody: data.emailDraft.htmlBody
+        });
       } else {
         alert("Error de IA: " + (data.error || "Desconocido"));
       }
@@ -40,6 +68,19 @@ export default function ProspectsPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setLogoDataUrl(ev.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSend = async () => {
@@ -99,9 +140,8 @@ export default function ProspectsPage() {
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
-                <Briefcase size={14} className="text-gray-400" />
-                ¿A qué sector se dedican?
+              <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Briefcase size={14} className="text-gray-400" /> ¿A qué sector se dedican?</span>
               </label>
               <input 
                 type="text" 
@@ -110,6 +150,26 @@ export default function ProspectsPage() {
                 placeholder="Ej: Reparto a domicilio / Foodtech" 
                 className="w-full text-sm border-gray-200 rounded-lg p-2.5 focus:ring-brand-red focus:border-brand-red outline-none border"
               />
+            </div>
+
+            <div className="bg-surface-50 p-3 rounded-xl border border-surface-200">
+              <label className="block text-xs font-bold text-gray-700 mb-2 flex items-center justify-between">
+                <span>Logo de la Empresa (Para Auto-Mockup)</span>
+                {logoDataUrl && <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold">CARGADO</span>}
+              </label>
+              <div className="flex items-center gap-3">
+                {logoDataUrl && (
+                  <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1 flex-shrink-0">
+                    <img src={logoDataUrl} alt="Logo" className="w-full h-full object-contain" />
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  accept=".png,.jpg,.jpeg,.svg"
+                  onChange={handleLogoUpload}
+                  className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 transition-colors"
+                />
+              </div>
             </div>
 
             <div>
