@@ -50,7 +50,14 @@ export async function POST(req: NextRequest) {
             expiresDate: expiresAt.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }),
         });
 
-        return NextResponse.json({ success: true, quoteNumber, buyUrl, pdfUrl: `/api/quotes/${quoteNumber}/pdf`, expiresAt: expiresAt.toISOString() });
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com";
+        return NextResponse.json({ 
+            success: true, 
+            quoteNumber, 
+            buyUrl, 
+            pdfUrl: `${siteUrl}/api/quotes/${quoteNumber}/pdf`, 
+            expiresAt: expiresAt.toISOString() 
+        });
     } catch (error: any) {
         console.error("[API] Quote generation error:", error);
         return NextResponse.json({ error: "Error al generar el presupuesto" }, { status: 500 });
