@@ -58,6 +58,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (savedToken && savedUser) {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
+        
+        // Silently fetch fresh user data from API to instantly get VIP discounts
+        fetch("/api/auth/me", {
+          headers: { "Authorization": `Bearer ${savedToken}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+          }
+        })
+        .catch(console.error);
       }
     } catch {}
     setIsLoading(false);

@@ -208,8 +208,8 @@ export function ProductConfigurator({ product }: Props) {
   const [baseQty, setBaseQty] = useState(1);
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({});
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null);
-  const [numColors, setNumColors] = useState(1);
+  const [selectedTechniques, setSelectedTechniques] = useState<Record<string, string>>({});
+  const [numColorsMap, setNumColorsMap] = useState<Record<string, number>>({});
   const [logoPlacements, setLogoPlacements] = useState<LogoPlacement[]>([]);
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -344,10 +344,12 @@ export function ProductConfigurator({ product }: Props) {
   const unitProductPrice = getUnitPrice();
   const basePrice = unitProductPrice * qty;
 
-  // ── PRINT POSITION & TECHNIQUE DATA ───────────────────────
+  // ── PRINT POSITION & TECHNIQUE DATA (For UI display) ───────────
 
   const positionData = product.printPositions.find(p => p.positionId === selectedPosition);
-  const techniqueData = positionData?.techniques.find(t => t.techniqueId === selectedTechnique);
+  const currentSelectedTechnique = selectedPosition ? selectedTechniques[selectedPosition] : null;
+  const techniqueData = positionData?.techniques.find(t => t.techniqueId === currentSelectedTechnique);
+  
   const pricingType = techniqueData?.pricing?.varCosts?.length
     ? techniqueData.pricingType
     : techniqueData?.pricingType || "NumberOfColours";
@@ -356,29 +358,43 @@ export function ProductConfigurator({ product }: Props) {
   const isPositionBased = pricingType === "NumberOfPositions";
   const isColorBased = pricingType === "NumberOfColours" || pricingType === "ColourAreaRange";
 
-  // ── REAL PRINT PRICING ────────────────────────────────────
+  // ── REAL PRINT PRICING (SUMMED OVER ALL SELECTED ZONES) ────────
 
   const printMarginMultiplier = 1 + MARGINS.printMarginPct / 100;
-
-  // Calculate print area from position max dimensions
-  const printAreaMm2 = positionData ? (positionData.maxWidth * positionData.maxHeight) : 0;
-
-  // Effective colors (area-only and position-only techniques = 1)
-  const effectiveColors = (isAreaBased && !isColorBased) || isPositionBased ? 1 : numColors;
+  
+  const currentNumColors = selectedPosition ? (numColorsMap[selectedPosition] || 1) : 1;
+  const effectiveColorsUI = (isAreaBased && !isColorBased) || isPositionBased ? 1 : currentNumColors;
 
   const printCosts = useMemo(() => {
-    if (!techniqueData?.pricing) {
-      return { setupCost: 0, printCostPerUnit: 0, printCostTotal: 0 };
+    let totalSetup = 0;
+    let totalPrintPerUnit = 0;
+
+    for (const [zoneId, techId] of Object.entries(selectedTechniques)) {
+      const posData = product.printPositions.find(p => p.positionId === zoneId);
+      const tData = posData?.techniques.find(t => t.techniqueId === techId);
+      if (posData && tData && tData.pricing) {
+        const pType = tData.pricing.varCosts?.length ? tData.pricingType : (tData.pricingType || "NumberOfColours");
+        const cIsArea = pType === "AreaRange" || pType === "ColourAreaRange";
+        const cIsPos = pType === "NumberOfPositions";
+        const cIsColor = pType === "NumberOfColours" || pType === "ColourAreaRange";
+        const cCols = numColorsMap[zoneId] || 1;
+        const cEffCols = ((cIsArea && !cIsColor) || cIsPos) ? 1 : cCols;
+        const areaMm2 = posData.maxWidth * posData.maxHeight;
+
+        const pCost = calculateRealPrintCost({
+          pricing: tData.pricing,
+          pricingType: pType,
+          quantity: qty,
+          numColors: cEffCols,
+          printAreaMm2: areaMm2,
+          isRepeatOrder: false,
+        });
+        totalSetup += pCost.setupCost;
+        totalPrintPerUnit += pCost.printCostPerUnit;
+      }
     }
-    return calculateRealPrintCost({
-      pricing: techniqueData.pricing,
-      pricingType,
-      quantity: qty,
-      numColors: effectiveColors,
-      printAreaMm2,
-      isRepeatOrder: false,
-    });
-  }, [techniqueData, pricingType, qty, effectiveColors, printAreaMm2]);
+    return { setupCost: totalSetup, printCostPerUnit: totalPrintPerUnit };
+  }, [selectedTechniques, numColorsMap, product.printPositions, qty]);
 
   // Handling cost from product's print_manipulation code
   const handlingInfo = product.printPositions[0]?.handlingInfo;
@@ -388,7 +404,8 @@ export function ProductConfigurator({ product }: Props) {
   const setupCost = round(printCosts.setupCost * printMarginMultiplier);
   const printPerUnit = round(printCosts.printCostPerUnit * printMarginMultiplier);
   const printTotal = round(printPerUnit * qty);
-  const handlingTotal = selectedTechnique ? round(handlingCostPerUnit * qty * printMarginMultiplier) : 0;
+  const zonesCount = Object.keys(selectedTechniques).length;
+  const handlingTotal = round(handlingCostPerUnit * qty * printMarginMultiplier) * zonesCount;
   
   const rawTotal = basePrice + setupCost + printTotal + handlingTotal;
   const discountMultiplier = 1 - MARGINS.clientDiscountPct;
@@ -412,15 +429,13 @@ export function ProductConfigurator({ product }: Props) {
   })), [product.printPositions, variant.mainImage]);
 
   const hasLogos = logoPlacements.length > 0;
-  const activePlacements = selectedPosition 
-    ? logoPlacements.filter(lp => lp.positionId === selectedPosition)
-    : [];
+  // Active placements are ANY placements that have an explicit technique mapped to them
+  const activePlacements = logoPlacements.filter(lp => !!selectedTechniques[lp.positionId]);
   const hasActiveLogos = activePlacements.length > 0;
 
   // Sync canvas zone selection with configurator position
   const handleCanvasZoneChange = useCallback((zoneId: string) => {
     setSelectedPosition(zoneId);
-    setSelectedTechnique(null);
   }, []);
 
   // ── ADD TO CART ────────────────────────────────────────────
@@ -470,18 +485,27 @@ export function ProductConfigurator({ product }: Props) {
         }
       }
 
-      const customizationPayload = selectedTechnique && hasActiveLogos ? {
+      const customizationPayload = zonesCount > 0 && hasActiveLogos ? {
         positions: activePlacements.map(lp => {
+          const techId = selectedTechniques[lp.positionId];
+          const cols = numColorsMap[lp.positionId] || 1;
           const posData = product.printPositions.find(p => p.positionId === lp.positionId);
-          const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
+          const techData = posData?.techniques.find(t => t.techniqueId === techId);
+          
+          let pType = techData?.pricing?.varCosts?.length ? techData.pricingType : (techData?.pricingType || "NumberOfColours");
+          let cIsArea = pType === "AreaRange" || pType === "ColourAreaRange";
+          let cIsPos = pType === "NumberOfPositions";
+          let cIsColor = pType === "NumberOfColours" || pType === "ColourAreaRange";
+          let cEffCols = ((cIsArea && !cIsColor) || cIsPos) ? 1 : cols;
+          
           return {
             positionId: lp.positionId,
             positionName: posData?.description || lp.positionId,
-            techniqueId: selectedTechnique!,
-            techniqueName: techData?.name || selectedTechnique!,
+            techniqueId: techId!,
+            techniqueName: techData?.name || techId!,
             printWidthMm: posData?.maxWidth || 50,
             printHeightMm: posData?.maxHeight || 50,
-            numColors: effectiveColors,
+            numColors: cEffCols,
             pmsColors: [],
             instructions: "",
           };
@@ -491,7 +515,7 @@ export function ProductConfigurator({ product }: Props) {
         mockupUrl,
       } : null;
 
-      const orderTypePayload = selectedTechnique && hasLogos ? "PRINT" : "NORMAL";
+      const orderTypePayload = zonesCount > 0 && hasLogos ? "PRINT" : "NORMAL";
 
       if (hasSize) {
         for (const sv of sizesForColor) {
@@ -921,7 +945,7 @@ export function ProductConfigurator({ product }: Props) {
                 </div>
                 <div className="space-y-2">
                   {positionData?.techniques.map(tech => {
-                    const isSelected = selectedTechnique === tech.techniqueId;
+                    const isSelected = currentSelectedTechnique === tech.techniqueId;
                     const indicative = getTechIndicativePrice(tech);
                     
                     let displayTitle = tech.name;
@@ -935,7 +959,10 @@ export function ProductConfigurator({ product }: Props) {
                     return (
                       <button
                         key={tech.techniqueId}
-                        onClick={() => { setSelectedTechnique(tech.techniqueId); setNumColors(1); }}
+                        onClick={() => { 
+                           setSelectedTechniques(prev => ({...prev, [selectedPosition]: tech.techniqueId}));
+                           setNumColorsMap(prev => ({...prev, [selectedPosition]: 1})); 
+                         }}
                         className={`w-full p-3.5 rounded-xl border-2 text-left flex justify-between items-center transition-all ${isSelected ? "border-brand-red bg-brand-red/[0.05]" : "border-surface-200 hover:border-gray-300"}`}
                       >
                         <div>
@@ -959,15 +986,15 @@ export function ProductConfigurator({ product }: Props) {
             )}
 
             {/* 2. Colors — only for color-based techniques */}
-            {selectedTechnique && isColorBased && !isPositionBased && (
+            {currentSelectedTechnique && isColorBased && !isPositionBased && (
               <div className="mb-5 animate-slide-up">
                 <label className="text-sm font-semibold mb-2 block">2. Colores del logo</label>
                 <div className="flex gap-2">
                   {Array.from({ length: techniqueData?.maxColors || 5 }, (_, i) => i + 1).slice(0, 6).map(n => (
-                    <button key={n} onClick={() => setNumColors(n)} className={`w-10 h-10 rounded-lg border-2 font-bold text-sm transition-all ${numColors === n ? "border-brand-red bg-brand-red/10 text-brand-red" : "border-surface-200 text-gray-400"}`}>{n}</button>
+                    <button key={n} onClick={() => setNumColorsMap(prev => ({...prev, [selectedPosition]: n}))} className={`w-10 h-10 rounded-lg border-2 font-bold text-sm transition-all ${currentNumColors === n ? "border-brand-red bg-brand-red/10 text-brand-red" : "border-surface-200 text-gray-400"}`}>{n}</button>
                   ))}
                 </div>
-                {techniqueData?.pricing?.nextColourCostIndicator && numColors > 1 && (
+                {techniqueData?.pricing?.nextColourCostIndicator && currentNumColors > 1 && (
                   <div className="mt-2 text-[10px] text-gray-400">
                     1er color: {round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit * printMarginMultiplier) : 0).toFixed(2)}€/ud ·
                     Colores adicionales a precio reducido
@@ -977,7 +1004,7 @@ export function ProductConfigurator({ product }: Props) {
             )}
 
             {/* Area/Position-based info */}
-            {selectedTechnique && (isAreaBased || isPositionBased) && !isColorBased && (
+            {currentSelectedTechnique && (isAreaBased || isPositionBased) && !isColorBased && (
               <div className="mb-5 animate-slide-up">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-700">
                   <Info size={13} className="inline mr-1" />
@@ -987,7 +1014,7 @@ export function ProductConfigurator({ product }: Props) {
             )}
 
             {/* 3. Logo status */}
-            {selectedTechnique && (
+            {currentSelectedTechnique && (
               <div className="mb-5 animate-slide-up">
                 <label className="text-sm font-semibold mb-2 block flex items-center gap-2">
                   <Layers size={14} />
