@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   Gift, Trash2, Minus, Plus, ArrowLeft, ArrowRight, ShoppingCart,
   Download, Tag, Palette, Package, ShieldCheck, Truck, CreditCard,
-  RefreshCw
+  RefreshCw, FileText
 } from "lucide-react";
 
 function CartContent() {
@@ -18,6 +18,11 @@ function CartContent() {
   const searchParams = useSearchParams();
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteMessage, setQuoteMessage] = useState("");
+  const [quotePayload, setQuotePayload] = useState<{ number: string; url: string } | null>(null);
+
+  const targetThreshold = 300;
+  const progressPercent = Math.min(100, Math.round((subtotal / targetThreshold) * 100));
+  const remainingForFreeExpress = Math.max(0, targetThreshold - subtotal);
 
   useEffect(() => {
     const restoreOrder = searchParams.get("restore");
@@ -94,7 +99,8 @@ function CartContent() {
       });
       const data = await res.json();
       if (data.success) {
-        setQuoteMessage(`¡Presupuesto ${data.quoteNumber} generado con éxito! Iniciando descarga...`);
+        setQuoteMessage("");
+        setQuotePayload({ number: data.quoteNumber, url: data.pdfUrl });
         if (data.pdfUrl) {
           const a = document.createElement("a");
           a.href = data.pdfUrl;
@@ -222,6 +228,25 @@ function CartContent() {
         {/* Summary sidebar */}
         <div>
           <div className="bg-white rounded-2xl border border-surface-200 p-6 sticky top-20">
+            {/* Gamification Bar */}
+            <div className="mb-5 bg-surface-50 rounded-xl p-4 border border-surface-200">
+              {remainingForFreeExpress > 0 ? (
+                <>
+                  <p className="text-sm font-semibold mb-2 text-gray-800">¡Añade <span className="text-brand-red font-bold">{remainingForFreeExpress.toFixed(2)}€</span> para envío Express GRATIS!</p>
+                  <div className="w-full bg-surface-200 h-2.5 rounded-full overflow-hidden">
+                    <div className="bg-brand-red h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center animate-fade-in">
+                  <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
+                    <Truck size={16} />
+                  </div>
+                  <p className="text-sm font-black text-green-600">¡Envío Express GRATIS desbloqueado!</p>
+                </div>
+              )}
+            </div>
+
             <h2 className="font-display font-bold text-base mb-4">Resumen del pedido</h2>
 
             {/* Line totals */}
@@ -306,13 +331,35 @@ function CartContent() {
               <p className="text-sm text-gray-900 text-right">IVA incluido en el total estimado</p>
             </div>
 
-            {/* Checkout button */}
-            <button
-              onClick={handleCheckout}
-              className="w-full bg-brand-red text-white py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors mb-3"
-            >
-              <CreditCard size={16} /> {isAuthenticated ? "Continuar al pago" : "Iniciar sesión para comprar"}
-            </button>
+            {/* Checkout Form */}
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <button
+                onClick={handleCheckout}
+                className="w-full bg-brand-red text-white py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors shadow-md"
+              >
+                <CreditCard size={16} /> {isAuthenticated ? "Continuar al pago" : "Iniciar sesión para comprar"}
+              </button>
+
+              <button
+                onClick={handleQuote}
+                disabled={quoteLoading || applyingCoupon}
+                className="w-full bg-gray-900 text-white py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                {quoteLoading ? "Generando..." : <><Download size={16} /> Descargar Presupuesto PDF</>}
+              </button>
+            </div>
+
+            {quotePayload && (
+              <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl animate-fade-in shadow-sm">
+                <h4 className="text-sm font-bold text-emerald-800 mb-2.5">¡Listo para compartir!</h4>
+                <div className="flex flex-col gap-2">
+                  <a href={`https://wa.me/?text=${encodeURIComponent(`Aquí te dejo el presupuesto de merchandising de Universo Merchan para revisar:\n${quotePayload.url}`)}`} target="_blank" rel="noreferrer" className="w-full bg-[#25D366] text-white py-2.5 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#128C7E] transition-colors shadow-md">
+                    Compartir por WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
+            {quoteMessage && <p className="mt-3 text-sm text-center text-brand-red font-semibold bg-red-50 p-2 rounded-lg">{quoteMessage}</p>}
 
             {/* Trust badges */}
             <div className="mt-5 pt-4 border-t border-surface-100 space-y-2.5">

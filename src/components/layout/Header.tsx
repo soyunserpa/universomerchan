@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
-import { Search, ShoppingCart, User, Menu, X, Loader2 } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, Loader2, Sparkles } from "lucide-react";
 
 export function Header() {
   const pathname = usePathname();
@@ -167,21 +167,24 @@ export function Header() {
                       </div>
                     ) : searchResults.length > 0 ? (
                       <>
-                        {searchResults.map((p) => (
+                        {searchResults.map((p, index) => (
                           <Link
                             key={p.masterCode}
                             href={`/product/${p.masterCode.toLowerCase()}`}
                             onClick={() => setSearchOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2 hover:bg-surface-100 transition-colors"
+                            className={`flex items-center gap-4 px-4 py-3 hover:bg-surface-50 transition-colors border-b border-surface-100 last:border-0 group ${index === 0 ? "bg-red-50/30" : ""}`}
                           >
-                            <div className="w-10 h-10 bg-surface-100 rounded flex-shrink-0 relative overflow-hidden">
+                            <div className="w-14 h-14 bg-surface-100 rounded-lg flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-sm border border-surface-200">
                               {p.mainImage && (
                                 <img src={p.mainImage} alt={p.productName} className="object-cover w-full h-full mix-blend-multiply" />
                               )}
                             </div>
-                            <div className="flex flex-col min-w-0 flex-1">
-                              <span className="text-xs font-semibold text-gray-900 truncate">{p.productName}</span>
-                              <span className="text-[10px] text-gray-500">Desde {p.startingPriceRaw?.toFixed(2)}€</span>
+                            <div className="flex flex-col min-w-0 flex-1 justify-center">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-gray-900 truncate group-hover:text-brand-red transition-colors">{p.productName}</span>
+                                {index === 0 && <span className="bg-brand-red text-white text-[9px] uppercase tracking-widest font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm"><Sparkles size={8}/> Top</span>}
+                              </div>
+                              <span className="text-xs text-gray-500 mt-0.5 font-medium">Desde {p.startingPriceRaw?.toFixed(2)}€</span>
                             </div>
                           </Link>
                         ))}

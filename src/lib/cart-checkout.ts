@@ -96,6 +96,8 @@ export async function createOrderFromCart(params: {
   const userDiscountPct = parseFloat(user?.discountPercent?.toString() || "0");
   
   let baseShippingCost = expressShipping ? 8.00 : 0.00;
+  // Free express shipping threshold
+  if (subtotal >= 300) baseShippingCost = 0.00;
   let finalShippingCost = baseShippingCost;
 
   if (couponCode) {
