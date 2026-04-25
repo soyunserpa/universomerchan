@@ -65,7 +65,7 @@ Tienes una lista de productos en formato JSON disponible. DEBES seleccionar exac
 Reglas Inquebrantables:
 1. El correo debe ir dirigido a compras o marketing.
 2. Quien lo firma abajo del todo es "El equipo de Universo Merchan". NO firmes como Marina.
-3. NUNCA ofrezcas "muestras físicas sin coste", sólo ofrecemos "Bocetos 3D interactivos" a través de nuestro configurador usando su logotipo incrustado.
+3. NUNCA ofrezcas "muestras físicas sin coste", sólo ofrecemos "Bocetos visuales interactivos" a través de nuestro configurador usando su logotipo incrustado.
 4. El tono debe ser profesional, fresco y corto.
 5. DEBES inyectar los marcadores {{PRODUCT_1}}, {{PRODUCT_2}} y {{PRODUCT_3}} de forma intercalada en el cuerpo del HTML (por ejemplo dentro de una celda, tabla, o bloque div alineado). El backend sustituirá esas etiquetas por tarjetas completas y diseñadas con la foto, nombre y precio del producto.
 6. MUY IMPORTANTE: NO escribas tú el nombre del producto, la descripción ni los precios en el texto debajo o encima de la etiqueta {{PRODUCT_X}}. La tarjeta ya lo incluye todo. Si por algún motivo debes mencionar un precio en el saludo, usa SIEMPRE euros (€) y nunca dólares ($).
@@ -116,7 +116,7 @@ ${JSON.stringify(simplifiedCatalog, null, 2)}
       <h3 style="margin: 0 0 5px 0; font-size: 16px; color: #111827;">${p.name}</h3>
       <p style="margin: 0 0 10px 0; font-size: 13px; color: #6b7280;">Desde ${p.startingPriceRaw.toFixed(2)}€/ud</p>
       <a href="${productLink}" style="display: inline-block; background: #e50000; color: #ffffff; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold;">
-        ${logoUrl ? 'Ver con tu Logotipo (3D)' : 'Personalizar Producto'}
+        ${logoUrl ? 'Ver con tu Logotipo' : 'Personalizar Producto'}
       </a>
     </td>
   </tr>
