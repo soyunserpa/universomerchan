@@ -79,6 +79,20 @@ function T(content: string, preheader: string = ""): string {
 <div class="footer"><p>Universo Merchan · Madrid, España</p><p><a href="${SITE_URL}">universomerchan.com</a> · pedidos@universomerchan.com</p><p style="margin-top:12px;color:#666">Producción 80% europea · Entrega &lt;10 días</p></div></div></body></html>`;
 }
 
+// ── PROSPECT EMAILS ──────────────────────────────────────
+export async function sendProspectEmail(to: string, subject: string, htmlContent: string) {
+  // Wrap the htmlContent in the standard Layout (T) 
+  // but since it's a prospect, we might just want to send it directly so it looks like a plain email!
+  // It's a hack: if we don't use 'T(htmlContent)', it sends raw HTML.
+  return sendEmail({
+    emailType: "cold_prospect",
+    recipientType: "customer",
+    to,
+    subject,
+    html: htmlContent // Raw direct inject so it looks like a manual email, not a newsletter
+  });
+}
+
 // ── CUSTOMER EMAILS ──────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, firstName: string) {
