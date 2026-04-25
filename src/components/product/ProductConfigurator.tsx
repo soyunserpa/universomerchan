@@ -349,6 +349,7 @@ export function ProductConfigurator({ product }: Props) {
   const positionData = product.printPositions.find(p => p.positionId === selectedPosition);
   const currentSelectedTechnique = selectedPosition ? selectedTechniques[selectedPosition] : null;
   const techniqueData = positionData?.techniques.find(t => t.techniqueId === currentSelectedTechnique);
+  const printAreaMm2 = positionData ? (positionData.maxWidth * positionData.maxHeight) : 0;
   
   const pricingType = techniqueData?.pricing?.varCosts?.length
     ? techniqueData.pricingType
