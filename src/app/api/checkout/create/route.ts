@@ -60,7 +60,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, orderNumber, checkoutUrl: `/checkout/success?order=${orderNumber}` });
         }
 
-        const { sessionUrl, sessionId } = await createCheckoutSession({ orderId, orderNumber, customerName: shippingAddress.name, customerEmail: shippingAddress.email, totalPrice, items, expressShipping: expressShipping || false, couponCode, finalShippingCost, paymentMethod });
+        const { sessionUrl, sessionId } = await createCheckoutSession({ 
+            orderId, 
+            orderNumber, 
+            customerName: shippingAddress.name, 
+            customerEmail: shippingAddress.email, 
+            shippingAddress, 
+            totalPrice, 
+            items, 
+            expressShipping: expressShipping || false, 
+            couponCode, 
+            finalShippingCost, 
+            paymentMethod 
+        });
 
         return NextResponse.json({ success: true, orderNumber, checkoutUrl: sessionUrl, sessionId });
     } catch (error: any) {

@@ -197,6 +197,7 @@ export async function createCheckoutSession(params: {
   orderNumber: string;
   customerName: string;
   customerEmail: string;
+  shippingAddress: { name: string; company?: string; cif?: string; street: string; postalCode: string; city: string; country: string; email: string; phone: string; };
   totalPrice: number;
   items: CartItem[];
   expressShipping: boolean;
@@ -204,7 +205,7 @@ export async function createCheckoutSession(params: {
   finalShippingCost: number;
   paymentMethod?: "card" | "transfer";
 }): Promise<{ sessionUrl: string; sessionId: string }> {
-  const { orderId, orderNumber, customerName, customerEmail, totalPrice, items, expressShipping, couponCode, finalShippingCost, paymentMethod } = params;
+  const { orderId, orderNumber, customerName, customerEmail, shippingAddress, totalPrice, items, expressShipping, couponCode, finalShippingCost, paymentMethod } = params;
 
   // ── TAX RATES (IVA 21%) ────────────────────────────────────
   const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
@@ -279,11 +280,28 @@ export async function createCheckoutSession(params: {
 
   // SEPA (Bank Transfer) inherently requires a Customer object in Stripe.
   if (paymentMethod === "transfer") {
+    const stripeAddress = {
+      line1: shippingAddress.street,
+      city: shippingAddress.city,
+      postal_code: shippingAddress.postalCode,
+      country: shippingAddress.country || "ES"
+    };
+
     const existingSearch = await stripe.customers.list({ email: customerEmail, limit: 1 });
     if (existingSearch.data.length > 0) {
-      stripeCustomerId = existingSearch.data[0].id;
+      const updatedCustomer = await stripe.customers.update(existingSearch.data[0].id, {
+        name: customerName,
+        address: stripeAddress,
+        phone: shippingAddress.phone || undefined
+      });
+      stripeCustomerId = updatedCustomer.id;
     } else {
-      const newCustomer = await stripe.customers.create({ email: customerEmail, name: customerName });
+      const newCustomer = await stripe.customers.create({ 
+        email: customerEmail, 
+        name: customerName,
+        address: stripeAddress,
+        phone: shippingAddress.phone || undefined
+      });
       stripeCustomerId = newCustomer.id;
     }
   }
@@ -322,8 +340,9 @@ export async function createCheckoutSession(params: {
     // Allow promo codes if we add them later
     allow_promotion_codes: !stripeCouponId,
 
-    // Collect billing address (needed for invoices)
-    billing_address_collection: "required",
+    // Collect billing address (needed for invoices). 
+    // Auto if transfer (since we inject the address directly to the customer object)
+    billing_address_collection: paymentMethod === "transfer" ? "auto" : "required",
     
     // Phone number for shipping coordination
     phone_number_collection: {
