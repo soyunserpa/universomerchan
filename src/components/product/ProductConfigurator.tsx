@@ -177,15 +177,6 @@ function ProductConfiguratorInner({ product }: Props) {
     clientDiscountPct: user?.discountPercent ? (user.discountPercent / 100) : DEFAULT_MARGINS.clientDiscountPct,
   }), [product.margins, user?.discountPercent]);
 
-  // Hook to capture ?logo= parameter from email proposals
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    const logoParam = searchParams.get("logo");
-    if (logoParam && logoParam !== globalLogo) {
-      setGlobalLogo(logoParam, "logo-empresa.png");
-    }
-  }, [searchParams, globalLogo, setGlobalLogo]);
-
 
 
   // Track product view history
@@ -1257,9 +1248,37 @@ function ProductConfiguratorInner({ product }: Props) {
 export function ProductConfigurator(props: Props) {
   return (
     <Suspense fallback={<div className="h-40 flex items-center justify-center"><Loader2 className="animate-spin text-brand-red" /></div>}>
+      <LogoQueryHandler />
       <ProductConfiguratorInner {...props} />
     </Suspense>
   );
+}
+
+// ============================================================
+// ISOLATED LOGO QUERY HANDLER
+// ============================================================
+function LogoQueryHandler() {
+  const searchParams = useSearchParams();
+  const { globalLogo, setGlobalLogo } = useGlobalLogo();
+
+  useEffect(() => {
+    if (!searchParams) return;
+    const logoParam = searchParams.get("logo");
+    // Only dispatch setGlobalLogo if it's genuinely different to avoid loops
+    if (logoParam && logoParam !== globalLogo) {
+      setGlobalLogo(logoParam, "logo-empresa.png");
+      
+      // Clean up the URL visibly so users don't copy-paste the huge URL parameter 
+      // when sharing the link with others.
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("logo");
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [searchParams, globalLogo, setGlobalLogo]);
+
+  return null;
 }
 
 // ============================================================
