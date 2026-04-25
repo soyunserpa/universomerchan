@@ -9,7 +9,7 @@ export const maxDuration = 60;
 const ProspectEmailSchema = z.object({
   subject: z.string().describe("El asunto del correo, llamativo, corto y personalizado para B2B"),
   htmlBody: z.string().describe("El cuerpo del correo en HTML limpio. Usa tu creatividad para inyectar una propueta de 3 productos, usando variables {{PRODUCT_1}}, {{PRODUCT_2}} y {{PRODUCT_3}} donde quieras que aparezcan las tarjetas visuales de los productos en el correo."),
-  selectedMasterCodes: z.array(z.string()).describe("Exactamente 3 masterCodes seleccionados de la lista de productos proporcionados."),
+  selectedMasterCodes: z.array(z.string()).min(3).max(3).describe("Elige OBLIGATORIAMENTE 3 masterCodes seleccionados de la lista de productos proporcionados."),
 });
 
 export async function POST(req: NextRequest) {
@@ -33,17 +33,23 @@ export async function POST(req: NextRequest) {
     // --- STEP 2: Fetch Products ---
     console.log("Searching Midocean for:", searchObj.primaryKeyword);
     const productData = await getProductList({ search: searchObj.primaryKeyword, limit: 100 });
-    let candidateProducts = productData.products;
+    let candidateProducts = productData.products.filter(p => p.mainImage && p.startingPriceRaw > 0);
 
-    if (candidateProducts.length === 0) {
+    if (candidateProducts.length < 3) {
       // Fallback
-      console.log("No products found, falling back to empty search (random popular)");
+      console.log("Fewer than 3 products found, falling back to filling with random popular items");
       const fallbackData = await getProductList({ limit: 100 });
-      candidateProducts = fallbackData.products;
+      const validFallbacks = fallbackData.products.filter(p => p.mainImage && p.startingPriceRaw > 0);
+      candidateProducts = [...candidateProducts, ...validFallbacks];
     }
 
-    // Filter to products with an image and price
-    candidateProducts = candidateProducts.filter(p => p.mainImage && p.startingPriceRaw > 0);
+    // Deduplicate in case fallbacks overlap
+    const seen = new Set();
+    candidateProducts = candidateProducts.filter(p => {
+      if (seen.has(p.masterCode)) return false;
+      seen.add(p.masterCode);
+      return true;
+    });
 
     // Limit to 60 for the LLM context limits (to save tokens)
     candidateProducts = candidateProducts.slice(0, 60);
