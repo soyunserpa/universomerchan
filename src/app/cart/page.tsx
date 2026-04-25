@@ -39,12 +39,27 @@ function CartContent() {
   const [couponError, setCouponError] = useState("");
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
+  const userDiscountPct = user?.discountPercent || 0;
+
   const calculateDiscount = () => {
     if (!appliedCoupon) return 0;
+    
+    // Reverse engineer the original subtotal (since subtotal already has VIP discount applied in the product configurator)
+    const originalSubtotal = userDiscountPct > 0 
+      ? subtotal / (1 - userDiscountPct / 100) 
+      : subtotal;
+      
     if (appliedCoupon.type === "percentage") {
-      return subtotal * (appliedCoupon.value / 100);
+       const couponPct = appliedCoupon.value;
+       const extraPct = Math.max(0, couponPct - userDiscountPct);
+       if (extraPct <= 0) return 0;
+       return originalSubtotal * (extraPct / 100);
+    } else {
+       // Fixed amount coupon. VIP discount in euros is:
+       const vipDiscountEuros = originalSubtotal - subtotal;
+       const extraEuros = Math.max(0, appliedCoupon.value - vipDiscountEuros);
+       return Math.min(extraEuros, subtotal);
     }
-    return Math.min(appliedCoupon.value, subtotal);
   };
 
   const discountAmount = calculateDiscount();
@@ -62,8 +77,25 @@ function CartContent() {
       });
       const data = await res.json();
       if (data.success) {
-        setAppliedCoupon({ code: data.coupon.code, type: data.coupon.discountType, value: data.coupon.discountValue, freeShipping: data.coupon.freeShipping });
-        setCouponCode("");
+        // Validation check against VIP limit
+        const originalSub = userDiscountPct > 0 ? subtotal / (1 - userDiscountPct / 100) : subtotal;
+        
+        let validCoupon = true;
+        if (data.coupon.discountType === "percentage" && data.coupon.discountValue <= userDiscountPct) {
+            setCouponError(`Tu tarifa VIP (-${userDiscountPct}%) es mejor que este cupón.`);
+            validCoupon = false;
+        } else if (data.coupon.discountType === "fixed") {
+            const vipDiscountEuros = originalSub - subtotal;
+            if (data.coupon.discountValue <= vipDiscountEuros) {
+               setCouponError(`Tu descuento VIP te ahorra más cantidad que este cupón.`);
+               validCoupon = false;
+            }
+        }
+        
+        if (validCoupon) {
+          setAppliedCoupon({ code: data.coupon.code, type: data.coupon.discountType, value: data.coupon.discountValue, freeShipping: data.coupon.freeShipping });
+          setCouponCode("");
+        }
       } else {
         setCouponError(data.error);
       }

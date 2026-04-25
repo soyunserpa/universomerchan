@@ -7,7 +7,7 @@ import type { ProductDetailResponse } from "@/lib/catalog-api";
 import {
   Leaf, ShoppingCart, Palette, Eye, ArrowLeft,
   Check, Download, Minus, Plus, Info, Gift,
-  Layers, Loader2, Package, ShieldCheck, Handshake
+  Layers, Loader2, Package, ShieldCheck, Handshake, Star
 } from "lucide-react";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
 import { useEffect } from "react";
@@ -162,17 +162,19 @@ interface Props {
 }
 
 export function ProductConfigurator({ product }: Props) {
-  // Use per-category margins from server, falling back to defaults
-  const MARGINS = useMemo(() => ({
-    productMarginPct: product.margins?.productMarginPct ?? DEFAULT_MARGINS.productMarginPct,
-    printMarginPct: product.margins?.printMarginPct ?? DEFAULT_MARGINS.printMarginPct,
-    clientDiscountPct: DEFAULT_MARGINS.clientDiscountPct,
-  }), [product.margins]);
-
   const { addItem } = useCart();
   const { user } = useAuth();
   const { addProduct } = useRecentlyViewed();
   const canvasEditorRef = useRef<CanvasEditorRef>(null);
+
+  // Use per-category margins from server, falling back to defaults
+  const MARGINS = useMemo(() => ({
+    productMarginPct: product.margins?.productMarginPct ?? DEFAULT_MARGINS.productMarginPct,
+    printMarginPct: product.margins?.printMarginPct ?? DEFAULT_MARGINS.printMarginPct,
+    clientDiscountPct: user?.discountPercent ? (user.discountPercent / 100) : DEFAULT_MARGINS.clientDiscountPct,
+  }), [product.margins, user?.discountPercent]);
+
+
 
   // Track product view history
   useEffect(() => {
@@ -385,7 +387,10 @@ export function ProductConfigurator({ product }: Props) {
   const printPerUnit = round(printCosts.printCostPerUnit * printMarginMultiplier);
   const printTotal = round(printPerUnit * qty);
   const handlingTotal = selectedTechnique ? round(handlingCostPerUnit * qty * printMarginMultiplier) : 0;
-  const total = round(basePrice + setupCost + printTotal + handlingTotal);
+  
+  const rawTotal = basePrice + setupCost + printTotal + handlingTotal;
+  const discountMultiplier = 1 - MARGINS.clientDiscountPct;
+  const total = round(rawTotal * discountMultiplier);
   const perUnit = qty > 0 ? round(total / qty) : 0;
 
   // ── PRINT ZONES for Canvas Editor ──────────────────────────
@@ -810,7 +815,7 @@ export function ProductConfigurator({ product }: Props) {
               ) : null;
             })()}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> A mayor cantidad mayor descuento en imprenta.</span>
@@ -985,7 +990,7 @@ export function ProductConfigurator({ product }: Props) {
               </div>
             )}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact MARGINS={MARGINS} />
 
             <div className="flex gap-3 mt-4">
               <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
@@ -1101,7 +1106,14 @@ export function ProductConfigurator({ product }: Props) {
               )}
               <div className="border-t border-white/20 pt-3 mt-2 flex justify-between items-baseline">
                 <span className="font-bold">Total</span>
-                <span className="font-display font-extrabold text-3xl text-brand-red">{total.toFixed(2)}€</span>
+                <div className="flex flex-col items-end gap-0.5">
+                  {MARGINS.clientDiscountPct > 0 && (
+                    <span className="text-xs text-brand-red font-bold uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Star size={10} className="fill-brand-red" /> Tarifa VIP Aplicada
+                    </span>
+                  )}
+                  <span className="font-display font-extrabold text-3xl text-brand-red">{total.toFixed(2)}€</span>
+                </div>
               </div>
               <div className="text-right"><span className="text-xs opacity-40">{perUnit.toFixed(2)}€ / unidad</span></div>
             </div>
@@ -1176,10 +1188,10 @@ export function ProductConfigurator({ product }: Props) {
 // PRICE BOX COMPONENT
 // ============================================================
 
-function PriceBox({ basePrice, setupCost, printTotal, handlingTotal, total, perUnit, unitProductPrice, qty, hasPrint, printPerUnit, numColors, handlingPerUnit, compact }: {
+function PriceBox({ basePrice, setupCost, printTotal, handlingTotal, total, perUnit, unitProductPrice, qty, hasPrint, printPerUnit, numColors, handlingPerUnit, compact, MARGINS }: {
   basePrice: number; setupCost: number; printTotal: number; handlingTotal: number;
   total: number; perUnit: number; unitProductPrice: number; qty: number;
-  hasPrint: boolean; printPerUnit: number; numColors: number; handlingPerUnit: number; compact?: boolean;
+  hasPrint: boolean; printPerUnit: number; numColors: number; handlingPerUnit: number; compact?: boolean; MARGINS: any;
 }) {
   return (
     <div className={`bg-surface-50 rounded-2xl border border-surface-200 ${compact ? "p-4" : "p-5"}`}>
