@@ -10,6 +10,7 @@ import {
   Download, Tag, Palette, Package, ShieldCheck, Truck, CreditCard,
   RefreshCw, FileText
 } from "lucide-react";
+import { RecentlyViewedCarousel } from "@/components/product/RecentlyViewedCarousel";
 
 function CartContent() {
   const { state, removeItem, updateQuantity, clearCart, subtotal, itemCount, totalItems, restoreFromOrder } = useCart();
@@ -377,6 +378,9 @@ function CartContent() {
           </div>
         </div>
       </div>
+      
+      {/* Vistos recientemente - Cross-Selling */}
+      <RecentlyViewedCarousel />
     </div>
   );
 }
