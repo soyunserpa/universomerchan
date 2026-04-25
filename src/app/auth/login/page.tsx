@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { Gift, Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
+  )
+}
+
+function LoginContent() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParams = searchParams.get("redirect") || "/account/orders";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +32,7 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.success) {
-      router.push("/account/orders");
+      router.push(redirectParams);
     } else {
       setError(result.error || "Error al iniciar sesión");
     }
@@ -74,7 +84,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-gray-400 mt-5">
           ¿No tienes cuenta?{" "}
-          <Link href="/auth/register" className="text-brand-red font-semibold hover:underline">
+          <Link href={`/auth/register${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect") as string)}` : ""}`} className="text-brand-red font-semibold hover:underline">
             Regístrate gratis
           </Link>
         </p>
