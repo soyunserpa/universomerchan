@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
+import { useGlobalLogo } from "@/lib/global-logo-store";
 import { Search, ShoppingCart, User, Menu, X, Loader2, Sparkles } from "lucide-react";
 
 export function Header() {
@@ -16,6 +17,8 @@ export function Header() {
   const [popularSearches, setPopularSearches] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { globalLogo, globalLogoName, setGlobalLogo, clearGlobalLogo } = useGlobalLogo();
 
   const navLinks = [
     { href: "/catalog", label: "Catálogo" },
@@ -80,6 +83,17 @@ export function Header() {
     }
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setGlobalLogo(event.target?.result as string, file.name);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = ""; // reset
+  };
+
   return (
     <header className="bg-white border-b border-surface-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
@@ -107,6 +121,27 @@ export function Header() {
 
         {/* Right actions */}
         <div className="flex items-center gap-4 sm:gap-6">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/png, image/svg+xml" 
+            onChange={handleLogoUpload} 
+          />
+          {globalLogo ? (
+            <div className="hidden lg:flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full border border-purple-200 cursor-pointer hover:bg-purple-100 transition" onClick={clearGlobalLogo} title="Quitar logo global">
+              <span className="w-4 h-4 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                 <img src={globalLogo} alt="Logo" className="w-full h-full object-contain mix-blend-multiply" />
+              </span>
+              <span className="text-xs font-semibold whitespace-nowrap hidden xl:block truncate max-w-[80px]">Quitar Logo</span>
+              <X size={13} />
+            </div>
+          ) : (
+            <button onClick={() => fileInputRef.current?.click()} className="hidden lg:flex items-center gap-2 text-purple-600 hover:text-purple-800 transition-colors bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-full border border-purple-100 text-sm font-semibold">
+              <Sparkles size={14} className="animate-pulse" /> Auto-Mockup
+            </button>
+          )}
+
           {/* Search */}
           <div ref={searchContainerRef} className="relative flex items-center h-full">
             {searchOpen ? (
