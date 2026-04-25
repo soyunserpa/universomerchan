@@ -586,15 +586,24 @@ export function ProductConfigurator({ product }: Props) {
       }
 
       // Build zones data with uploaded mockup URLs (not base64)
-      const zones = logoPlacements.map(lp => {
+      const zones = activePlacements.map(lp => {
+        const techId = selectedTechniques[lp.positionId];
+        const cols = numColorsMap[lp.positionId] || 1;
         const posData = product.printPositions.find(p => p.positionId === lp.positionId);
-        const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
+        const techData = posData?.techniques.find(t => t.techniqueId === techId);
+        
+        let pType = techData?.pricing?.varCosts?.length ? techData.pricingType : (techData?.pricingType || "NumberOfColours");
+        let cIsArea = pType === "AreaRange" || pType === "ColourAreaRange";
+        let cIsPos = pType === "NumberOfPositions";
+        let cIsColor = pType === "NumberOfColours" || pType === "ColourAreaRange";
+        let cEffCols = ((cIsArea && !cIsColor) || cIsPos) ? 1 : cols;
+        
         return {
           positionId: lp.positionId,
           positionName: posData?.description || lp.positionId,
-          techniqueId: selectedTechnique || "",
-          techniqueName: techData?.name || selectedTechnique || "",
-          numColors: effectiveColors,
+          techniqueId: techId || "",
+          techniqueName: techData?.name || techId || "",
+          numColors: cEffCols,
           printWidthMm: posData?.maxWidth || 50,
           printHeightMm: posData?.maxHeight || 50,
           mockupUrl: mockupUrls[lp.positionId] || undefined,
@@ -845,7 +854,7 @@ export function ProductConfigurator({ product }: Props) {
               ) : null;
             })()}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> A mayor cantidad mayor descuento en imprenta.</span>
@@ -1038,7 +1047,7 @@ export function ProductConfigurator({ product }: Props) {
               </div>
             )}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={!!selectedTechnique} printPerUnit={printPerUnit} numColors={effectiveColors} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact MARGINS={MARGINS} />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact MARGINS={MARGINS} />
 
             <div className="flex gap-3 mt-4">
               <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
@@ -1051,8 +1060,8 @@ export function ProductConfigurator({ product }: Props) {
                   console.log("[DEBUG] No canvasEditorRef or no logos", !!canvasEditorRef.current, hasLogos);
                 }
                 changeStep(3);
-              }} disabled={!selectedTechnique || !hasLogos} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                {selectedTechnique && hasLogos ? <>Previsualizar <Eye size={16} /></> : "Selecciona técnica y sube logo"}
+              }} disabled={zonesCount === 0 || !hasLogos} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                {zonesCount > 0 && hasLogos ? <>Previsualizar <Eye size={16} /></> : "Selecciona técnica y sube logo"}
               </button>
             </div>
           </div>
@@ -1119,12 +1128,14 @@ export function ProductConfigurator({ product }: Props) {
                 ["Color", variant.color + (variant.size ? ` / ${variant.size}` : "")],
                 ["Cantidad", `${qty} unidades`],
                 ["Precio/ud producto", `${unitProductPrice.toFixed(2)}€`],
-                ...(selectedTechnique ? [
-                  ["Posición", positionData?.description || ""],
-                  ["Técnica", techniqueData?.description?.split(" — ")[0] || techniqueData?.name || ""],
-                  ...(isColorBased ? [["Colores logo", String(numColors)]] : []),
+                ...(zonesCount > 0 ? [
+                  ["Posiciones configuradas", String(zonesCount)],
                   ["Manipulación", `${handlingInfo?.description || "Estándar"} (${round(handlingCostPerUnit * printMarginMultiplier).toFixed(2)}€/ud)`],
-                  ...(hasLogos ? logoPlacements.map(lp => [`Logo (${printZones.find(z => z.positionId === lp.positionId)?.positionName || ""})`, lp.logoFileName]) : []),
+                  ...(hasActiveLogos ? activePlacements.map(lp => {
+                    const techId = selectedTechniques[lp.positionId];
+                    const tName = product.printPositions.find(p => p.positionId === lp.positionId)?.techniques.find(t => t.techniqueId === techId)?.name || techId;
+                    return [`Logo (${printZones.find(z => z.positionId === lp.positionId)?.positionName || ""})`, `${lp.logoFileName} - ${tName}`];
+                  }) : []),
                 ] : []),
               ].map(([label, value], i) => (
                 <div key={i} className="flex justify-between px-4 py-3 border-b border-surface-100 last:border-0">
@@ -1139,16 +1150,16 @@ export function ProductConfigurator({ product }: Props) {
                 <span className="opacity-60">Producto ({qty} × {unitProductPrice.toFixed(2)}€)</span>
                 <span>{basePrice.toFixed(2)}€</span>
               </div>
-              {selectedTechnique && (
+              {zonesCount > 0 && (
                 <>
                   <div className="flex justify-between mb-1.5 text-sm">
-                    <span className="opacity-60">Setup{isColorBased ? ` (${effectiveColors} col.)` : ""}</span><span>{setupCost.toFixed(2)}€</span>
+                    <span className="opacity-60">Setup (Total de posiciones)</span><span>{setupCost.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between mb-1.5 text-sm">
                     <span className="opacity-60">Impresión ({qty} × {printPerUnit.toFixed(2)}€)</span><span>{printTotal.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between mb-1.5 text-sm">
-                    <span className="opacity-60">Manipulación ({qty} × {round(handlingCostPerUnit * printMarginMultiplier).toFixed(2)}€)</span><span>{handlingTotal.toFixed(2)}€</span>
+                    <span className="opacity-60">Manipulación</span><span>{handlingTotal.toFixed(2)}€</span>
                   </div>
                 </>
               )}
@@ -1167,7 +1178,7 @@ export function ProductConfigurator({ product }: Props) {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => changeStep(selectedTechnique ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
+              <button onClick={() => changeStep(zonesCount > 0 ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
               <button
                 onClick={handleAddToCart}
                 disabled={isAddingToCart || !canProceed}
