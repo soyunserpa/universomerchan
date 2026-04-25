@@ -4,6 +4,9 @@ Este documento guarda un registro estructurado de las grandes modificaciones y n
 
 > 🗺️ **VER MAPA DE ARQUITECTURA DETALLADO:** Para conocer todas las rutas de la App separadas por roles y su lógica interna, consulta [`docs/PROJECT_MAP.md`](./PROJECT_MAP.md).
 
+> 🤖 **DIRECTIVA DE AUTO-APRENDIZAJE PARA INTELIGENCIA ARTIFICIAL:** 
+> Todo agente operando en este repositorio (Antigravity, Claude Code, etc.) tiene la obligación estricta de actualizar este archivo de manera AUTÓNOMA. Cada vez que descubras y resuelvas un fallo grave, repares un bug complejo o crees un nuevo patrón de código que no estaba aquí, DEBES añadirlo inmediatamente como un nuevo punto numerado al final de este documento describiendo el Problema y la Solución. NUNCA esperes a que el usuario te lo pida; actualiza la memoria para que tu "yo del futuro" no repita nunca el mismo fallo.
+
 ---
 
 ### 1. Sistema Automatizado de Blog & LinkedIn Nativos
