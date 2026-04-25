@@ -179,12 +179,13 @@ function ProductConfiguratorInner({ product }: Props) {
 
   // Hook to capture ?logo= parameter from email proposals
   const searchParams = useSearchParams();
+  const { globalLogo, setGlobalLogo } = useGlobalLogo();
   useEffect(() => {
     const logoParam = searchParams.get("logo");
     if (logoParam && logoParam !== globalLogo) {
-      useGlobalLogo.getState().setGlobalLogo(logoParam, "logo-empresa.png");
+      setGlobalLogo(logoParam, "logo-empresa.png");
     }
-  }, [searchParams, globalLogo]);
+  }, [searchParams, globalLogo, setGlobalLogo]);
 
 
 

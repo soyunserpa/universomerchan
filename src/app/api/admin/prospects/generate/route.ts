@@ -115,7 +115,7 @@ ${JSON.stringify(simplifiedCatalog, null, 2)}
       <h3 style="margin: 0 0 5px 0; font-size: 16px; color: #111827;">${p.name}</h3>
       <p style="margin: 0 0 10px 0; font-size: 13px; color: #6b7280;">Desde ${p.startingPriceRaw.toFixed(2)}€/ud</p>
       <a href="${productLink}" style="display: inline-block; background: #e50000; color: #ffffff; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold;">
-        ${logoUrl ? '🔎 Ver con tu Logotipo (3D)' : 'Personalizar Producto'}
+        ${logoUrl ? 'Ver con tu Logotipo (3D)' : 'Personalizar Producto'}
       </a>
     </td>
   </tr>
