@@ -67,7 +67,8 @@ function CartContent() {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      router.push("/auth/login?redirect=/cart");
+      const p = appliedCoupon ? `?coupon=${appliedCoupon.code}` : "";
+      router.push(`/auth/login?redirect=/checkout/address${p}`);
       return;
     }
     const url = appliedCoupon ? `/checkout/address?coupon=${appliedCoupon.code}` : "/checkout/address";

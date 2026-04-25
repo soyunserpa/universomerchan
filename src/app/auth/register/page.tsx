@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { Gift, Mail, Lock, User, Building2, Phone, FileText, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterContent />
+    </Suspense>
+  )
+}
+
+function RegisterContent() {
   const { register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParams = searchParams.get("redirect") || "/account/orders";
   const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", firstName: "", lastName: "", phone: "", companyName: "", cif: "", website: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +42,7 @@ export default function RegisterPage() {
     });
     setLoading(false);
 
-    if (result.success) { router.push("/account/orders"); }
+    if (result.success) { router.push(redirectParams); }
     else { setError(result.error || "Error en el registro"); }
   };
 
@@ -141,7 +151,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-gray-400 mt-5">
           ¿Ya tienes cuenta?{" "}
-          <Link href="/auth/login" className="text-brand-red font-semibold hover:underline">Inicia sesión</Link>
+          <Link href={`/auth/login${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect") as string)}` : ""}`} className="text-brand-red font-semibold hover:underline">Inicia sesión</Link>
         </p>
       </div>
     </div>
