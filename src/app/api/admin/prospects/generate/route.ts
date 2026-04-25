@@ -67,8 +67,9 @@ Reglas Inquebrantables:
 2. Quien lo firma abajo del todo es "El equipo de Universo Merchan". NO firmes como Marina.
 3. NUNCA ofrezcas "muestras físicas sin coste", sólo ofrecemos "Bocetos 3D interactivos" a través de nuestro configurador usando su logotipo incrustado.
 4. El tono debe ser profesional, fresco y corto.
-5. DEBES inyectar los marcadores {{PRODUCT_1}}, {{PRODUCT_2}} y {{PRODUCT_3}} de forma intercalada en el cuerpo del HTML (ejemplo: creando una pequeña celda, tabla, o bloque div alineado). El backend las sustituirá por las tarjetas visuales. NO dejes los marcadores fuera de etiquetas.
-6. Devuelve el HTML valid.
+5. DEBES inyectar los marcadores {{PRODUCT_1}}, {{PRODUCT_2}} y {{PRODUCT_3}} de forma intercalada en el cuerpo del HTML (por ejemplo dentro de una celda, tabla, o bloque div alineado). El backend sustituirá esas etiquetas por tarjetas completas y diseñadas con la foto, nombre y precio del producto.
+6. MUY IMPORTANTE: NO escribas tú el nombre del producto, la descripción ni los precios en el texto debajo o encima de la etiqueta {{PRODUCT_X}}. La tarjeta ya lo incluye todo. Si por algún motivo debes mencionar un precio en el saludo, usa SIEMPRE euros (€) y nunca dólares ($).
+7. Devuelve un HTML válido y limpio.
 `;
 
     const userPrompt = `
