@@ -12,6 +12,7 @@ import {
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
 import { useEffect } from "react";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
+import { useGlobalLogo } from "@/lib/global-logo-store";
 
 // ============================================================
 // CONSTANTS
@@ -165,6 +166,7 @@ export function ProductConfigurator({ product }: Props) {
   const { addItem } = useCart();
   const { user } = useAuth();
   const { addProduct } = useRecentlyViewed();
+  const { globalLogo, globalLogoName } = useGlobalLogo();
   const canvasEditorRef = useRef<CanvasEditorRef>(null);
 
   // Use per-category margins from server, falling back to defaults
@@ -861,6 +863,11 @@ export function ProductConfigurator({ product }: Props) {
                 onPlacementsChange={setLogoPlacements}
                 activeZoneId={selectedPosition}
                 onActiveZoneChange={handleCanvasZoneChange}
+                initialLogos={
+                  globalLogo && globalLogoName 
+                  ? printZones.reduce((acc, z) => ({ ...acc, [z.positionId]: { dataUrl: globalLogo, fileName: globalLogoName } }), {}) 
+                  : undefined
+                }
               />
             ) : (
               <div className="w-full aspect-square bg-surface-50 rounded-3xl relative flex items-center justify-center overflow-hidden">

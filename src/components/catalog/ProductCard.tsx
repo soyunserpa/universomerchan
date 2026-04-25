@@ -4,9 +4,11 @@ import Link from "next/link";
 import { Leaf, Palette, Star } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { useAuth } from "@/lib/auth-context";
+import { useGlobalLogo } from "@/lib/global-logo-store";
 
 export function ProductCard({ product, index, isTopVenta }: { product: CatalogProductResponse; index: number; isTopVenta?: boolean }) {
   const { user } = useAuth();
+  const { globalLogo } = useGlobalLogo();
   
   const uniqueColors = product.variants
     .filter((v, i, arr) => arr.findIndex((x) => x.color === v.color) === i)
@@ -32,9 +34,16 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
       style={{ animationDelay: `${index * 0.04}s` }}
     >
       {/* Image */}
-      <div className="w-full aspect-square bg-surface-50 flex items-center justify-center relative overflow-hidden">
+      <div className="w-full aspect-square bg-surface-50 flex items-center justify-center relative overflow-hidden group">
         {product.mainImage ? (
-          <img src={product.mainImage} alt={product.name} className="w-[68%] h-[68%] object-contain" loading="lazy" />
+          <>
+            <img src={product.mainImage} alt={product.name} className="w-[68%] h-[68%] object-contain relative z-10" loading="lazy" />
+            {globalLogo && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none opacity-80 mix-blend-multiply group-hover:scale-110 transition-transform duration-500">
+                <img src={globalLogo} alt="Logo" className="w-1/3 h-auto max-h-[30%] object-contain transform translate-y-4" />
+              </div>
+            )}
+          </>
         ) : (
           <Palette size={40} className="text-gray-200" />
         )}
