@@ -412,6 +412,10 @@ export function ProductConfigurator({ product }: Props) {
   })), [product.printPositions, variant.mainImage]);
 
   const hasLogos = logoPlacements.length > 0;
+  const activePlacements = selectedPosition 
+    ? logoPlacements.filter(lp => lp.positionId === selectedPosition)
+    : [];
+  const hasActiveLogos = activePlacements.length > 0;
 
   // Sync canvas zone selection with configurator position
   const handleCanvasZoneChange = useCallback((zoneId: string) => {
@@ -441,15 +445,15 @@ export function ProductConfigurator({ product }: Props) {
         }
       }
 
-      if (hasLogos && logoPlacements[0]?.logoDataUrl) {
+      if (hasActiveLogos && activePlacements[0]?.logoDataUrl) {
         try {
-          const extMatch = logoPlacements[0].logoFileName.match(/\\.([a-zA-Z0-9]+)$/);
+          const extMatch = activePlacements[0].logoFileName.match(/\\.([a-zA-Z0-9]+)$/);
           const ext = extMatch ? extMatch[1] : undefined;
 
           const upRes = await fetch("/api/uploads/artwork", {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              dataUrl: logoPlacements[0].logoDataUrl,
+              dataUrl: activePlacements[0].logoDataUrl,
               ref: product.masterCode + "-artwork",
               extension: ext
             })
@@ -466,11 +470,7 @@ export function ProductConfigurator({ product }: Props) {
         }
       }
 
-      const activePlacements = selectedPosition 
-        ? logoPlacements.filter(lp => lp.positionId === selectedPosition)
-        : [];
-
-      const customizationPayload = selectedTechnique && activePlacements.length > 0 ? {
+      const customizationPayload = selectedTechnique && hasActiveLogos ? {
         positions: activePlacements.map(lp => {
           const posData = product.printPositions.find(p => p.positionId === lp.positionId);
           const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
@@ -991,16 +991,16 @@ export function ProductConfigurator({ product }: Props) {
               <div className="mb-5 animate-slide-up">
                 <label className="text-sm font-semibold mb-2 block flex items-center gap-2">
                   <Layers size={14} />
-                  {hasLogos ? "Logo(s) colocados" : "Sube tu logo en el editor visual"}
+                  {hasActiveLogos ? "Logo colocado para esta zona" : "Sube tu logo en el editor visual"}
                 </label>
-                {hasLogos ? (
+                {hasActiveLogos ? (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                     <div className="flex items-center gap-2">
                       <Check size={16} className="text-green-600" />
-                      <span className="text-sm font-medium text-green-700">{logoPlacements.length} logo{logoPlacements.length > 1 ? "s" : ""} posicionado{logoPlacements.length > 1 ? "s" : ""}</span>
+                      <span className="text-sm font-medium text-green-700">{activePlacements.length} logo{activePlacements.length > 1 ? "s" : ""} posicionado{activePlacements.length > 1 ? "s" : ""}</span>
                     </div>
                     <ul className="mt-2 space-y-1">
-                      {logoPlacements.map(lp => (
+                      {activePlacements.map(lp => (
                         <li key={lp.positionId} className="text-xs text-green-600">• {lp.logoFileName} en {printZones.find(z => z.positionId === lp.positionId)?.positionName || lp.positionId}</li>
                       ))}
                     </ul>
