@@ -398,9 +398,9 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         </div>
 
         {/* Main area: Canvas + Preview side by side */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
           {/* LEFT: Print area canvas */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 w-full min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-brand-red text-white w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shadow-sm">2</span>
               <h3 className="font-bold text-gray-900 text-sm">Sube y ajusta tu logotipo</h3>
