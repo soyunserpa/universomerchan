@@ -17,7 +17,8 @@ export default function AccountProfilePage() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [formData, setFormData] = useState({
-        firstName: "", lastName: "", phone: "", companyName: "", cif: ""
+        firstName: "", lastName: "", phone: "", companyName: "", cif: "",
+        shippingStreet: "", shippingCity: "", shippingPostalCode: "", shippingCountry: "ES"
     });
 
     useEffect(() => {
@@ -28,6 +29,10 @@ export default function AccountProfilePage() {
                 phone: (user as any).phone || "",
                 companyName: user.companyName || "",
                 cif: (user as any).cif || "",
+                shippingStreet: (user as any).shippingStreet || "",
+                shippingCity: (user as any).shippingCity || "",
+                shippingPostalCode: (user as any).shippingPostalCode || "",
+                shippingCountry: (user as any).shippingCountry || "ES",
             });
         }
     }, [user]);
@@ -157,6 +162,30 @@ export default function AccountProfilePage() {
                                     <input placeholder="B12345678" className="w-full sm:w-1/2 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.cif} onChange={e => setFormData({ ...formData, cif: e.target.value })} />
                                 ) : (
                                     <div className="font-medium">{(user as any)?.cif || <span className="text-gray-400 italic">No especificado</span>}</div>
+                                )}
+                            </div>
+
+                            <div className="bg-surface-50 rounded-xl p-5 border border-surface-100 sm:col-span-2">
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Truck size={14} /> Dirección de Envío y Facturación</div>
+                                {isEditing ? (
+                                    <div className="space-y-3">
+                                        <input placeholder="Calle, número, puerta" className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingStreet} onChange={e => setFormData({ ...formData, shippingStreet: e.target.value })} />
+                                        <div className="flex gap-3">
+                                            <input placeholder="Ciudad" className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingCity} onChange={e => setFormData({ ...formData, shippingCity: e.target.value })} />
+                                            <input placeholder="C.P." className="w-1/3 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingPostalCode} onChange={e => setFormData({ ...formData, shippingPostalCode: e.target.value })} />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="font-medium">
+                                        {(user as any)?.shippingStreet ? (
+                                            <>
+                                                <p>{(user as any).shippingStreet}</p>
+                                                <p>{(user as any).shippingCity}, {(user as any).shippingPostalCode}</p>
+                                            </>
+                                        ) : (
+                                            <span className="text-gray-400 italic">Ninguna dirección guardada. Introdúcela en tu próximo pedido.</span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
