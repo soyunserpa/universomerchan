@@ -466,8 +466,12 @@ export function ProductConfigurator({ product }: Props) {
         }
       }
 
-      const customizationPayload = selectedTechnique && hasLogos ? {
-        positions: logoPlacements.map(lp => {
+      const activePlacements = selectedPosition 
+        ? logoPlacements.filter(lp => lp.positionId === selectedPosition)
+        : [];
+
+      const customizationPayload = selectedTechnique && activePlacements.length > 0 ? {
+        positions: activePlacements.map(lp => {
           const posData = product.printPositions.find(p => p.positionId === lp.positionId);
           const techData = posData?.techniques.find(t => t.techniqueId === selectedTechnique);
           return {
@@ -483,7 +487,7 @@ export function ProductConfigurator({ product }: Props) {
           };
         }),
         artworkUrl: finalArtworkUrl || "",
-        artworkFileName: logoPlacements[0]?.logoFileName || "",
+        artworkFileName: activePlacements[0]?.logoFileName || "",
         mockupUrl,
       } : null;
 
@@ -879,7 +883,17 @@ export function ProductConfigurator({ product }: Props) {
 
           <div>
             <h2 className="font-display font-extrabold text-2xl mb-2">Personaliza tu {product.name}</h2>
-            <p className="text-sm text-gray-500 mb-6">Completa los pasos en el visor para preparar tu producto.</p>
+            <p className="text-sm text-gray-500 mb-4">Completa los pasos en el visor para preparar tu producto.</p>
+
+            {globalLogo && printZones.length > 0 && (
+              <div className="mb-5 bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm flex gap-3 text-purple-800 animate-fade-in shadow-sm">
+                <span className="text-xl">✨</span>
+                <div>
+                  <p className="font-bold mb-0.5">Hemos pre-cargado tu logo</p>
+                  <p className="text-xs opacity-90">Selecciona aquí abajo el método de impresión de la parte que más te guste y dale a Pagar. Evitaremos el resto de caras para no cobrarte de más.</p>
+                </div>
+              </div>
+            )}
 
             {/* Current position indicator */}
             {selectedPosition && positionData && (
