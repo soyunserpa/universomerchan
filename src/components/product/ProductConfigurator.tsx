@@ -10,9 +10,10 @@ import {
   Layers, Loader2, Package, ShieldCheck, Handshake, Star
 } from "lucide-react";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
 import { useGlobalLogo } from "@/lib/global-logo-store";
+import { useSearchParams } from "next/navigation";
 
 // ============================================================
 // CONSTANTS
@@ -162,7 +163,7 @@ interface Props {
   product: ProductDetailResponse;
 }
 
-export function ProductConfigurator({ product }: Props) {
+function ProductConfiguratorInner({ product }: Props) {
   const { addItem } = useCart();
   const { user } = useAuth();
   const { addProduct } = useRecentlyViewed();
@@ -175,6 +176,15 @@ export function ProductConfigurator({ product }: Props) {
     printMarginPct: product.margins?.printMarginPct ?? DEFAULT_MARGINS.printMarginPct,
     clientDiscountPct: user?.discountPercent ? (user.discountPercent / 100) : DEFAULT_MARGINS.clientDiscountPct,
   }), [product.margins, user?.discountPercent]);
+
+  // Hook to capture ?logo= parameter from email proposals
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const logoParam = searchParams.get("logo");
+    if (logoParam && logoParam !== globalLogo) {
+      useGlobalLogo.getState().setGlobalLogo(logoParam, "logo-empresa.png");
+    }
+  }, [searchParams, globalLogo]);
 
 
 
@@ -1241,6 +1251,14 @@ export function ProductConfigurator({ product }: Props) {
         </div>
       )}
     </div>
+  );
+}
+
+export function ProductConfigurator(props: Props) {
+  return (
+    <Suspense fallback={<div className="h-40 flex items-center justify-center"><Loader2 className="animate-spin text-brand-red" /></div>}>
+      <ProductConfiguratorInner {...props} />
+    </Suspense>
   );
 }
 
