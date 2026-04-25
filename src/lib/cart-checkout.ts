@@ -100,6 +100,9 @@ export async function createOrderFromCart(params: {
   if (subtotal >= 300) baseShippingCost = 0.00;
   let finalShippingCost = baseShippingCost;
 
+  // The frontend Configurator dynamically reduced product prices if userDiscountPct > 0
+  const originalSubtotal = userDiscountPct > 0 ? subtotal / (1 - userDiscountPct / 100) : subtotal;
+
   if (couponCode) {
     const coupon = await db.query.coupons.findFirst({ where: eq(schema.coupons.code, couponCode.toUpperCase().trim()) });
     const isCouponValid = coupon && coupon.isActive && 
@@ -107,29 +110,32 @@ export async function createOrderFromCart(params: {
       (!coupon.usageLimit || coupon.usageCount < coupon.usageLimit);
 
     if (isCouponValid) {
-      finalCouponCode = coupon.code;
       if (coupon.discountType === "percentage") {
-        const perc = parseFloat(coupon.discountValue.toString()) / 100;
-        discountAmount = subtotal * perc;
-        finalShippingCost = baseShippingCost * (1 - perc);
+        const couponPct = parseFloat(coupon.discountValue.toString());
+        const extraPct = Math.max(0, couponPct - userDiscountPct);
+        if (extraPct > 0) {
+          finalCouponCode = coupon.code;
+          discountAmount = originalSubtotal * (extraPct / 100);
+          finalShippingCost = baseShippingCost * (1 - extraPct / 100);
+        }
       } else {
         const fixedValue = parseFloat(coupon.discountValue.toString());
-        discountAmount = Math.min(fixedValue, subtotal);
-        if (fixedValue > subtotal) {
-          const leftOver = fixedValue - subtotal;
-          finalShippingCost = Math.max(0, baseShippingCost - leftOver);
+        const vipDiscountEuros = originalSubtotal - subtotal;
+        const extraEuros = Math.max(0, fixedValue - vipDiscountEuros);
+        
+        if (extraEuros > 0) {
+          finalCouponCode = coupon.code;
+          discountAmount = Math.min(extraEuros, subtotal);
+          if (fixedValue > originalSubtotal) {
+            const leftOver = fixedValue - originalSubtotal;
+            finalShippingCost = Math.max(0, baseShippingCost - leftOver);
+          }
         }
       }
-      if (coupon.freeShipping) {
+      if (coupon.freeShipping && finalCouponCode) {
         finalShippingCost = 0;
       }
-    } else {
-      discountAmount = subtotal * (userDiscountPct / 100);
-      finalShippingCost = baseShippingCost * (1 - userDiscountPct / 100);
     }
-  } else {
-    discountAmount = subtotal * (userDiscountPct / 100);
-    finalShippingCost = baseShippingCost * (1 - userDiscountPct / 100);
   }
 
   const totalPrice = subtotal - discountAmount + finalShippingCost;

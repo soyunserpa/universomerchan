@@ -1,13 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Leaf, Palette } from "lucide-react";
+import { Leaf, Palette, Star } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
+import { useAuth } from "@/lib/auth-context";
 
 export function ProductCard({ product, index, isTopVenta }: { product: CatalogProductResponse; index: number; isTopVenta?: boolean }) {
+  const { user } = useAuth();
+  
   const uniqueColors = product.variants
     .filter((v, i, arr) => arr.findIndex((x) => x.color === v.color) === i)
     .slice(0, 5);
+
+  const hasB2BDiscount = user?.discountPercent ? user.discountPercent > 0 : false;
+  const discountedPriceRaw = hasB2BDiscount ? (product.startingPriceRaw * (1 - (user!.discountPercent / 100))) : product.startingPriceRaw;
 
   const generateSlug = (name: string) => {
     return name
@@ -60,10 +66,22 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
         <p className="text-sm text-gray-900 line-clamp-2 mb-3 leading-relaxed">
           {product.shortDescription}
         </p>
-        <div className="flex justify-between items-center">
-          <span className="font-bold text-base text-brand-red">
-            Desde {product.startingPrice}
-          </span>
+        <div className="flex justify-between items-end">
+          <div className="flex flex-col">
+            {hasB2BDiscount ? (
+              <>
+                <span className="text-xs text-gray-400 line-through mb-0.5">Base: {product.startingPriceRaw.toFixed(2)}€</span>
+                <span className="font-bold text-base text-brand-red flex items-center gap-1">
+                  Desde {discountedPriceRaw.toFixed(2)}€ <Star size={12} className="fill-brand-red text-brand-red" />
+                </span>
+                <span className="text-[10px] text-brand-red font-bold uppercase tracking-wider mt-0.5">TARIFA VIP</span>
+              </>
+            ) : (
+              <span className="font-bold text-base text-brand-red">
+                Desde {product.startingPriceRaw.toFixed(2)}€
+              </span>
+            )}
+          </div>
           <div className="flex gap-1">
             {uniqueColors.map((v, i) => (
               <div
