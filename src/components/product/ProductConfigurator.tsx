@@ -167,7 +167,7 @@ function ProductConfiguratorInner({ product }: Props) {
   const { addItem } = useCart();
   const { user } = useAuth();
   const { addProduct } = useRecentlyViewed();
-  const { globalLogo, globalLogoName } = useGlobalLogo();
+  const { globalLogo, globalLogoName, setGlobalLogo } = useGlobalLogo();
   const canvasEditorRef = useRef<CanvasEditorRef>(null);
 
   // Use per-category margins from server, falling back to defaults
@@ -179,7 +179,6 @@ function ProductConfiguratorInner({ product }: Props) {
 
   // Hook to capture ?logo= parameter from email proposals
   const searchParams = useSearchParams();
-  const { globalLogo, setGlobalLogo } = useGlobalLogo();
   useEffect(() => {
     const logoParam = searchParams.get("logo");
     if (logoParam && logoParam !== globalLogo) {
