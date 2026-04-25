@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, CreditCard, Truck, Zap, MapPin, User, Building2, Tag,
-  Mail, Phone, ShieldCheck, Lock, Gift, RefreshCw, Briefcase,
+  Mail, Phone, ShieldCheck, Lock, Gift, RefreshCw, Briefcase, Check
 } from "lucide-react";
 
 export default function CheckoutAddressPageWrapper() {
@@ -158,7 +158,36 @@ function CheckoutAddressPage() {
         <ArrowLeft size={16} /> Volver al carrito
       </Link>
 
-      <h1 className="font-display font-extrabold text-3xl mb-8">Checkout</h1>
+      <div className="w-full max-w-xl mx-auto mb-16 mt-2 px-6 animate-fade-in relative">
+        <div className="absolute top-[18px] left-[10%] right-[10%] h-[3px] bg-surface-200 -z-10 rounded-full"></div>
+        <div className="absolute top-[18px] left-[10%] w-[40%] h-[3px] bg-brand-red -z-10 rounded-full transition-all duration-1000"></div>
+        <div className="flex justify-between items-center relative z-10 w-full">
+          
+          <div className="flex flex-col items-center gap-2 relative">
+            <Link href="/cart" className="w-10 h-10 rounded-full bg-brand-red text-white flex items-center justify-center font-bold shadow-md hover:scale-105 transition-transform">
+              <Check size={20} />
+            </Link>
+            <span className="text-xs font-semibold text-gray-900 absolute -bottom-6">Carrito</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 relative">
+            <div className="w-10 h-10 rounded-full bg-brand-red text-white flex items-center justify-center font-bold shadow-lg shadow-brand-red/30 ring-4 ring-brand-red/10">
+              2
+            </div>
+            <span className="text-xs font-bold text-brand-red absolute -bottom-6 whitespace-nowrap">Datos y Pago</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 relative">
+            <div className="w-10 h-10 rounded-full bg-white border-2 border-surface-200 text-gray-400 flex items-center justify-center font-bold">
+              3
+            </div>
+            <span className="text-xs font-semibold text-gray-400 absolute -bottom-6 whitespace-nowrap">Confirmación</span>
+          </div>
+
+        </div>
+      </div>
+
+      <h1 className="font-display font-extrabold text-3xl mb-8">Finalizar compra</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
         {/* Form */}

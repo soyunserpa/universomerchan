@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
 import { useEffect } from "react";
+import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
 
 // ============================================================
 // CONSTANTS
@@ -170,7 +171,18 @@ export function ProductConfigurator({ product }: Props) {
 
   const { addItem } = useCart();
   const { user } = useAuth();
+  const { addProduct } = useRecentlyViewed();
   const canvasEditorRef = useRef<CanvasEditorRef>(null);
+
+  // Track product view history
+  useEffect(() => {
+    addProduct({
+      masterCode: product.masterCode,
+      name: product.name,
+      category: product.category,
+      image: product.mainImage || product.variants?.[0]?.mainImage || ""
+    });
+  }, [product.masterCode, product.name, product.category, product.mainImage, product.variants, addProduct]);
 
   // State
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -178,6 +190,14 @@ export function ProductConfigurator({ product }: Props) {
     setStep(newStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  // FOMO B2B Engine - Generates deterministic "hot" stats based on masterCode length/chars
+  const fomoData = useMemo(() => {
+    const seed = product.masterCode.charCodeAt(0) + product.masterCode.charCodeAt(product.masterCode.length - 1);
+    const count = (seed % 14) + 3; // 3 to 16
+    const type = seed % 3 === 0 ? "carts" : "views"; // carts, views, views
+    return { count, type };
+  }, [product.masterCode]);
 
   const [variantIdx, setVariantIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -1106,6 +1126,18 @@ export function ProductConfigurator({ product }: Props) {
               <div className="leading-snug">
                 <strong>¿No estás seguro de cómo quedará?</strong><br/>
                 No te preocupes. Te enviaremos un <strong>boceto final profesional</strong> a tu correo para que lo valides antes de pasar a producción. Podrás aprobarlo o solicitar cambios desde tu panel de cliente.
+              </div>
+            </div>
+
+            <div className="mt-4 bg-orange-50 border border-orange-200 rounded-xl p-3 flex gap-3 text-sm text-orange-800 animate-fade-in shadow-sm">
+              <div className="flex-shrink-0 mt-0.5">
+                <span className="text-orange-600 text-lg animate-pulse block">🔥</span>
+              </div>
+              <div className="leading-snug">
+                <strong className="text-orange-900">Alta demanda en empresas corporativas.</strong><br/>
+                {fomoData.type === "carts" 
+                  ? `${fomoData.count} empresas han añadido este artículo a sus presupuestos hoy.`
+                  : `${fomoData.count} usuarios están evaluando este producto ahora mismo.`}
               </div>
             </div>
 

@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/catalog/ProductCard";
 import { InfiniteProductGrid } from "@/components/catalog/InfiniteProductGrid";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { RecentlyViewedCarousel } from "@/components/product/RecentlyViewedCarousel";
 
 interface CatalogPageProps {
   searchParams: { category?: string; subcategory?: string; search?: string; page?: string; sort?: string; green?: string; color?: string; budget?: string };
@@ -247,6 +248,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           </Link>
         </div>
       )}
+
+      {/* Cross Selling - Historial B2B */}
+      <RecentlyViewedCarousel />
     </div>
   );
 }
