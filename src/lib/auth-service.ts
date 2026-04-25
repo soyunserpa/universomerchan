@@ -36,6 +36,10 @@ export interface AuthUser {
   phone?: string;
   companyName?: string;
   cif?: string;
+  shippingStreet?: string;
+  shippingCity?: string;
+  shippingPostalCode?: string;
+  shippingCountry?: string;
   discountPercent: number;
 }
 
@@ -204,6 +208,10 @@ export async function loginUser(
       phone: user.phone || undefined,
       companyName: user.companyName || undefined,
       cif: user.cif || undefined,
+      shippingStreet: user.shippingStreet || undefined,
+      shippingCity: user.shippingCity || undefined,
+      shippingPostalCode: user.shippingPostalCode || undefined,
+      shippingCountry: user.shippingCountry || undefined,
       discountPercent: parseFloat(user.discountPercent?.toString() || "0"),
     },
   };
@@ -286,6 +294,10 @@ export async function requireAuth(
       phone: user.phone || undefined,
       companyName: user.companyName || undefined,
       cif: user.cif || undefined,
+      shippingStreet: user.shippingStreet || undefined,
+      shippingCity: user.shippingCity || undefined,
+      shippingPostalCode: user.shippingPostalCode || undefined,
+      shippingCountry: user.shippingCountry || undefined,
       discountPercent: parseFloat(user.discountPercent?.toString() || "0"),
     },
   };
@@ -392,6 +404,10 @@ export async function updateProfile(
         phone: updated.phone || undefined,
         companyName: updated.companyName || undefined,
         cif: updated.cif || undefined,
+        shippingStreet: updated.shippingStreet || undefined,
+        shippingCity: updated.shippingCity || undefined,
+        shippingPostalCode: updated.shippingPostalCode || undefined,
+        shippingCountry: updated.shippingCountry || undefined,
         discountPercent: parseFloat(updated.discountPercent?.toString() || "0"),
       },
     };
