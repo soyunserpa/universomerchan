@@ -398,7 +398,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         </div>
 
         {/* Main area: Canvas + Preview side by side */}
-        <div className="flex gap-4 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* LEFT: Print area canvas */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
@@ -445,13 +445,15 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
                 />
               ) : (
                 <div
-                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-black/5 transition-colors"
                   onClick={() => document.getElementById(`logo-upload-${activeZone}`)?.click()}
                 >
-                  <div className="text-center">
-                    <Upload size={28} className="text-brand-red/40 mx-auto mb-2" />
-                    <p className="text-xs text-gray-400 font-medium">Arrastra tu logo aqu&iacute;</p>
-                    <p className="text-[10px] text-gray-300 mt-1">PNG, SVG, AI, EPS, PDF</p>
+                  <div className="text-center bg-white/90 backdrop-blur-md px-6 py-5 rounded-2xl shadow-sm border border-brand-red/10">
+                    <div className="w-12 h-12 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Upload size={24} className="text-brand-red drop-shadow-sm" />
+                    </div>
+                    <p className="text-sm sm:text-xs text-gray-800 font-bold mb-1">Toca para subir tu logo</p>
+                    <p className="text-[10px] sm:text-[9px] text-gray-400 font-semibold uppercase tracking-wider">PNG, SVG, AI, EPS, PDF</p>
                   </div>
                 </div>
               )}
@@ -476,7 +478,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
           </div>
 
           {/* RIGHT: Product preview with logo overlay */}
-          <div className="w-[280px] flex-shrink-0 flex flex-col">
+          <div className="w-full lg:w-[280px] flex-shrink-0 flex flex-col items-center lg:items-stretch border-t lg:border-t-0 pt-6 lg:pt-0 mt-4 lg:mt-0 border-surface-200">
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide flex items-center gap-1">
               <Eye size={10} /> Vista previa
             </div>
@@ -498,16 +500,19 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
 
         {/* Toolbar */}
         {activeLogoData && (
-          <div className="flex items-center gap-3 bg-surface-50 rounded-xl px-4 py-2.5 border border-surface-200">
-            <span className="text-xs text-gray-400 mr-2">
-              <Move size={12} className="inline mr-1" />Arrastra el logo para moverlo
+          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-3 bg-surface-50 rounded-xl px-4 py-3 sm:py-2.5 border border-surface-200 mt-3">
+            <span className="text-[11px] sm:text-xs text-gray-500 w-full sm:w-auto text-center sm:text-left font-medium">
+              <Move size={14} className="inline mr-1" /> Arrastra el logo por el recuadro
             </span>
-            <div className="flex-1" />
-            <button onClick={() => adjustScale(-0.1)} className="w-7 h-7 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-500 hover:text-gray-700" title="Reducir"><ZoomOut size={13} /></button>
-            <span className="text-[10px] font-mono text-gray-400 w-10 text-center">{Math.round(currentLogoPos.scale * 100)}%</span>
-            <button onClick={() => adjustScale(0.1)} className="w-7 h-7 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-500 hover:text-gray-700" title="Ampliar"><ZoomIn size={13} /></button>
-            <button onClick={() => setLogoPos(prev => ({ ...prev, [activeZone]: { x: 0.5, y: 0.5, scale: 0.65 } }))} className="w-7 h-7 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-500 hover:text-gray-700" title="Centrar"><RotateCcw size={13} /></button>
-            <button onClick={handleDeleteLogo} className="w-7 h-7 rounded-lg bg-white border border-red-200 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50" title="Eliminar logo"><Trash2 size={13} /></button>
+            <div className="hidden sm:block flex-1" />
+            <div className="flex items-center justify-center gap-2 w-full sm:w-auto">
+              <button onClick={() => adjustScale(-0.1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title="Reducir"><ZoomOut size={16} className="sm:w-4 sm:h-4" /></button>
+              <span className="text-xs sm:text-[11px] font-mono text-gray-600 w-12 sm:w-10 text-center font-bold">{Math.round(currentLogoPos.scale * 100)}%</span>
+              <button onClick={() => adjustScale(0.1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title="Ampliar"><ZoomIn size={16} className="sm:w-4 sm:h-4" /></button>
+              <div className="w-px h-6 bg-surface-200 mx-1" />
+              <button onClick={() => setLogoPos(prev => ({ ...prev, [activeZone]: { x: 0.5, y: 0.5, scale: 0.65 } }))} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title="Centrar"><RotateCcw size={16} className="sm:w-4 sm:h-4" /></button>
+              <button onClick={handleDeleteLogo} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-red-200 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 active:bg-red-100 shadow-sm" title="Eliminar logo"><Trash2 size={16} className="sm:w-4 sm:h-4" /></button>
+            </div>
           </div>
         )}
 
