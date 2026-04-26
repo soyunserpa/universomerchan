@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/database";
-import { eq, ne, desc, and } from "drizzle-orm";
+import { eq, ne, desc, and, inArray } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { requireAuth } from "@/lib/auth-service";
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
             .where(
                 and(
                     eq(schema.orders.userId, auth.user.id),
-                    ne(schema.orderLines.proofStatus, "not_applicable")
+                    inArray(schema.orderLines.proofStatus, ["waiting_approval", "rejected", "artwork_required", "approved"])
                 )
             )
             .orderBy(desc(schema.orderLines.createdAt));
