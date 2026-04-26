@@ -593,7 +593,7 @@ export async function syncActiveOrders(): Promise<{ checked: number; updated: nu
           if (line.proof_url || line.proof_status) {
             const orderLine = await db.query.orderLines.findFirst({
               where: sql`${schema.orderLines.orderId} = ${order.id} 
-                AND ${schema.orderLines.lineNumber} = ${parseInt(line.order_line_id)}`,
+                AND ${schema.orderLines.lineNumber} = ${Math.floor(parseInt(line.order_line_id) / 10)}`,
             });
 
             if (orderLine) {
