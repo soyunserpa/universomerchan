@@ -646,7 +646,7 @@ export async function submitOrderToMidocean(orderId: number): Promise<void> {
     order_header: {
       preferred_shipping_date: shippingDateStr,
       currency: "EUR",
-      contact_email: order.shippingEmail || "",
+      contact_email: "pedidos@universomerchan.com",
       check_price: "false",
       shipping_address: {
         contact_name: order.shippingName || "",
