@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('cd /var/www/universomerchan && npx tsx --env-file=.env scripts/test-midocean-order.ts 3777171', (err, stream) => {
+    conn.exec('cd /var/www/universomerchan && npx tsx --env-file=.env scripts/test-midocean-order.ts', (err, stream) => {
         if (err) throw err;
         stream.on('close', () => { conn.end(); process.exit(0); })
               .on('data', data => process.stdout.write(data.toString()))
