@@ -366,7 +366,7 @@ export interface MidoceanOrderRequest {
       print_size_width: string;     // mm
       printing_technique_id: string;
       number_of_print_colors: string;
-      print_artwork_url: string;
+      print_artwork_url?: string;
       print_mockup_url?: string;
       print_instruction?: string;
       print_colors: Array<{ color: string }>;
