@@ -222,6 +222,32 @@ function ProductConfiguratorInner({ product }: Props) {
     setActiveImageIndex(0);
   }, [variantIdx]);
 
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(`configurator_${product.masterCode}`);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.variantIdx !== undefined) setVariantIdx(data.variantIdx);
+        if (data.selectedSize !== undefined) setSelectedSize(data.selectedSize);
+        if (data.baseQty !== undefined) setBaseQty(data.baseQty);
+        if (data.sizeQuantities !== undefined) setSizeQuantities(data.sizeQuantities);
+        if (data.selectedPosition !== undefined) setSelectedPosition(data.selectedPosition);
+        if (data.selectedTechniques !== undefined) setSelectedTechniques(data.selectedTechniques);
+        if (data.numColorsMap !== undefined) setNumColorsMap(data.numColorsMap);
+      }
+    } catch (e) {}
+  }, [product.masterCode]);
+
+  // Save state to sessionStorage when it changes
+  useEffect(() => {
+    const data = {
+      variantIdx, selectedSize, baseQty, sizeQuantities,
+      selectedPosition, selectedTechniques, numColorsMap
+    };
+    sessionStorage.setItem(`configurator_${product.masterCode}`, JSON.stringify(data));
+  }, [product.masterCode, variantIdx, selectedSize, baseQty, sizeQuantities, selectedPosition, selectedTechniques, numColorsMap]);
+
   // ── TEXTILE / SIZE LOGIC ──────────────────────────────────
   const hasSize = product.hasSize;
 
