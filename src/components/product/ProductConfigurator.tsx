@@ -488,6 +488,11 @@ function ProductConfiguratorInner({ product }: Props) {
         }
       }
 
+      // FALLBACK: Si falla la generación del mockup, enviamos la imagen del producto "si o si"
+      if (!mockupUrl) {
+        mockupUrl = variant.mainImage || productImage || null;
+      }
+
       if (hasActiveLogos && activePlacements[0]?.logoDataUrl) {
         try {
           const extMatch = activePlacements[0].logoFileName.match(/\\.([a-zA-Z0-9]+)$/);
