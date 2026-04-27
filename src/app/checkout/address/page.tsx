@@ -53,8 +53,16 @@ function CheckoutAddressPage() {
     }
   }, [couponCode, state.items.length, subtotal]);
 
-  // Pre-fill from user profile
+  // Pre-fill from user profile OR sessionStorage
   useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("checkout_form");
+      if (saved) {
+        setForm(prev => ({ ...prev, ...JSON.parse(saved) }));
+        return; // Don't override with user if we have saved session data
+      }
+    } catch (e) {}
+
     if (user) {
       setForm(prev => ({
         ...prev,
@@ -69,6 +77,11 @@ function CheckoutAddressPage() {
       }));
     }
   }, [user]);
+
+  // Save form to sessionStorage on change
+  useEffect(() => {
+    sessionStorage.setItem("checkout_form", JSON.stringify(form));
+  }, [form]);
 
   // Redirect if not authenticated or empty cart
   useEffect(() => {
