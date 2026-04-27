@@ -682,24 +682,9 @@ export async function submitOrderToMidocean(orderId: number): Promise<void> {
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, orderId));
 
-  // If it's a PRINT order, upload artworks
-  // Iteramos sobre groupedPrintLines para subir el artwork 1 única vez por grupo
-  if (order.orderType === "PRINT") {
-    for (const group of Array.from(groupedPrintLines.values())) {
-      const line = group._refLine;
-      if (line.artworkUrl && midoceanOrderNumber) {
-        try {
-          await midoceanApi.addArtwork(
-            midoceanOrderNumber,
-            group.order_line_id,
-            line.artworkUrl,
-          );
-        } catch (artworkError: any) {
-          console.error(`[Order] Failed to add artwork for line ${line.lineNumber}:`, artworkError.message);
-        }
-      }
-    }
-  }
+  // Midocean now automatically fetches the artwork and mockup directly from the URLs 
+  // we provided in the order_lines (print_artwork_url and print_mockup_url).
+  // The legacy artwork/1.0/add API endpoint has been deprecated by their gateway.
 
   console.log(`[Order] ${order.orderNumber} submitted to Midocean as ${midoceanOrderNumber}`);
 }
