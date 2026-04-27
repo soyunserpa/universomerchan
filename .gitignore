@@ -4,6 +4,6 @@
 .next
 node_modules
 backups
-uploads
+/uploads/
 *.log
 .DS_Store
