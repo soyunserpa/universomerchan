@@ -78,8 +78,10 @@ function CheckoutAddressPage() {
 
   const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const isUnder300 = subtotal < 300;
-  let baseShippingCost = isUnder300 ? 8.00 : 0;
+  let baseShippingCost = 0;
+  if (subtotal < 100) baseShippingCost = 16;
+  else if (subtotal < 300) baseShippingCost = 8;
+  
   let finalShippingCost = baseShippingCost;
   let discountAmount = 0;
 
@@ -125,7 +127,7 @@ function CheckoutAddressPage() {
         body: JSON.stringify({
           items: state.items,
           shippingAddress: form,
-          expressShipping: isUnder300,
+          expressShipping: subtotal < 300,
           customerNotes: notes || undefined,
           userId: user?.id,
           couponCode: couponCode || undefined,
@@ -263,7 +265,18 @@ function CheckoutAddressPage() {
             </h2>
 
             <div className="space-y-3">
-              {isUnder300 ? (
+              {subtotal < 100 ? (
+                <div className="flex items-center justify-between p-4 rounded-xl border-2 border-brand-red bg-brand-red/5">
+                  <div className="flex items-center gap-3">
+                    <Zap size={20} className="text-amber-500" />
+                    <div>
+                      <p className="text-sm font-semibold">Envío Básico (Gestión mínima)</p>
+                      <p className="text-xs text-gray-400">Aplicado a pedidos menores de 100€</p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-sm">16,00€</span>
+                </div>
+              ) : subtotal < 300 ? (
                 <div className="flex items-center justify-between p-4 rounded-xl border-2 border-brand-red bg-brand-red/5">
                   <div className="flex items-center gap-3">
                     <Zap size={20} className="text-amber-500" />
