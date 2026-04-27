@@ -353,11 +353,10 @@ export async function createCheckoutSession(params: {
       enabled: true,
     },
 
-    // Inject temporary stripe coupon dynamically
-    discounts: stripeCouponId ? [{ coupon: stripeCouponId }] : undefined,
-
-    // Allow promo codes if we add them later
-    allow_promotion_codes: !stripeCouponId,
+    // Inject temporary stripe coupon dynamically OR allow promo codes
+    ...(stripeCouponId 
+      ? { discounts: [{ coupon: stripeCouponId }] }
+      : { allow_promotion_codes: true }),
 
     // Collect billing address (needed for invoices). 
     // Auto since we perfectly inject the address directly to the customer object beforehand.
