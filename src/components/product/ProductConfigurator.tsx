@@ -474,9 +474,15 @@ function ProductConfiguratorInner({ product }: Props) {
       let mockupUrl: string | null = null;
       let finalArtworkUrl: string | null = null;
 
-      if (canvasEditorRef.current && hasLogos) {
-        const mockups = await canvasEditorRef.current.exportAllMockups();
-        const firstMockup = Object.values(mockups)[0];
+      if (hasLogos) {
+        let firstMockup: string | undefined = undefined;
+        if (canvasEditorRef.current) {
+          const mockups = await canvasEditorRef.current.exportAllMockups();
+          firstMockup = Object.values(mockups)[0];
+        } else if (cachedMockups && Object.keys(cachedMockups).length > 0) {
+          firstMockup = Object.values(cachedMockups)[0];
+        }
+
         if (firstMockup) {
           try {
             const upRes = await fetch("/api/uploads/mockup", {
