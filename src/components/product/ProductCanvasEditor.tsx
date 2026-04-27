@@ -601,6 +601,7 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
           <img
             ref={imgRef}
             src={previewUrl}
+            crossOrigin="anonymous"
             alt={productName}
             className="block w-auto h-auto mix-blend-multiply"
             style={{ maxWidth: '100%', maxHeight: '415px' }}
@@ -622,9 +623,14 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    const isData = url.startsWith('data:');
+    if (!isData) {
+      img.crossOrigin = "anonymous";
+    }
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = url;
+    // Bypass browser cache to prevent CORS errors from previously cached non-CORS requests
+    const cacheBuster = url.includes('?') ? '&' : '?';
+    img.src = isData ? url : `${url}${cacheBuster}t=${Date.now()}`;
   });
 }
