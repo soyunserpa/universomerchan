@@ -139,7 +139,8 @@ export async function createOrderFromCart(params: {
     }
   }
 
-  const totalPrice = subtotal - discountAmount + finalShippingCost;
+  const rawTotalPrice = subtotal - discountAmount + finalShippingCost;
+  const totalPrice = Math.max(0, Number(rawTotalPrice.toFixed(2)));
 
   const orderNumber = await generateOrderNumber();
 
