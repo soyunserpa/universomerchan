@@ -34,6 +34,16 @@ export async function syncProducts(): Promise<{ created: number; updated: number
     const products = await midocean.fetchAllProducts();
 
     for (const product of products) {
+      // Ignore physical catalogs
+      const name = product.product_name || "";
+      const code = product.master_code || "";
+      const isCatalog = (name.toLowerCase().includes("cat ") && (name.toLowerCase().includes("with prices") || name.toLowerCase().includes("without prices"))) ||
+        code.startsWith("G26") ||
+        name.startsWith("ST GIFTS") ||
+        (name.toLowerCase().includes("spanish") && name.toLowerCase().includes("cat"));
+        
+      if (isCatalog) continue;
+
       // Upsert product
       const existing = await db.query.products.findFirst({
         where: eq(schema.products.masterCode, product.master_code),
