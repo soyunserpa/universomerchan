@@ -5,6 +5,7 @@ const nextConfig = {
       bodySizeLimit: '20mb',
     },
     optimizePackageImports: ['lucide-react'],
+    serverComponentsExternalPackages: ['pdfkit', 'svg-to-pdfkit', 'imagetracerjs'],
   },
   async headers() {
     return [
