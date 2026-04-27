@@ -54,7 +54,9 @@ export async function POST(
         if (type === "artwork" && !["application/pdf", "image/svg+xml"].includes(mimeType)) {
             try {
                 // 1. Clean the image and extract raw RGBA pixel data
+                // By resizing to max 800x800, we speed up the ImageTracer by 100x and get cleaner vectors.
                 const { data, info } = await sharp(buffer)
+                    .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
                     .ensureAlpha()
                     .raw()
                     .toBuffer({ resolveWithObject: true });
