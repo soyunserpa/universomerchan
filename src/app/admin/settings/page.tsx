@@ -86,8 +86,8 @@ export default function AdminSettingsPage() {
   // Example calculation
   const exProductCost = 241;
   const exPrintCost = 89;
-  const exProductSell = exProductCost * (1 + marginProd / 100);
-  const exPrintSell = exPrintCost * (1 + marginPrint / 100);
+  const exProductSell = exProductCost / (1 - Math.min(marginProd, 99) / 100);
+  const exPrintSell = exPrintCost / (1 - Math.min(marginPrint, 99) / 100);
   const exTotal = exProductSell + exPrintSell;
 
   return (
@@ -118,7 +118,7 @@ export default function AdminSettingsPage() {
               <input type="number" value={marginProd} onChange={e => setMarginProd(Number(e.target.value))} className="w-20 py-2 px-3 border-2 border-surface-200 rounded-lg text-xl font-display font-extrabold text-center" />
               <span className="text-xl font-display font-extrabold text-gray-400">%</span>
             </div>
-            <p className="text-[11px] text-gray-400 mt-3">Ej: Producto 4.82€ → PVP {(4.82 * (1 + marginProd / 100)).toFixed(2)}€</p>
+            <p className="text-[11px] text-gray-400 mt-3">Ej: Producto 4.82€ → PVP {(4.82 / (1 - Math.min(marginProd, 99) / 100)).toFixed(2)}€</p>
           </div>
 
           {/* Print margin */}

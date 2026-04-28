@@ -9,7 +9,7 @@ conn.on('ready', () => {
         fuser -k 3000/tcp || true;
         killall node || true;
         sleep 1;
-        cd /var/www/universomerchan && git fetch --all && git reset --hard origin/main && rm -rf .next && npm run build && pm2 start npm --name "universo-tienda" -- run start;
+        cd /var/www/universomerchan && git fetch --all && git reset --hard origin/main && rm -rf .next && npm install && npm run build && pm2 start npm --name "universo-tienda" -- run start;
         sleep 2;
         pm2 list;
     `;
