@@ -5,8 +5,8 @@
 // to Midocean cost prices to generate sell prices for the frontend.
 //
 // Formula:
-//   PVP Producto = Coste Midocean × (1 + marginProduct/100)
-//   PVP Marcaje  = (Setup + Impresión + Handling) × (1 + marginPrint/100)
+//   PVP Producto = Coste Midocean / (1 - marginProduct/100)
+//   PVP Marcaje  = (Setup + Impresión + Handling) / (1 - marginPrint/100)
 //   Descuento    = (PVP total) × (1 - clientDiscount/100)
 // ============================================================
 

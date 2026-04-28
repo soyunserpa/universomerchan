@@ -388,7 +388,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
   // ── REAL PRINT PRICING (SUMMED OVER ALL SELECTED ZONES) ────────
 
-  const printMarginMultiplier = 1 + MARGINS.printMarginPct / 100;
+  const printMarginDivider = 1 - Math.min(MARGINS.printMarginPct, 99) / 100;
   
   const currentNumColors = selectedPosition ? (numColorsMap[selectedPosition] || 1) : 1;
   const effectiveColorsUI = (isAreaBased && !isColorBased) || isPositionBased ? 1 : currentNumColors;
@@ -429,11 +429,11 @@ function ProductConfiguratorInner({ product }: Props) {
   const handlingCostPerUnit = handlingInfo?.pricePerUnit || 0;
 
   // Apply margins to all print costs
-  const setupCost = round(printCosts.setupCost * printMarginMultiplier);
-  const printPerUnit = round(printCosts.printCostPerUnit * printMarginMultiplier);
+  const setupCost = round(printCosts.setupCost / printMarginDivider);
+  const printPerUnit = round(printCosts.printCostPerUnit / printMarginDivider);
   const printTotal = round(printPerUnit * qty);
   const zonesCount = Object.keys(selectedTechniques).length;
-  const handlingTotal = round(handlingCostPerUnit * qty * printMarginMultiplier) * zonesCount;
+  const handlingTotal = round((handlingCostPerUnit * qty / printMarginDivider)) * zonesCount;
   
   const rawTotal = basePrice + setupCost + printTotal + handlingTotal;
   const discountMultiplier = 1 - MARGINS.clientDiscountPct;

@@ -461,15 +461,15 @@ export async function getAdminOrders(params?: {
       }
     }
 
-    // Estimate Midocean cost (product cost = sell / (1 + margin))
+    // Estimate Midocean cost (product cost = sell * (1 - margin))
     const marginProd = parseFloat(order.marginProductApplied?.toString() || "40");
     const marginPrint = parseFloat(order.marginPrintApplied?.toString() || "50");
     const subtotalProduct = parseFloat(order.subtotalProduct?.toString() || "0");
     const subtotalPrint = parseFloat(order.subtotalPrint?.toString() || "0");
     const totalPrice = parseFloat(order.totalPrice?.toString() || "0");
 
-    const costProduct = subtotalProduct / (1 + marginProd / 100);
-    const costPrint = subtotalPrint / (1 + marginPrint / 100);
+    const costProduct = subtotalProduct * (1 - Math.min(marginProd, 99) / 100);
+    const costPrint = subtotalPrint * (1 - Math.min(marginPrint, 99) / 100);
     const totalCost = costProduct + costPrint;
     const profit = totalPrice - totalCost;
 
@@ -642,7 +642,7 @@ export async function getAdminProducts(params?: {
       : 0;
 
     const customPrice = product.customPrice ? parseFloat(product.customPrice.toString()) : null;
-    const sellPrice = customPrice || midoceanPrice * (1 + marginPct / 100);
+    const sellPrice = customPrice || midoceanPrice / (1 - Math.min(marginPct, 99) / 100);
 
     enriched.push({
       id: product.id,
