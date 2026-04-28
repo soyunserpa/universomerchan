@@ -105,8 +105,8 @@ export function calculateFullPrice(params: {
   // ── PRODUCT PRICE ──────────────────────────────────────────
   const productCostPerUnit = getScaledPrice(productPriceScales, quantity);
   const productCostTotal = productCostPerUnit * quantity;
-  const productMarginDivider = 1 - (Math.min(margins.productMarginPct, 99) / 100);
-  const productSellPerUnit = productCostPerUnit / productMarginDivider;
+  const productMarginMultiplier = 1 + (margins.productMarginPct / 100);
+  const productSellPerUnit = productCostPerUnit * productMarginMultiplier;
   const productSellTotal = productSellPerUnit * quantity;
   
   // ── PRINT PRICE ────────────────────────────────────────────
@@ -119,19 +119,19 @@ export function calculateFullPrice(params: {
   };
   
   if (printCosts) {
-    const printMarginDivider = 1 - (Math.min(margins.printMarginPct, 99) / 100);
+    const printMarginMultiplier = 1 + (margins.printMarginPct / 100);
     
     printBreakdown = {
       setupCost: printCosts.setupCost,
-      setupSell: round(printCosts.setupCost / printMarginDivider),
+      setupSell: round(printCosts.setupCost * printMarginMultiplier),
       printingCost: printCosts.printingCost,
-      printingSell: round(printCosts.printingCost / printMarginDivider),
+      printingSell: round(printCosts.printingCost * printMarginMultiplier),
       handlingCost: printCosts.handlingCost,
-      handlingSell: round(printCosts.handlingCost / printMarginDivider),
+      handlingSell: round(printCosts.handlingCost * printMarginMultiplier),
     };
     
     printCostTotal = printCosts.totalCost;
-    printSellTotal = round(printCosts.totalCost / printMarginDivider);
+    printSellTotal = round(printBreakdown.setupSell + printBreakdown.printingSell + printBreakdown.handlingSell);
   }
   
   // ── SUBTOTAL ───────────────────────────────────────────────
@@ -182,8 +182,8 @@ export function getStartingPrice(
   // Get the cheapest per-unit price (highest quantity scale)
   const sorted = [...priceScales].sort((a, b) => b.minimumQuantity - a.minimumQuantity);
   const cheapest = sorted[0].costPrice;
-  const productMarginDivider = 1 - (Math.min(productMarginPct, 99) / 100);
-  return round(cheapest / productMarginDivider);
+  const productMarginMultiplier = 1 + (productMarginPct / 100);
+  return round(cheapest * productMarginMultiplier);
 }
 
 // ============================================================

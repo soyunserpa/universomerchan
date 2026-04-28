@@ -95,7 +95,7 @@ export async function GET() {
 
       // Resolve margin for this product's category
       const catPct = catMargins[p.category || ""]?.productPct ?? globalMargin;
-      const marginDivider = 1 - Math.min(catPct, 99) / 100;
+      const marginMultiplier = 1 + (catPct / 100);
 
       let price = "0.00";
       if (p.priceScales) {
@@ -109,7 +109,7 @@ export async function GET() {
           });
           if (sorted[0]) {
             const cheapest = sorted[0].price || sorted[0].costPrice || 0;
-            price = (Math.round((cheapest / marginDivider) * 100) / 100).toFixed(2);
+            price = (Math.round(cheapest * marginMultiplier * 100) / 100).toFixed(2);
           }
         } catch (e) { }
       }
