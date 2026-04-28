@@ -594,7 +594,8 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
 
   const priceScales = safeParseJsonArray(priceEntry?.priceScales).map((s: any) => {
     const cost = typeof s.price === "string" ? parseFloat(s.price.replace(",", ".")) : Number(s.price || 0);
-    const sell = cost * (1 + resolvedMargins.productMarginPct / 100);
+    const productMarginDivider = 1 - Math.min(resolvedMargins.productMarginPct, 99) / 100;
+    const sell = cost / productMarginDivider;
     return {
       minQuantity: parseInt(s.minimum_quantity),
       pricePerUnit: formatPriceShort(sell),
@@ -712,10 +713,10 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
     const vpRows = await db.execute(
       sql`SELECT sku, price, price_scales::text as scales_json FROM variant_prices WHERE master_code = ${masterCode}`
     );
-    const margin = 1 + resolvedMargins.productMarginPct / 100;
+    const productMarginDivider = 1 - Math.min(resolvedMargins.productMarginPct, 99) / 100;
     for (const row of ((vpRows as any).rows || vpRows) as any[]) {
       const cost = parseFloat(row.price?.toString() || "0");
-      const sell = Math.round(cost * margin * 100) / 100;
+      const sell = Math.round((cost / productMarginDivider) * 100) / 100;
       let scales: Array<{ minQuantity: number; price: number; priceSell: number }> | undefined;
       if (row.scales_json) {
         try {
@@ -724,7 +725,7 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
             scales = parsed.map((s: any) => ({
               minQuantity: parseInt(s.minimum_quantity) || 1,
               price: typeof s.price === "number" ? s.price : parseFloat(s.price || "0"),
-              priceSell: Math.round((typeof s.price === "number" ? s.price : parseFloat(s.price || "0")) * margin * 100) / 100,
+              priceSell: Math.round(((typeof s.price === "number" ? s.price : parseFloat(s.price || "0")) / productMarginDivider) * 100) / 100,
             }));
           }
         } catch { /* ignore parse errors */ }
