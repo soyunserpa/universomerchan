@@ -668,7 +668,7 @@ function ProductConfiguratorInner({ product }: Props) {
             setupCost,
             printPerUnit,
             printTotal,
-            handlingPerUnit: round(handlingCostPerUnit * printMarginMultiplier),
+            handlingPerUnit: round(handlingCostPerUnit / printMarginDivider),
             handlingTotal,
             grandTotal: total,
             perUnit,
@@ -707,8 +707,8 @@ function ProductConfiguratorInner({ product }: Props) {
       printAreaMm2,
     });
     return {
-      setup: round(costs.setupCost * printMarginMultiplier),
-      perUnit: round(costs.printCostPerUnit * printMarginMultiplier),
+      setup: round(costs.setupCost / printMarginDivider),
+      perUnit: round(costs.printCostPerUnit / printMarginDivider),
     };
   }
 
@@ -893,7 +893,7 @@ function ProductConfiguratorInner({ product }: Props) {
               ) : null;
             })()}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit / printMarginDivider)} MARGINS={MARGINS} />
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> A mayor cantidad mayor descuento en imprenta.</span>
@@ -1044,7 +1044,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 </div>
                 {techniqueData?.pricing?.nextColourCostIndicator && currentNumColors > 1 && (
                   <div className="mt-2 text-[10px] text-gray-400">
-                    1er color: {round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit * printMarginMultiplier) : 0).toFixed(2)}€/ud ·
+                    1er color: {round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit / printMarginDivider) : 0).toFixed(2)}€/ud ·
                     Colores adicionales a precio reducido
                   </div>
                 )}
@@ -1086,7 +1086,7 @@ function ProductConfiguratorInner({ product }: Props) {
               </div>
             )}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact MARGINS={MARGINS} />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit / printMarginDivider)} compact MARGINS={MARGINS} />
 
             <div className="flex gap-3 mt-4">
               <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
@@ -1169,7 +1169,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 ["Precio/ud producto", `${unitProductPrice.toFixed(2)}€`],
                 ...(zonesCount > 0 ? [
                   ["Posiciones configuradas", String(zonesCount)],
-                  ["Manipulación", `${handlingInfo?.description || "Estándar"} (${round(handlingCostPerUnit * printMarginMultiplier).toFixed(2)}€/ud)`],
+                  ["Manipulación", `${handlingInfo?.description || "Estándar"} (${round(handlingCostPerUnit / printMarginDivider).toFixed(2)}€/ud)`],
                   ...(hasActiveLogos ? activePlacements.map(lp => {
                     const techId = selectedTechniques[lp.positionId];
                     const tName = product.printPositions.find(p => p.positionId === lp.positionId)?.techniques.find(t => t.techniqueId === techId)?.name || techId;
