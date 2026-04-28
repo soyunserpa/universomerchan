@@ -601,9 +601,12 @@ export async function syncActiveOrders(): Promise<{ checked: number; updated: nu
 
           // Update order line proof info
           if (line.proof_url || line.proof_status) {
+            const returnedLineId = parseInt(line.order_line_id || "0");
+            const mappedLineNumber = returnedLineId >= 100 ? Math.floor(returnedLineId / 100) : Math.floor(returnedLineId / 10);
+            
             const orderLine = await db.query.orderLines.findFirst({
               where: sql`${schema.orderLines.orderId} = ${order.id} 
-                AND ${schema.orderLines.lineNumber} = ${Math.floor(parseInt(line.order_line_id) / 10)}`,
+                AND ${schema.orderLines.lineNumber} = ${mappedLineNumber}`,
             });
 
             if (orderLine) {
