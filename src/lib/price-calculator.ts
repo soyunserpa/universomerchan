@@ -105,7 +105,8 @@ export function calculateFullPrice(params: {
   // ── PRODUCT PRICE ──────────────────────────────────────────
   const productCostPerUnit = getScaledPrice(productPriceScales, quantity);
   const productCostTotal = productCostPerUnit * quantity;
-  const productSellPerUnit = productCostPerUnit * (1 + margins.productMarginPct / 100);
+  const productMarginDivider = 1 - (Math.min(margins.productMarginPct, 99) / 100);
+  const productSellPerUnit = productCostPerUnit / productMarginDivider;
   const productSellTotal = productSellPerUnit * quantity;
   
   // ── PRINT PRICE ────────────────────────────────────────────
@@ -118,19 +119,19 @@ export function calculateFullPrice(params: {
   };
   
   if (printCosts) {
-    const printMultiplier = 1 + margins.printMarginPct / 100;
+    const printMarginDivider = 1 - (Math.min(margins.printMarginPct, 99) / 100);
     
     printBreakdown = {
       setupCost: printCosts.setupCost,
-      setupSell: round(printCosts.setupCost * printMultiplier),
+      setupSell: round(printCosts.setupCost / printMarginDivider),
       printingCost: printCosts.printingCost,
-      printingSell: round(printCosts.printingCost * printMultiplier),
+      printingSell: round(printCosts.printingCost / printMarginDivider),
       handlingCost: printCosts.handlingCost,
-      handlingSell: round(printCosts.handlingCost * printMultiplier),
+      handlingSell: round(printCosts.handlingCost / printMarginDivider),
     };
     
     printCostTotal = printCosts.totalCost;
-    printSellTotal = round(printCosts.totalCost * printMultiplier);
+    printSellTotal = round(printCosts.totalCost / printMarginDivider);
   }
   
   // ── SUBTOTAL ───────────────────────────────────────────────
@@ -181,7 +182,8 @@ export function getStartingPrice(
   // Get the cheapest per-unit price (highest quantity scale)
   const sorted = [...priceScales].sort((a, b) => b.minimumQuantity - a.minimumQuantity);
   const cheapest = sorted[0].costPrice;
-  return round(cheapest * (1 + productMarginPct / 100));
+  const productMarginDivider = 1 - (Math.min(productMarginPct, 99) / 100);
+  return round(cheapest / productMarginDivider);
 }
 
 // ============================================================
