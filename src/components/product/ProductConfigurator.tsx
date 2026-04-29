@@ -355,7 +355,26 @@ function ProductConfiguratorInner({ product }: Props) {
       return price;
     }
 
-    // Fallback to product-level price scales if variant doesn't have specific scales
+    if (vp && vp.priceSell) {
+      // Variant has a flat price, but no specific scales. 
+      // If the base product has quantity scales, apply the same discount ratio to the variant price.
+      if (product.priceScales && product.priceScales.length > 0) {
+        const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+        const basePriceScale0 = sorted[0].pricePerUnitRaw;
+        let currentScalePrice = basePriceScale0;
+        for (const scale of sorted) {
+          if (qty >= scale.minQuantity) currentScalePrice = scale.pricePerUnitRaw;
+        }
+        
+        if (basePriceScale0 > 0 && currentScalePrice < basePriceScale0) {
+          const discountRatio = currentScalePrice / basePriceScale0;
+          return Math.round(vp.priceSell * discountRatio * 100) / 100;
+        }
+      }
+      return vp.priceSell;
+    }
+
+    // Fallback to product-level price scales if variant doesn't have specific price at all
     if (product.priceScales && product.priceScales.length > 0) {
       const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
       let unitPrice = sorted[0].pricePerUnitRaw;
