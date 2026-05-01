@@ -23,6 +23,8 @@ const headers = {
   "Accept": "text/json",
 };
 
+import * as emails from "@/lib/email-service";
+
 // ============================================================
 // HELPER
 // ============================================================
@@ -69,6 +71,27 @@ async function fetchWithRetry(url: string, options: RequestInit, isOrder: boolea
       // Idempotency check for orders
       if (isOrder && errorText.toLowerCase().includes("order number already exists")) {
         console.log(`[Midocean API] Order already exists. Considering this a success to prevent duplicates.`);
+        
+        // Extract PO number if possible
+        let poNumber = "UNKNOWN";
+        try {
+          if (options.body && typeof options.body === "string") {
+            const bodyObj = JSON.parse(options.body);
+            poNumber = bodyObj?.order_header?.po_number || "UNKNOWN";
+          }
+        } catch (e) {}
+
+        // Notify admins that we forced a success due to a duplicate, just in case they need to review it.
+        try {
+          await emails.notifyAdminOrderError({
+            orderNumber: poNumber,
+            errorType: "Midocean Duplicate Intercepted",
+            message: "El sistema bloqueó un intento de pedido duplicado en Midocean tras un micro-corte. Revisa en el panel de Midocean si el pedido está correcto y tiene todos los logos.",
+          });
+        } catch (e) {
+          console.error("[Midocean API] Failed to send duplicate intercept email", e);
+        }
+
         // Fake a 200 OK response so the checkout process succeeds
         return new Response(JSON.stringify({ order_number: "ALREADY_EXISTS_SUCCESS" }), { status: 200, headers: { "Content-Type": "application/json" } });
       }
