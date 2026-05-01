@@ -1027,8 +1027,16 @@ function ProductConfiguratorInner({ product }: Props) {
                       <button
                         key={tech.techniqueId}
                         onClick={() => { 
-                           setSelectedTechniques(prev => ({...prev, [selectedPosition]: tech.techniqueId}));
-                           setNumColorsMap(prev => ({...prev, [selectedPosition]: 1})); 
+                           if (isSelected) {
+                             setSelectedTechniques(prev => {
+                               const copy = { ...prev };
+                               delete copy[selectedPosition];
+                               return copy;
+                             });
+                           } else {
+                             setSelectedTechniques(prev => ({...prev, [selectedPosition]: tech.techniqueId}));
+                             setNumColorsMap(prev => ({...prev, [selectedPosition]: 1})); 
+                           }
                          }}
                         className={`w-full p-3.5 rounded-xl border-2 text-left flex justify-between items-center transition-all ${isSelected ? "border-brand-red bg-brand-red/[0.05]" : "border-surface-200 hover:border-gray-300"}`}
                       >
