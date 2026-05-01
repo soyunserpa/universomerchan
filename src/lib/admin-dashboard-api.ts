@@ -642,7 +642,7 @@ export async function getAdminProducts(params?: {
       : 0;
 
     const customPrice = product.customPrice ? parseFloat(product.customPrice.toString()) : null;
-    const sellPrice = customPrice || midoceanPrice * (1 + Math.min(marginPct, 99) / 100);
+    const sellPrice = customPrice || midoceanPrice * (1 + marginPct / 100);
 
     enriched.push({
       id: product.id,

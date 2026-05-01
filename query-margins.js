@@ -2,8 +2,8 @@ const postgres = require('postgres');
 require('dotenv').config();
 const sql = postgres(process.env.DATABASE_URL);
 async function run() {
-  const p = await sql`SELECT price_scales FROM product_prices WHERE master_code = 'S11500'`;
-  console.log(p[0]);
+  const settings = await sql`SELECT * FROM admin_settings WHERE key = 'category_margins'`;
+  console.log(settings);
   process.exit(0);
 }
 run();
