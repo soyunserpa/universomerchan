@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { db } from "@/lib/database";
 import { orders, users, coupons, emailLog } from "@/lib/schema";
 import { eq, and, sql, isNotNull } from "drizzle-orm";

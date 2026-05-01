@@ -29,7 +29,7 @@ Para modificar el crontab del servidor de producción:
 # =======================================================
 # RECORDATORIOS DE CARRITOS ABANDONADOS Y MOCKUPS
 # =======================================================
-0 * * * * curl -s https://universomerchan.com/api/cron/check-abandoned-carts > /dev/null 2>&1
+0 * * * * curl -s -H "Authorization: Bearer ***REMOVED***" https://universomerchan.com/api/cron/check-abandoned-carts > /dev/null 2>&1
 0 4 * * * curl -s -X GET https://universomerchan.com/api/cron/clean-mockups -H "Authorization: Bearer ***REMOVED***" >/dev/null 2>&1
 
 # =======================================================

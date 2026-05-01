@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Leaf, Palette, Star } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { useAuth } from "@/lib/auth-context";
@@ -37,7 +38,15 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
       <div className="w-full aspect-square bg-surface-50 flex items-center justify-center relative overflow-hidden group">
         {product.mainImage ? (
           <>
-            <img src={product.mainImage} alt={product.name} className="w-[68%] h-[68%] object-contain relative z-10" loading="lazy" />
+            <div className="w-[68%] h-[68%] relative z-10">
+              <Image 
+                src={product.mainImage} 
+                alt={product.name} 
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                className="object-contain" 
+              />
+            </div>
             {globalLogo && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none opacity-80 mix-blend-multiply group-hover:scale-110 transition-transform duration-500">
                 <img src={globalLogo} alt="Logo" className="w-1/3 h-auto max-h-[30%] object-contain transform translate-y-4" />
