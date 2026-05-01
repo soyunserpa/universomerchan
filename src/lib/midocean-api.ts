@@ -27,35 +27,98 @@ const headers = {
 // HELPER
 // ============================================================
 
+async function fetchWithRetry(url: string, options: RequestInit, isOrder: boolean = false, retries = 3): Promise<Response> {
+  const timeoutMs = isOrder ? 30000 : 120000; // 30s for orders, 120s for cron syncs
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal as any });
+      clearTimeout(id);
+
+      if (response.ok) {
+        return response;
+      }
+
+      // 429 Too Many Requests
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        const delay = retryAfter ? parseInt(retryAfter) * 1000 : 10000;
+        console.warn(`[Midocean API] 429 Too Many Requests. Retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue; // Retry
+      }
+
+      // 5xx Server Errors
+      if (response.status >= 500 && response.status < 600) {
+        const errorText = await response.text();
+        console.warn(`[Midocean API] 5xx Error on attempt ${attempt}: ${response.status} - ${errorText}`);
+        if (attempt < retries) {
+          const delay = [1000, 3000, 5000][attempt - 1] || 5000;
+          await new Promise(r => setTimeout(r, delay));
+          continue; // Retry
+        }
+        throw new Error(`Midocean API error ${response.status}: ${errorText}`);
+      }
+
+      // 4xx Client Errors (do not retry, except 429 which is handled above)
+      const errorText = await response.text();
+
+      // Idempotency check for orders
+      if (isOrder && errorText.toLowerCase().includes("order number already exists")) {
+        console.log(`[Midocean API] Order already exists. Considering this a success to prevent duplicates.`);
+        // Fake a 200 OK response so the checkout process succeeds
+        return new Response(JSON.stringify({ order_number: "ALREADY_EXISTS_SUCCESS" }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
+      throw new Error(`Midocean API error ${response.status}: ${errorText}`);
+
+    } catch (error: any) {
+      clearTimeout(id);
+      
+      // Handle AbortError (timeout)
+      if (error.name === 'AbortError') {
+        console.warn(`[Midocean API] Timeout on attempt ${attempt}`);
+        if (attempt < retries) {
+           const delay = [1000, 3000, 5000][attempt - 1] || 5000;
+           await new Promise(r => setTimeout(r, delay));
+           continue;
+        }
+        throw new Error(`Midocean API Timeout after ${timeoutMs}ms`);
+      }
+
+      // Network errors (e.g. ECONNRESET)
+      console.warn(`[Midocean API] Network Error on attempt ${attempt}: ${error.message}`);
+      if (attempt < retries) {
+         const delay = [1000, 3000, 5000][attempt - 1] || 5000;
+         await new Promise(r => setTimeout(r, delay));
+         continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("Midocean API failed after retries");
+}
+
 async function midoceanGet<T>(endpoint: string): Promise<T> {
   const url = `${MIDOCEAN_BASE_URL}${endpoint}`;
   console.log(`[Midocean API] GET ${url}`);
-
-  const response = await fetch(url, { method: "GET", headers });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Midocean API error ${response.status}: ${errorText}`);
-  }
-
+  const response = await fetchWithRetry(url, { method: "GET", headers });
   return response.json();
 }
 
 async function midoceanPost<T>(endpoint: string, body: any): Promise<T> {
   const url = `${MIDOCEAN_BASE_URL}${endpoint}`;
   console.log(`[Midocean API] POST ${url}`);
-
-  const response = await fetch(url, {
+  const isOrderEndpoint = endpoint.includes("/order/2.1/create");
+  const response = await fetchWithRetry(url, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Midocean API error ${response.status}: ${errorText}`);
-  }
-
+  }, isOrderEndpoint);
   return response.json();
 }
 
