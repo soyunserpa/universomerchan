@@ -148,66 +148,46 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     conditions.push(eq(schema.products.categoryLevel2, subcategory));
   }
   
+  let searchRankSql;
+
   if (search) {
-    const stopwords = new Set(['de', 'con', 'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'para', 'y', 'o', 'a', 'en', 'barato', 'barata', 'baratos', 'baratas', 'economico', 'economica', 'quiero', 'necesito', 'busco']);
-    const terms = search.trim().split(/\s+/).map(t => t.toLowerCase()).filter(t => t.length > 1 && !stopwords.has(t));
+    const term = search.trim();
     
-    // Si filtrando stopwords nos quedamos sin términos (ej. buscar "para"), usamos el texto original
-    const finalTerms = terms.length > 0 ? terms : search.trim().split(/\s+/).filter(t => t.length > 1);
+    // 1. Full-Text Search Vector (Nativo de PostgreSQL con soporte para idioma español y stemming)
+    const ftsVector = sql`(
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.productName}, ''))), 'A') || 
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.categoryLevel1}, ''))), 'B') ||
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.shortDescription}, ''))), 'C') ||
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.material}, ''))), 'D')
+    )`;
+    
+    const ftsQuery = sql`websearch_to_tsquery('spanish', unaccent(${term}))`;
 
-    for (const rawTerm of finalTerms) {
-      if (!rawTerm) continue;
-      
-      // Singularizar palabras básicas en español que terminen en s/es
-      let term = rawTerm;
-      if (term.endsWith('es') && term.length > 4) {
-        term = term.slice(0, -2);
-      } else if (term.endsWith('s') && term.length > 3) {
-        term = term.slice(0, -1);
-      }
+    // 2. Similitud por Trigramas (pg_trgm para entender errores tipográficos)
+    const trigramSim = sql`word_similarity(unaccent(${term}), unaccent(${schema.products.productName}))`;
 
-      // Para colores comunes, añadir traducciones al 'or' (ej. blanco, blancos, blanca, blancas, white)
-      const isRed = term.startsWith('roj') || term === 'red';
-      const isBlue = term.startsWith('azul') || term === 'blue';
-      const isWhite = term.startsWith('blanc') || term === 'white';
-      const isBlack = term.startsWith('negr') || term === 'black';
-      const isGreen = term.startsWith('verd') || term === 'green';
-      const isYellow = term.startsWith('amarill') || term === 'yellow';
+    // 3. Búsqueda en variantes (Colores)
+    const colorSearch = sql`
+      EXISTS (
+        SELECT 1 FROM product_variants v 
+        WHERE v.product_id = ${schema.products.id} AND (
+          unaccent(v.color_group) ILIKE unaccent('%' || ${term} || '%') OR 
+          unaccent(v.color_description) ILIKE unaccent('%' || ${term} || '%')
+        )
+      )
+    `;
 
-      const colorConditions = [];
-      if (isRed) colorConditions.push(ilike(schema.productVariants.colorDescription, '%red%'), ilike(schema.productVariants.colorDescription, '%rojo%'));
-      if (isBlue) colorConditions.push(ilike(schema.productVariants.colorDescription, '%blue%'), ilike(schema.productVariants.colorDescription, '%azul%'));
-      if (isWhite) colorConditions.push(ilike(schema.productVariants.colorDescription, '%white%'), ilike(schema.productVariants.colorDescription, '%blanco%'));
-      if (isBlack) colorConditions.push(ilike(schema.productVariants.colorDescription, '%black%'), ilike(schema.productVariants.colorDescription, '%negro%'));
-      if (isGreen) colorConditions.push(ilike(schema.productVariants.colorDescription, '%green%'), ilike(schema.productVariants.colorDescription, '%verde%'));
-      if (isYellow) colorConditions.push(ilike(schema.productVariants.colorDescription, '%yellow%'), ilike(schema.productVariants.colorDescription, '%amarillo%'));
-
-      conditions.push(
-        or(
-          ilike(schema.products.productName, `%${term}%`),
-          ilike(schema.products.shortDescription, `%${term}%`),
-          ilike(schema.products.longDescription, `%${term}%`),
-          ilike(schema.products.categoryLevel1, `%${term}%`),
-          ilike(schema.products.categoryLevel2, `%${term}%`),
-          ilike(schema.products.masterCode, `%${rawTerm}%`),
-          ilike(schema.products.material, `%${term}%`),
-          exists(
-            db.select({ id: schema.productVariants.id })
-              .from(schema.productVariants)
-              .where(
-                and(
-                  eq(schema.productVariants.productId, schema.products.id),
-                  or(
-                    ilike(schema.productVariants.colorGroup, `%${term}%`),
-                    ilike(schema.productVariants.colorDescription, `%${term}%`),
-                    ...colorConditions
-                  )
-                )
-              )
-          )
-        )!
-      );
-    }
+    conditions.push(
+      or(
+        sql`${ftsVector} @@ ${ftsQuery}`,
+        sql`${trigramSim} > 0.3`,
+        sql`unaccent(${schema.products.masterCode}) ILIKE unaccent('%' || ${term} || '%')`,
+        colorSearch
+      )!
+    );
+    
+    // Puntuación de relevancia para ordenar
+    searchRankSql = sql`ts_rank(${ftsVector}, ${ftsQuery}) + COALESCE(${trigramSim}, 0)`;
   }
   
   if (greenOnly) {
@@ -301,6 +281,11 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     case "newest": primaryOrderBy = desc(schema.products.createdAt); break;
     case "stock": primaryOrderBy = desc(schema.products.masterCode); break;
     default: primaryOrderBy = asc(schema.products.productName);
+  }
+
+  // Override sort with relevance if a search query is provided and sort is default (newest)
+  if (search && searchRankSql && (!sort || sort === "newest")) {
+    primaryOrderBy = desc(searchRankSql);
   }
 
   // Define SQL to check if the product has any stock globally
