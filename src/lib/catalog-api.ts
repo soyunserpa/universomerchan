@@ -157,7 +157,10 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     const ftsVector = sql`(
       setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.productName}, ''))), 'A') || 
       setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.categoryLevel1}, ''))), 'B') ||
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.categoryLevel2}, ''))), 'B') ||
       setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.shortDescription}, ''))), 'C') ||
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.longDescription}, ''))), 'D') ||
+      setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.customDescription}, ''))), 'B') ||
       setweight(to_tsvector('spanish', unaccent(coalesce(${schema.products.material}, ''))), 'D')
     )`;
     
@@ -186,8 +189,8 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
       )!
     );
     
-    // Puntuación de relevancia para ordenar
-    searchRankSql = sql`ts_rank(${ftsVector}, ${ftsQuery}) + COALESCE(${trigramSim}, 0)`;
+    // Puntuación de relevancia para ordenar (Multiplicamos coincidencias exactas por 10)
+    searchRankSql = sql`(ts_rank(${ftsVector}, ${ftsQuery}) * 10) + COALESCE(${trigramSim}, 0)`;
   }
   
   if (greenOnly) {
