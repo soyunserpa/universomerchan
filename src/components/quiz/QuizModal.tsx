@@ -114,10 +114,17 @@ export function QuizModal({ onClose }: { onClose: () => void }) {
   const submitQuiz = async () => {
     setIsLoading(true);
     try {
+      const utmData = {
+        utmSource: localStorage.getItem("utm_source"),
+        utmMedium: localStorage.getItem("utm_medium"),
+        utmCampaign: localStorage.getItem("utm_campaign"),
+        referer: localStorage.getItem("original_referer"),
+      };
+
       fetch("/api/quiz-leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers)
+        body: JSON.stringify({ ...answers, ...utmData })
       }).catch(e => console.error(e));
 
       // Build specific Prompt using new Expert Variables

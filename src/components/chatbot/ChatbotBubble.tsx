@@ -284,12 +284,20 @@ export function ChatbotBubble() {
       });
 
       // Register Lead in CRM silently
+      const utmData = {
+        utmSource: localStorage.getItem("utm_source"),
+        utmMedium: localStorage.getItem("utm_medium"),
+        utmCampaign: localStorage.getItem("utm_campaign"),
+        referer: localStorage.getItem("original_referer"),
+      };
+
       fetch('/api/quiz-leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...answers,
-          companyName: answers.company_name
+          companyName: answers.company_name,
+          ...utmData
         })
       }).catch(e => console.error(e));
 

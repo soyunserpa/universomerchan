@@ -133,6 +133,12 @@ export const leads = pgTable("leads", {
   status: leadStatusEnum("status").default("NEW").notNull(),
   adminNotes: text("admin_notes"),
   
+  // Tracking
+  utmSource: varchar("utm_source", { length: 100 }),
+  utmMedium: varchar("utm_medium", { length: 100 }),
+  utmCampaign: varchar("utm_campaign", { length: 200 }),
+  referer: text("referer"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

@@ -17,6 +17,10 @@ interface Lead {
   volume: string | null;
   status: LeadStatus;
   adminNotes: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  referer?: string | null;
   createdAt: string;
 }
 
@@ -97,7 +101,7 @@ export default function CRMDashboard() {
   const downloadCSV = () => {
     if (!leads.length) return alert("No hay leads para exportar");
     
-    const headers = ["ID", "Fecha", "Empresa", "Email", "Teléfono", "Sector", "Presupuesto", "Volumen", "Objetivo", "Estado"];
+    const headers = ["ID", "Fecha", "Empresa", "Email", "Teléfono", "Sector", "Presupuesto", "Volumen", "Objetivo", "Estado", "UTM Source", "UTM Medium", "UTM Campaign", "Referer"];
     const rows = leads.map(l => [
       l.id,
       new Date(l.createdAt).toLocaleDateString(),
@@ -108,7 +112,11 @@ export default function CRMDashboard() {
       `"${l.budget || ""}"`,
       `"${l.volume || ""}"`,
       `"${l.objective || ""}"`,
-      l.status
+      l.status,
+      `"${l.utmSource || ""}"`,
+      `"${l.utmMedium || ""}"`,
+      `"${l.utmCampaign || ""}"`,
+      `"${l.referer || ""}"`
     ]);
     
     // Add BOM for correct Excel UTF-8 encoding
@@ -253,6 +261,12 @@ export default function CRMDashboard() {
                       {lead.budget && (
                         <div className="mt-2 bg-green-50 text-green-700 text-[11px] px-2 py-1 rounded font-semibold inline-block">
                           Presupuesto: {lead.budget}
+                        </div>
+                      )}
+                      {(lead.utmSource || lead.referer) && (
+                        <div className="mt-2 bg-purple-50 text-purple-700 text-[11px] px-2 py-1 rounded font-semibold inline-block">
+                          Origen: {lead.utmSource || (lead.referer ? (lead.referer.startsWith('http') ? new URL(lead.referer).hostname : lead.referer) : "Desconocido")}
+                          {lead.utmMedium && ` (${lead.utmMedium})`}
                         </div>
                       )}
                     </div>

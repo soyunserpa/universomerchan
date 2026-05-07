@@ -15,6 +15,10 @@ export async function POST(req: Request) {
       budget: body.budget || null,
       objective: body.objective || null,
       volume: body.volume || null,
+      utmSource: body.utmSource || null,
+      utmMedium: body.utmMedium || null,
+      utmCampaign: body.utmCampaign || null,
+      referer: body.referer || null,
       status: "NEW",
     }).returning();
     
