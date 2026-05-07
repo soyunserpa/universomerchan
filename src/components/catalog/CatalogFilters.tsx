@@ -105,7 +105,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
         <div className="flex items-center gap-1.5 text-gray-900 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full shadow-sm">
           <Star size={14} className="text-amber-500 fill-amber-500" />
           <select
-            value={["verano", "oficina", "feria"].includes(search?.toLowerCase()) ? search.toLowerCase() : ""}
+            value={["verano", "oficina", "feria", "hosteleria", "deporte", "tecnologia", "navidad"].includes(search?.toLowerCase()) ? search.toLowerCase() : ""}
             onChange={(e) => router.push(buildUrl({ search: e.target.value || undefined, page: undefined }))}
             className="bg-transparent text-sm font-bold text-amber-900 border-none cursor-pointer focus:ring-0 p-0"
           >
@@ -113,6 +113,10 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             <option value="verano">☀️ Especial Verano</option>
             <option value="oficina">🎒 Oficina y Cole</option>
             <option value="feria">🎪 Ferias y Eventos</option>
+            <option value="deporte">🏃 Deporte y Gimnasio</option>
+            <option value="tecnologia">💻 Tecnología y VIP</option>
+            <option value="hosteleria">🍽️ Hostelería</option>
+            <option value="navidad">🎄 Especial Navidad</option>
           </select>
         </div>
 
