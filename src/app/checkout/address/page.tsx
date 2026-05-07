@@ -123,6 +123,8 @@ function CheckoutAddressPage() {
   const finalTotal = baseTotal + taxAmount;
   const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
 
+  const hasPrintItems = state.items.some(item => item.orderType === "PRINT");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -358,12 +360,14 @@ function CheckoutAddressPage() {
           </div>
 
           {/* Legal Acknowledgement */}
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-             <input type="checkbox" id="legal-boceto" required className="mt-1 w-4 h-4 accent-brand-red border-surface-300 rounded flex-shrink-0 cursor-pointer" />
-             <label htmlFor="legal-boceto" className="text-xs text-amber-900 font-medium leading-tight cursor-pointer">
-                 Comprendo que la producción de mi pedido no iniciará hasta que yo apruebe explícitamente el boceto virtual final que recibiré en mi panel de cliente una vez el pago haya sido verificado.
-             </label>
-          </div>
+          {hasPrintItems && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+               <input type="checkbox" id="legal-boceto" required className="mt-1 w-4 h-4 accent-brand-red border-surface-300 rounded flex-shrink-0 cursor-pointer" />
+               <label htmlFor="legal-boceto" className="text-xs text-amber-900 font-medium leading-tight cursor-pointer">
+                   Comprendo que la producción de mi pedido no iniciará hasta que yo apruebe explícitamente el boceto virtual final que recibiré en mi panel de cliente una vez el pago haya sido verificado.
+               </label>
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-500 bg-red-50 px-4 py-3 rounded-xl">{error}</p>}
 
