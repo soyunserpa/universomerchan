@@ -145,7 +145,15 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
   }
 
   if (subcategory && subcategory !== "Todas") {
-    conditions.push(eq(schema.products.categoryLevel2, subcategory));
+    // Map "Chalecos" back to its DB name for searching
+    const dbSubcategory = subcategory === "Chalecos" ? "Calentadores corporales" : subcategory;
+    
+    conditions.push(
+      or(
+        eq(schema.products.categoryLevel2, dbSubcategory),
+        eq(schema.products.categoryLevel3, dbSubcategory)
+      )!
+    );
   }
   
   let searchRankSql;
@@ -802,23 +810,38 @@ export async function getSubcategories(category: string): Promise<CategoryRespon
     eq(schema.products.categoryLevel1, category),
   ];
 
+  const subcatNameSql = sql<string>`
+    CASE 
+      WHEN ${schema.products.categoryLevel2} = 'Categorías textiles' 
+           AND ${schema.products.categoryLevel3} IS NOT NULL 
+           AND ${schema.products.categoryLevel3} != '' 
+      THEN 
+        CASE WHEN ${schema.products.categoryLevel3} = 'Calentadores corporales' THEN 'Chalecos'
+        ELSE ${schema.products.categoryLevel3} END
+      ELSE ${schema.products.categoryLevel2} 
+    END
+  `;
+
   const result = await db
     .select({
-      category: schema.products.categoryLevel2,
+      category: subcatNameSql,
       count: sql<number>`count(*)`,
     })
     .from(schema.products)
     .where(and(...conditions))
-    .groupBy(schema.products.categoryLevel2)
+    .groupBy(subcatNameSql)
     .orderBy(desc(sql`count(*)`));
 
-  return result
+  const mapped = result
     .filter(r => r.category)
     .map(r => ({
       name: r.category!,
       slug: slugify(r.category!),
       productCount: Number(r.count),
     }));
+    
+  subcatCache.set(category, { data: mapped, time: Date.now() });
+  return mapped;
 }
 
 // ============================================================
