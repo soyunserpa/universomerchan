@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 
 export function InstagramSection() {
   const manualLinks = [
+    "https://www.instagram.com/p/DX_fzlJIxkE/embed",
+    "https://www.instagram.com/p/DJ1tZsMIwmf/embed",
     "https://www.instagram.com/p/DX90QKkoLpu/embed",
-    "https://www.instagram.com/p/DX_fzlJIxkE/embed"
+    "https://www.instagram.com/p/DYCL6_YI5kh/embed"
   ];
 
   return (
@@ -39,13 +41,13 @@ export function InstagramSection() {
         </div>
 
         {/* MOCKUP VISUAL (Simulación de cómo quedará) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
           {manualLinks.map((url, index) => (
             <div key={index} className="w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-200">
                <iframe 
                   src={url} 
                   width="100%" 
-                  height="550" 
+                  height="450" 
                   frameBorder="0" 
                   scrolling="no" 
                   allowTransparency={true}
