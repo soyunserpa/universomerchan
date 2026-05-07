@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Leaf, ArrowUpDown } from "lucide-react";
+import { Leaf, ArrowUpDown, Star } from "lucide-react";
 
 interface CatalogFiltersProps {
   categories: Array<{ name: string; slug: string; productCount: number }>;
@@ -98,6 +98,21 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             <option value="price_asc">Precio: menor a mayor</option>
             <option value="price_desc">Precio: mayor a menor</option>
             <option value="stock">Más stock</option>
+          </select>
+        </div>
+
+        {/* Collections Dropdown */}
+        <div className="flex items-center gap-1.5 text-gray-900 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full shadow-sm">
+          <Star size={14} className="text-amber-500 fill-amber-500" />
+          <select
+            value={["verano", "oficina", "feria"].includes(search?.toLowerCase()) ? search.toLowerCase() : ""}
+            onChange={(e) => router.push(buildUrl({ search: e.target.value || undefined, page: undefined }))}
+            className="bg-transparent text-sm font-bold text-amber-900 border-none cursor-pointer focus:ring-0 p-0"
+          >
+            <option value="">Colecciones...</option>
+            <option value="verano">☀️ Especial Verano</option>
+            <option value="oficina">🎒 Oficina y Cole</option>
+            <option value="feria">🎪 Ferias y Eventos</option>
           </select>
         </div>
 
