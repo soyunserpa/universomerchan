@@ -41,7 +41,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
         {categories.map((cat) => (
           <button
             key={cat.name}
-            onClick={() => router.push(buildUrl({ category: cat.name === "Todos" ? undefined : cat.name, subcategory: undefined, page: undefined }))}
+            onClick={() => router.push(buildUrl({ category: cat.name === "Todos" ? undefined : cat.name, subcategory: undefined, page: undefined, search: undefined }))}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               currentCategory === cat.name
                 ? "bg-brand-red text-white"
@@ -60,7 +60,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             ↳ {currentCategory}
           </div>
           <button
-            onClick={() => router.push(buildUrl({ subcategory: undefined, page: undefined }))}
+            onClick={() => router.push(buildUrl({ subcategory: undefined, page: undefined, search: undefined }))}
             className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
               currentSubcategory === "Todas"
                 ? "bg-gray-800 text-white shadow-sm"
@@ -72,7 +72,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
           {subcategories.map((sub) => (
             <button
               key={sub.name}
-              onClick={() => router.push(buildUrl({ subcategory: sub.name, page: undefined }))}
+              onClick={() => router.push(buildUrl({ subcategory: sub.name, page: undefined, search: undefined }))}
               className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 currentSubcategory === sub.name
                   ? "bg-gray-800 text-white shadow-sm"
@@ -106,7 +106,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
           <Star size={14} className="text-amber-500 fill-amber-500" />
           <select
             value={["verano", "oficina", "feria", "hosteleria", "deporte", "tecnologia", "navidad"].includes(search?.toLowerCase()) ? search.toLowerCase() : ""}
-            onChange={(e) => router.push(buildUrl({ search: e.target.value || undefined, page: undefined }))}
+            onChange={(e) => router.push(buildUrl({ search: e.target.value || undefined, page: undefined, category: undefined, subcategory: undefined }))}
             className="bg-transparent text-sm font-bold text-amber-900 border-none cursor-pointer focus:ring-0 p-0"
           >
             <option value="">Colecciones...</option>
