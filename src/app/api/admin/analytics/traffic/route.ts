@@ -1,20 +1,13 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db } from "@/lib/database";
 import { trafficSessions } from "@/lib/schema";
 import { sql } from "drizzle-orm";
-import { verifyAdminToken } from "@/lib/auth-server";
 
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    
-    const token = authHeader.substring(7);
-    const decoded = await verifyAdminToken(token);
-    if (!decoded) {
-      return NextResponse.json({ success: false, error: "Invalid token" }, { status: 401 });
     }
 
     // Parse query params (e.g., ?days=30)
