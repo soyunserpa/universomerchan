@@ -1,8 +1,9 @@
 import { getPostBySlug } from "@/lib/cms-content";
 import { notFound } from "next/navigation";
-import { Clock, ArrowLeft, Share2 } from "lucide-react";
+import { Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
+import { ShareButton } from "@/components/blog/ShareButton";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPostBySlug(params.slug);
@@ -106,9 +107,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         {/* Footer / Share actions */}
         <div className="mt-16 pt-8 border-t border-gray-100 flex justify-between items-center text-gray-500">
           <p className="text-sm font-semibold">¿Te ha resultado útil?</p>
-          <button className="flex items-center gap-2 text-sm font-semibold hover:text-brand-red transition-colors bg-surface-50 hover:bg-red-50 px-4 py-2 rounded-full">
-            <Share2 size={16} /> Compartir Artículo
-          </button>
+          <ShareButton title={post.title} />
         </div>
       </div>
 
