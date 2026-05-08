@@ -2,11 +2,29 @@
 
 import { useAdminAuth } from "@/components/admin/AdminLayout";
 import { Video, ExternalLink, PlayCircle, Settings, Rocket, User as UserIcon, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ff7300'];
 
 export default function AnalyticsPage() {
-  const { user } = useAdminAuth();
+  const { user, authHeaders } = useAdminAuth();
   const [emailQuery, setEmailQuery] = useState("");
+  const [trafficData, setTrafficData] = useState<{name: string, value: number, percentage: string}[]>([]);
+  const [trafficTotal, setTrafficTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/analytics/traffic", { headers: authHeaders() })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setTrafficData(data.data);
+          setTrafficTotal(data.total);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [authHeaders]);
 
   const posthogProjectUrl = "https://eu.posthog.com/project/current/replay";
   
@@ -31,6 +49,72 @@ export default function AnalyticsPage() {
 
       <div className="p-8 max-w-5xl mx-auto space-y-6">
         
+        {/* Gráfico de Fuentes de Tráfico */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold font-display flex items-center gap-2">
+                Fuentes de Tráfico (Últimos 30 días)
+              </h2>
+              <p className="text-sm text-gray-500">¿Desde dónde entra la gente a tu tienda?</p>
+            </div>
+            <div className="text-right">
+              <span className="text-3xl font-bold text-gray-900">{trafficTotal}</span>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sesiones Totales</p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-xl">
+              <span className="text-gray-400 font-medium">Cargando gráfico...</span>
+            </div>
+          ) : trafficData.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+              <span className="text-gray-400 font-medium">Aún no hay suficientes datos de tráfico (el rastreador acaba de instalarse).</span>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={trafficData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {trafficData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value} sesiones`, 'Tráfico']} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 mb-4">Desglose exacto:</h3>
+                <div className="space-y-3">
+                  {trafficData.map((item, i) => (
+                    <div key={item.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <span className="font-semibold text-gray-700">{item.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-gray-900">{item.percentage}%</span>
+                        <span className="text-gray-400 text-xs ml-2">({item.value} usu.)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Quick Search */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold font-display mb-4">Buscar Grabación por Email</h2>

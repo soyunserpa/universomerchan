@@ -19,6 +19,7 @@ import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { UtmProvider } from "@/components/providers/UtmProvider";
+import { TrafficTracker } from "@/components/providers/TrafficTracker";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`bg-surface-50 text-gray-900 min-h-screen font-sans antialiased ${poppins.variable}`}>
         <PostHogProvider>
           <UtmProvider />
+          <TrafficTracker />
           {/* JSON-LD: Organization + LocalBusiness structured data for Google */}
           <script
             type="application/ld+json"

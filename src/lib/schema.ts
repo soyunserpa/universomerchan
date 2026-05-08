@@ -713,3 +713,21 @@ export const searchQueries = pgTable("search_queries", {
   queryIdx: uniqueIndex("search_queries_query_idx").on(table.query),
   countIdx: index("search_queries_count_idx").on(table.count),
 }));
+
+// ============================================================
+// TRAFFIC SESSIONS — Track web traffic sources natively
+// ============================================================
+
+export const trafficSessions = pgTable("traffic_sessions", {
+  id: serial("id").primaryKey(),
+  sessionId: varchar("session_id", { length: 100 }).notNull().unique(),
+  source: varchar("source", { length: 100 }).notNull(), // 'Google', 'Instagram', 'Directo', etc.
+  medium: varchar("medium", { length: 100 }),
+  campaign: varchar("campaign", { length: 200 }),
+  deviceType: varchar("device_type", { length: 50 }),
+  url: text("url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  sourceIdx: index("traffic_sessions_source_idx").on(table.source),
+  createdAtIdx: index("traffic_sessions_created_at_idx").on(table.createdAt),
+}));
