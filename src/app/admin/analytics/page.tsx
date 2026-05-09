@@ -10,12 +10,14 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ff7300'
 export default function AnalyticsPage() {
   const { user, authHeaders } = useAdminAuth();
   const [emailQuery, setEmailQuery] = useState("");
+  const [daysFilter, setDaysFilter] = useState(30);
   const [trafficData, setTrafficData] = useState<{name: string, value: number, percentage: string}[]>([]);
   const [trafficTotal, setTrafficTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/analytics/traffic", { headers: authHeaders() })
+    setLoading(true);
+    fetch(`/api/admin/analytics/traffic?days=${daysFilter}`, { headers: authHeaders() })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -24,7 +26,7 @@ export default function AnalyticsPage() {
         }
       })
       .finally(() => setLoading(false));
-  }, [authHeaders]);
+  }, [authHeaders, daysFilter]);
 
   const posthogProjectUrl = "https://eu.posthog.com/project/current/replay";
   
@@ -54,9 +56,22 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-bold font-display flex items-center gap-2">
-                Fuentes de Tráfico (Últimos 30 días)
+                Fuentes de Tráfico
               </h2>
-              <p className="text-sm text-gray-500">¿Desde dónde entra la gente a tu tienda?</p>
+              <div className="mt-2">
+                <select 
+                  className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-1.5 font-medium outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red"
+                  value={daysFilter}
+                  onChange={(e) => setDaysFilter(Number(e.target.value))}
+                >
+                  <option value={1}>Últimas 24 horas</option>
+                  <option value={7}>Últimos 7 días</option>
+                  <option value={30}>Últimos 30 días</option>
+                  <option value={90}>Últimos 3 meses</option>
+                  <option value={365}>Último año</option>
+                  <option value={9999}>Desde siempre</option>
+                </select>
+              </div>
             </div>
             <div className="text-right">
               <span className="text-3xl font-bold text-gray-900">{trafficTotal}</span>
