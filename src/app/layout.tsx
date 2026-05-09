@@ -24,7 +24,6 @@ import { TrafficTracker } from "@/components/providers/TrafficTracker";
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
   description: "Consigue que tu marca se recuerde. +2.000 productos personalizables con entrega en menos de 10 días. #GeneraEmociones",
-  keywords: "merchandising, regalos corporativos, productos personalizados, serigrafía, grabado",
   openGraph: {
     title: "Universo Merchan — Consigue que tu marca se recuerde",
     description: "+2.000 productos personalizables. Elige, personaliza, visualiza y recibe en menos de 10 días.",

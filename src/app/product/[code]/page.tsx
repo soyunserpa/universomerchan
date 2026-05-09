@@ -32,6 +32,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     console.error("Failed to load related products", e);
   }
 
+  // Calcula la fecha de validez del precio (+90 días) para el Schema de Google
+  const validUntilDate = new Date();
+  validUntilDate.setDate(validUntilDate.getDate() + 90);
+  const priceValidUntilString = validUntilDate.toISOString().split('T')[0];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 overflow-hidden">
       {/* JSON-LD Breadcrumb for Google */}
@@ -104,22 +109,64 @@ export default async function ProductPage({ params }: ProductPageProps) {
             category: product.category,
             brand: {
               "@type": "Brand",
-              name: product.brand || "Universo Merchan",
+              name: "Universo Merchan",
+            },
+            manufacturer: {
+              "@type": "Organization",
+              name: product.brand || "Midocean",
             },
             ...(product.isGreen ? { additionalProperty: { "@type": "PropertyValue", name: "Sostenible", value: "Sí" } } : {}),
             offers: {
               "@type": "AggregateOffer",
               url: `https://universomerchan.com/product/${product.masterCode.toLowerCase()}-${product.name ? product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : ""}`,
               priceCurrency: "EUR",
-              lowPrice: product.priceScales?.length > 0 ? Math.min(...product.priceScales.map(s => s.pricePerUnitRaw)) : (product.startingPriceRaw || 0),
-              highPrice: product.priceScales?.length > 0 ? Math.max(...product.priceScales.map(s => s.pricePerUnitRaw)) : (product.startingPriceRaw || 0),
+              lowPrice: Math.min(...(product.priceScales?.length ? product.priceScales.map(s => s.pricePerUnitRaw) : [product.startingPriceRaw || 0]), product.startingPriceRaw || 0),
+              highPrice: Math.max(...(product.priceScales?.length ? product.priceScales.map(s => s.pricePerUnitRaw) : [product.startingPriceRaw || 0]), product.startingPriceRaw || 0),
               offerCount: product.variants?.length || 1,
+              priceValidUntil: priceValidUntilString,
+              itemCondition: "https://schema.org/NewCondition",
               availability: product.totalStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
               seller: {
                 "@type": "Organization",
                 name: "Universo Merchan",
                 url: "https://universomerchan.com",
               },
+              shippingDetails: {
+                "@type": "OfferShippingDetails",
+                shippingRate: {
+                  "@type": "MonetaryAmount",
+                  value: 15.00,
+                  currency: "EUR"
+                },
+                shippingDestination: {
+                  "@type": "DefinedRegion",
+                  addressCountry: "ES"
+                },
+                deliveryTime: {
+                  "@type": "ShippingDeliveryTime",
+                  handlingTime: {
+                    "@type": "QuantitativeValue",
+                    minValue: 1,
+                    maxValue: 3,
+                    unitCode: "d"
+                  },
+                  transitTime: {
+                    "@type": "QuantitativeValue",
+                    minValue: 3,
+                    maxValue: 7,
+                    unitCode: "d"
+                  }
+                }
+              },
+              hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "ES",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: 14,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/ReturnShippingFees",
+                description: "Devoluciones en 14 días aplicables ÚNICAMENTE a productos sin marcaje. Los productos personalizados no admiten devolución."
+              }
             },
             isRelatedTo: relatedProducts.slice(0, 3).map(rp => ({
               "@type": "Product",
