@@ -15,6 +15,9 @@ export async function GET(req: Request) {
     const daysParam = url.searchParams.get("days") || "30";
     const days = parseInt(daysParam, 10);
 
+    const dateThreshold = new Date();
+    dateThreshold.setDate(dateThreshold.getDate() - days);
+
     // Group traffic by source
     const result = await db
       .select({
@@ -22,7 +25,7 @@ export async function GET(req: Request) {
         count: sql<number>`count(*)`,
       })
       .from(trafficSessions)
-      .where(sql`${trafficSessions.createdAt} >= NOW() - INTERVAL '${days} days'`)
+      .where(sql`${trafficSessions.createdAt} >= ${dateThreshold.toISOString()}`)
       .groupBy(trafficSessions.source)
       .orderBy(sql`count(*) DESC`);
 
