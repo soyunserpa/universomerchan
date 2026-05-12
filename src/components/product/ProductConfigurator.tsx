@@ -1280,57 +1280,64 @@ function ProductConfiguratorInner({ product }: Props) {
                   <strong className="text-emerald-900">¿Sabías que si pides 500 uds el precio por unidad se desploma?</strong><br/>
                   El coste fijo de preparación de máquinas ({setupCost.toFixed(2)}€) penaliza pedidos pequeños. 
                   {(() => {
-                    // Calculate hypothetical 500 units
-                    const hypQty = 500;
-                    
-                    // Product price scale for 500
-                    let hypBasePriceScale = unitProductPrice;
-                    if (product.priceScales && product.priceScales.length > 0) {
-                      const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
-                      hypBasePriceScale = sorted[0].pricePerUnitRaw;
-                      for (const scale of sorted) {
-                        if (hypQty >= scale.minQuantity) hypBasePriceScale = scale.pricePerUnitRaw;
+                    try {
+                      // Calculate hypothetical 500 units
+                      const hypQty = 500;
+                      
+                      // Product price scale for 500
+                      let hypBasePriceScale = unitProductPrice;
+                      if (product.priceScales && product.priceScales.length > 0) {
+                        const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+                        hypBasePriceScale = sorted[0].pricePerUnitRaw;
+                        for (const scale of sorted) {
+                          if (hypQty >= scale.minQuantity) hypBasePriceScale = scale.pricePerUnitRaw;
+                        }
                       }
-                    }
-                    const hypBasePrice = hypBasePriceScale * hypQty;
-                    
-                    // Print cost
-                    let hypPrintPerUnit = printPerUnit; // fallback
-                    let hypPrintTotal = printPerUnit * hypQty;
-                    
-                    // Recalculate print per unit using the exact function
-                    let hypRawPrintPerUnit = 0;
-                    Object.entries(selectedTechniques).forEach(([zoneId, techId]) => {
-                      const zone = printZones.find(z => z.positionId === zoneId);
-                      const tech = zone?.techniques.find(t => t.techniqueId === techId);
-                      if (tech?.pricing) {
-                        const p = calculateRealPrintCost({
-                          pricing: tech.pricing,
-                          pricingType: tech.pricingType || "NumberOfColours",
-                          quantity: hypQty,
-                          numColors: numColorsMap[zoneId] || 1,
-                          printAreaMm2: 0, // Mock
-                        });
-                        hypRawPrintPerUnit += p.printCostPerUnit;
+                      const hypBasePrice = hypBasePriceScale * hypQty;
+                      
+                      // Print cost
+                      let hypPrintPerUnit = printPerUnit; // fallback
+                      let hypPrintTotal = printPerUnit * hypQty;
+                      
+                      // Recalculate print per unit using the exact function
+                      let hypRawPrintPerUnit = 0;
+                      Object.entries(selectedTechniques).forEach(([zoneId, techId]) => {
+                        const zone = printZones.find(z => z.positionId === zoneId);
+                        const tech = zone?.techniques?.find((t: any) => t.techniqueId === techId);
+                        if (tech?.pricing) {
+                          const p = calculateRealPrintCost({
+                            pricing: tech.pricing,
+                            pricingType: tech.pricingType || "NumberOfColours",
+                            quantity: hypQty,
+                            numColors: numColorsMap[zoneId] || 1,
+                            printAreaMm2: 0, // Mock
+                          });
+                          hypRawPrintPerUnit += p.printCostPerUnit;
+                        }
+                      });
+                      
+                      if (hypRawPrintPerUnit > 0) {
+                        const printMarginMultiplier = 1 + (MARGINS.printMarginPct / 100);
+                        hypPrintPerUnit = round(hypRawPrintPerUnit * printMarginMultiplier);
+                        hypPrintTotal = round(hypPrintPerUnit * hypQty);
                       }
-                    });
-                    
-                    if (hypRawPrintPerUnit > 0) {
-                      const printMarginMultiplier = 1 + (MARGINS.printMarginPct / 100);
-                      hypPrintPerUnit = round(hypRawPrintPerUnit * printMarginMultiplier);
-                      hypPrintTotal = round(hypPrintPerUnit * hypQty);
+                      
+                      const hypHandlingTotal = round((handlingCostPerUnit * hypQty * (1 + MARGINS.printMarginPct / 100))) * zonesCount;
+                      
+                      const hypTotal = round(hypBasePrice + setupCost + hypPrintTotal + hypHandlingTotal);
+                      const hypPerUnit = round(hypTotal / hypQty);
+                      
+                      if (isNaN(hypTotal) || isNaN(hypPerUnit)) return null;
+                      
+                      return (
+                        <span className="mt-1.5 block">
+                          Si pidieras 500 unidades, el precio total sería de <strong>{hypTotal.toFixed(2)}€</strong> y la unidad te saldría a tan solo <strong className="text-xl text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md">{hypPerUnit.toFixed(2)}€ / ud</strong> con impresión incluida.
+                        </span>
+                      );
+                    } catch (e) {
+                      console.error("Error calculating hypothetical price:", e);
+                      return null;
                     }
-                    
-                    const hypHandlingTotal = round((handlingCostPerUnit * hypQty * (1 + MARGINS.printMarginPct / 100))) * zonesCount;
-                    
-                    const hypTotal = round(hypBasePrice + setupCost + hypPrintTotal + hypHandlingTotal);
-                    const hypPerUnit = round(hypTotal / hypQty);
-                    
-                    return (
-                      <span className="mt-1.5 block">
-                        Si pidieras 500 unidades, el precio total sería de <strong>{hypTotal.toFixed(2)}€</strong> y la unidad te saldría a tan solo <strong className="text-xl text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md">{hypPerUnit.toFixed(2)}€ / ud</strong> con impresión incluida.
-                      </span>
-                    );
                   })()}
                 </div>
               </div>
