@@ -1306,7 +1306,7 @@ function ProductConfiguratorInner({ product }: Props) {
                       if (tech?.pricing) {
                         const p = calculateRealPrintCost({
                           pricing: tech.pricing,
-                          pricingType: tech.pricingType,
+                          pricingType: tech.pricingType || "NumberOfColours",
                           quantity: hypQty,
                           numColors: numColorsMap[zoneId] || 1,
                           printAreaMm2: 0, // Mock
