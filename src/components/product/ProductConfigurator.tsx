@@ -69,7 +69,11 @@ function calculateRealPrintCost(params: {
   const { pricing, pricingType, quantity, numColors, printAreaMm2, isRepeatOrder } = params;
 
   // Setup cost
-  const setupCost = isRepeatOrder ? (pricing.setupRepeat || 0) : (pricing.setup || 0);
+  let setupCost = isRepeatOrder ? (pricing.setupRepeat || 0) : (pricing.setup || 0);
+
+  if (pricingType === "NumberOfColours" || pricingType === "ColourAreaRange") {
+    setupCost = setupCost * numColors;
+  }
 
   // Find the right var_costs range
   let selectedRange = pricing.varCosts?.[0]; // Default: first range
@@ -447,8 +451,8 @@ function ProductConfiguratorInner({ product }: Props) {
   const handlingInfo = product.printPositions[0]?.handlingInfo;
   const handlingCostPerUnit = handlingInfo?.pricePerUnit || 0;
 
-  // Apply margins to all print costs
-  const setupCost = round(printCosts.setupCost * printMarginMultiplier);
+  // Apply margins to print costs (Setup NO lleva margen por decisión de negocio)
+  const setupCost = round(printCosts.setupCost);
   const printPerUnit = round(printCosts.printCostPerUnit * printMarginMultiplier);
   const printTotal = round(printPerUnit * qty);
   const zonesCount = Object.keys(selectedTechniques).length;
@@ -1219,7 +1223,7 @@ function ProductConfiguratorInner({ product }: Props) {
               {zonesCount > 0 && (
                 <>
                   <div className="flex justify-between mb-1.5 text-sm">
-                    <span className="opacity-60">Setup (Total de posiciones)</span><span>{setupCost.toFixed(2)}€</span>
+                    <span className="opacity-60">Setup de máquinas (Coste fijo)</span><span>{setupCost.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between mb-1.5 text-sm">
                     <span className="opacity-60">Impresión ({qty} × {printPerUnit.toFixed(2)}€)</span><span>{printTotal.toFixed(2)}€</span>
@@ -1265,6 +1269,72 @@ function ProductConfiguratorInner({ product }: Props) {
                 No te preocupes. Te enviaremos un <strong>boceto final profesional</strong> a tu correo para que lo valides antes de pasar a producción. Podrás aprobarlo o solicitar cambios desde tu panel de cliente.
               </div>
             </div>
+
+            {/* HYPOTHETICAL DILUTED PRICE ALERT */}
+            {zonesCount > 0 && qty < 500 && (
+              <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex gap-3 text-sm text-emerald-800 animate-fade-in shadow-sm">
+                <div className="flex-shrink-0 mt-0.5">
+                  <span className="text-emerald-600 text-lg animate-pulse block">💡</span>
+                </div>
+                <div className="leading-snug">
+                  <strong className="text-emerald-900">¿Sabías que si pides 500 uds el precio por unidad se desploma?</strong><br/>
+                  El coste fijo de preparación de máquinas ({setupCost.toFixed(2)}€) penaliza pedidos pequeños. 
+                  {(() => {
+                    // Calculate hypothetical 500 units
+                    const hypQty = 500;
+                    
+                    // Product price scale for 500
+                    let hypBasePriceScale = unitProductPrice;
+                    if (product.priceScales && product.priceScales.length > 0) {
+                      const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+                      hypBasePriceScale = sorted[0].pricePerUnitRaw;
+                      for (const scale of sorted) {
+                        if (hypQty >= scale.minQuantity) hypBasePriceScale = scale.pricePerUnitRaw;
+                      }
+                    }
+                    const hypBasePrice = hypBasePriceScale * hypQty;
+                    
+                    // Print cost
+                    let hypPrintPerUnit = printPerUnit; // fallback
+                    let hypPrintTotal = printPerUnit * hypQty;
+                    
+                    // Recalculate print per unit using the exact function
+                    let hypRawPrintPerUnit = 0;
+                    Object.entries(selectedTechniques).forEach(([zoneId, techId]) => {
+                      const zone = printZones.find(z => z.positionId === zoneId);
+                      const tech = zone?.techniques.find(t => t.techniqueId === techId);
+                      if (tech?.pricing) {
+                        const p = calculateRealPrintCost({
+                          pricing: tech.pricing,
+                          pricingType: tech.pricingType,
+                          quantity: hypQty,
+                          numColors: numColorsMap[zoneId] || 1,
+                          printAreaMm2: 0, // Mock
+                        });
+                        hypRawPrintPerUnit += p.printCostPerUnit;
+                      }
+                    });
+                    
+                    if (hypRawPrintPerUnit > 0) {
+                      const printMarginMultiplier = 1 + (MARGINS.printMarginPct / 100);
+                      hypPrintPerUnit = round(hypRawPrintPerUnit * printMarginMultiplier);
+                      hypPrintTotal = round(hypPrintPerUnit * hypQty);
+                    }
+                    
+                    const hypHandlingTotal = round((handlingCostPerUnit * hypQty * (1 + MARGINS.printMarginPct / 100))) * zonesCount;
+                    
+                    const hypTotal = round(hypBasePrice + setupCost + hypPrintTotal + hypHandlingTotal);
+                    const hypPerUnit = round(hypTotal / hypQty);
+                    
+                    return (
+                      <span className="mt-1.5 block">
+                        Si pidieras 500 unidades, el precio total sería de <strong>{hypTotal.toFixed(2)}€</strong> y la unidad te saldría a tan solo <strong className="text-xl text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md">{hypPerUnit.toFixed(2)}€ / ud</strong> con impresión incluida.
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
 
             <div className="mt-4 bg-orange-50 border border-orange-200 rounded-xl p-3 flex gap-3 text-sm text-orange-800 animate-fade-in shadow-sm">
               <div className="flex-shrink-0 mt-0.5">
