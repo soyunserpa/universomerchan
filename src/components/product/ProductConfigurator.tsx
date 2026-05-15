@@ -342,7 +342,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
   // ── PRODUCT PRICE (from variant price or price scales) ────
 
-  const getUnitPrice = useCallback((forVariantSku = variant.sku) => {
+  const getUnitPrice = useCallback((forVariantSku = variant.sku, targetQty = qty) => {
     // Try per-variant pricing scales first (more accurate for textiles)
     let vp = (product as any).variantPrices?.[forVariantSku];
     if (!vp && (product as any).variantPrices) {
@@ -354,7 +354,7 @@ function ProductConfiguratorInner({ product }: Props) {
       const sorted = [...vp.scales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
       let price = sorted[0].priceSell || product.startingPriceRaw;
       for (const s of sorted) {
-        if (qty >= s.minQuantity) price = s.priceSell;
+        if (targetQty >= s.minQuantity) price = s.priceSell;
       }
       return price;
     }
@@ -367,7 +367,7 @@ function ProductConfiguratorInner({ product }: Props) {
         const basePriceScale0 = sorted[0].pricePerUnitRaw;
         let currentScalePrice = basePriceScale0;
         for (const scale of sorted) {
-          if (qty >= scale.minQuantity) currentScalePrice = scale.pricePerUnitRaw;
+          if (targetQty >= scale.minQuantity) currentScalePrice = scale.pricePerUnitRaw;
         }
         
         if (basePriceScale0 > 0 && currentScalePrice < basePriceScale0) {
@@ -383,7 +383,7 @@ function ProductConfiguratorInner({ product }: Props) {
       const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
       let unitPrice = sorted[0].pricePerUnitRaw;
       for (const scale of sorted) {
-        if (qty >= scale.minQuantity) unitPrice = scale.pricePerUnitRaw;
+        if (targetQty >= scale.minQuantity) unitPrice = scale.pricePerUnitRaw;
       }
       return unitPrice;
     }
@@ -1284,15 +1284,8 @@ function ProductConfiguratorInner({ product }: Props) {
                       // Calculate hypothetical 500 units
                       const hypQty = 500;
                       
-                      // Product price scale for 500
-                      let hypBasePriceScale = unitProductPrice;
-                      if (product.priceScales && product.priceScales.length > 0) {
-                        const sorted = [...product.priceScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
-                        hypBasePriceScale = sorted[0].pricePerUnitRaw;
-                        for (const scale of sorted) {
-                          if (hypQty >= scale.minQuantity) hypBasePriceScale = scale.pricePerUnitRaw;
-                        }
-                      }
+                      // Product price scale for 500 using variant-aware calculation
+                      const hypBasePriceScale = getUnitPrice(variant.sku, hypQty);
                       const hypBasePrice = hypBasePriceScale * hypQty;
                       
                       // Print cost
