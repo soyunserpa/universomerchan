@@ -1333,7 +1333,7 @@ function ProductConfiguratorInner({ product }: Props) {
                       const hypHandlingTotal = round((handlingCostPerUnit * hypQty * (1 + MARGINS.printMarginPct / 100))) * zonesCount;
                       
                       const hypSubtotal = round(hypBasePrice + setupCost + hypPrintTotal + hypHandlingTotal);
-                      const hypDiscount = round(hypSubtotal * (MARGINS.clientDiscountPct / 100));
+                      const hypDiscount = round(hypSubtotal * MARGINS.clientDiscountPct);
                       const hypTotal = round(hypSubtotal - hypDiscount);
                       const hypPerUnit = round(hypTotal / hypQty);
                       
