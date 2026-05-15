@@ -407,8 +407,20 @@ function ProductConfiguratorInner({ product }: Props) {
     return vp?.priceSell || product.startingPriceRaw;
   }, [qty, product.priceScales, product.startingPriceRaw, variant.sku, (product as any).variantPrices]);
 
-  const unitProductPrice = getUnitPrice();
-  const basePrice = unitProductPrice * qty;
+  const basePrice = useMemo(() => {
+    if (hasSize && Object.keys(sizes).length > 0) {
+      let total = 0;
+      for (const [sku, quantity] of Object.entries(sizes)) {
+        if (quantity > 0) {
+          total += getUnitPrice(sku, qty) * quantity;
+        }
+      }
+      return total;
+    }
+    return getUnitPrice(variant.sku, qty) * qty;
+  }, [hasSize, sizes, getUnitPrice, variant.sku, qty]);
+
+  const unitProductPrice = qty > 0 ? basePrice / qty : getUnitPrice(variant.sku, 1);
 
   // ── PRINT POSITION & TECHNIQUE DATA (For UI display) ───────────
 
@@ -1306,9 +1318,18 @@ function ProductConfiguratorInner({ product }: Props) {
                       // Calculate hypothetical 500 units
                       const hypQty = 500;
                       
-                      // Product price scale for 500 using variant-aware calculation
-                      const hypBasePriceScale = getUnitPrice(variant.sku, hypQty);
-                      const hypBasePrice = hypBasePriceScale * hypQty;
+                      // Product price scale for 500 using proportional distribution of selected sizes
+                      let hypBasePrice = 0;
+                      if (hasSize && qty > 0) {
+                        for (const [sku, quantity] of Object.entries(sizes)) {
+                          if (quantity > 0) {
+                            const sizeHypQty = (quantity / qty) * hypQty;
+                            hypBasePrice += getUnitPrice(sku, hypQty) * sizeHypQty;
+                          }
+                        }
+                      } else {
+                        hypBasePrice = getUnitPrice(variant.sku, hypQty) * hypQty;
+                      }
                       
                       // Print cost
                       let hypPrintPerUnit = printPerUnit; // fallback
