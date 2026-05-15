@@ -298,9 +298,25 @@ function ProductConfiguratorInner({ product }: Props) {
     return variants
       .filter(v => v.size)
       .sort((a, b) => {
-        const ai = sizeOrder.indexOf(a.size!.toUpperCase());
-        const bi = sizeOrder.indexOf(b.size!.toUpperCase());
-        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+        const getSortIndex = (sizeStr: string) => {
+          if (!sizeStr) return 999;
+          const s = sizeStr.toUpperCase().trim();
+          const order = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "XXL", "3XL", "XXXL", "4XL", "5XL"];
+          let idx = order.indexOf(s);
+          if (idx !== -1) return idx;
+          const parts = s.split(/[\/\-]/);
+          if (parts.length > 1) {
+            idx = order.indexOf(parts[0].trim());
+            if (idx !== -1) return idx;
+          }
+          const numMatch = s.match(/\d+/);
+          if (numMatch) return 100 + parseInt(numMatch[0]);
+          return 900;
+        };
+        const ai = getSortIndex(a.size!);
+        const bi = getSortIndex(b.size!);
+        if (ai !== bi) return ai - bi;
+        return a.size!.localeCompare(b.size!);
       });
   }, [hasSize, colorGroups, currentColorKey]);
 
@@ -1195,7 +1211,13 @@ function ProductConfiguratorInner({ product }: Props) {
             <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden mb-5">
               {[
                 ["Producto", product.name],
-                ["Color", variant.color + (variant.size ? ` / ${variant.size}` : "")],
+                ["Color", variant.color + (variant.size && !hasSize ? ` / ${variant.size}` : "")],
+                ...(hasSize && Object.keys(sizes).length > 0 ? [
+                  ["Tallas configuradas", Object.entries(sizes).filter(([_, q]) => q > 0).map(([sku, q]) => {
+                    const sz = sizesForColor.find(v => v.sku === sku)?.size || sku;
+                    return `${q}× ${sz}`;
+                  }).join(", ")]
+                ] : []),
                 ["Cantidad", `${qty} unidades`],
                 ["Precio/ud producto", `${unitProductPrice.toFixed(2)}€`],
                 ...(zonesCount > 0 ? [
