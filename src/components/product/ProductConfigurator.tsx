@@ -87,9 +87,9 @@ function calculateRealPrintCost(params: {
         break;
       }
     }
-    // If no match, use the smallest range that covers it, or the last one
+    // If no match (e.g. area is too small), use the first (cheapest) range
     if (!selectedRange && pricing.varCosts?.length) {
-      selectedRange = pricing.varCosts[pricing.varCosts.length - 1];
+      selectedRange = pricing.varCosts[0];
     }
   }
 
@@ -1310,7 +1310,7 @@ function ProductConfiguratorInner({ product }: Props) {
                             pricingType: tech.pricingType || "NumberOfColours",
                             quantity: hypQty,
                             numColors: numColorsMap[zoneId] || 1,
-                            printAreaMm2: 0, // Mock
+                            printAreaMm2: printAreaMm2Map[zoneId] || 1000, // Use real area, fallback to 10cm2
                           });
                           hypRawPrintPerUnit += p.printCostPerUnit;
                         }
