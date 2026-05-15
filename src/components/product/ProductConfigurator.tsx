@@ -1304,13 +1304,21 @@ function ProductConfiguratorInner({ product }: Props) {
                       Object.entries(selectedTechniques).forEach(([zoneId, techId]) => {
                         const zone = printZones.find(z => z.positionId === zoneId);
                         const tech = zone?.techniques?.find((t: any) => t.techniqueId === techId);
-                        if (tech?.pricing) {
+                        if (zone && tech && tech.pricing) {
+                          const pType = tech.pricing.varCosts?.length ? tech.pricingType : (tech.pricingType || "NumberOfColours");
+                          const cIsArea = pType === "AreaRange" || pType === "ColourAreaRange";
+                          const cIsPos = pType === "NumberOfPositions";
+                          const cIsColor = pType === "NumberOfColours" || pType === "ColourAreaRange";
+                          const cCols = numColorsMap[zoneId] || 1;
+                          const cEffCols = ((cIsArea && !cIsColor) || cIsPos) ? 1 : cCols;
+                          const areaMm2 = zone.maxWidth * zone.maxHeight;
+
                           const p = calculateRealPrintCost({
                             pricing: tech.pricing,
-                            pricingType: tech.pricingType || "NumberOfColours",
+                            pricingType: pType,
                             quantity: hypQty,
-                            numColors: numColorsMap[zoneId] || 1,
-                            printAreaMm2: printAreaMm2Map[zoneId] || 1000, // Use real area, fallback to 10cm2
+                            numColors: cEffCols,
+                            printAreaMm2: areaMm2,
                           });
                           hypRawPrintPerUnit += p.printCostPerUnit;
                         }
@@ -1324,7 +1332,9 @@ function ProductConfiguratorInner({ product }: Props) {
                       
                       const hypHandlingTotal = round((handlingCostPerUnit * hypQty * (1 + MARGINS.printMarginPct / 100))) * zonesCount;
                       
-                      const hypTotal = round(hypBasePrice + setupCost + hypPrintTotal + hypHandlingTotal);
+                      const hypSubtotal = round(hypBasePrice + setupCost + hypPrintTotal + hypHandlingTotal);
+                      const hypDiscount = round(hypSubtotal * (MARGINS.clientDiscountPct / 100));
+                      const hypTotal = round(hypSubtotal - hypDiscount);
                       const hypPerUnit = round(hypTotal / hypQty);
                       
                       if (isNaN(hypTotal) || isNaN(hypPerUnit)) return null;
