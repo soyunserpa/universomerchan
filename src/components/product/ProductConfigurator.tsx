@@ -1244,7 +1244,7 @@ function ProductConfiguratorInner({ product }: Props) {
                   <span className="font-display font-extrabold text-3xl text-brand-red">{total.toFixed(2)}€</span>
                 </div>
               </div>
-              <div className="text-right"><span className="text-xs opacity-40">{perUnit.toFixed(2)}€ / unidad</span></div>
+              <div className="text-right mt-1"><span className="text-sm font-bold text-gray-300">{perUnit.toFixed(2)}€ / unidad</span></div>
             </div>
 
             <div className="flex gap-3">
