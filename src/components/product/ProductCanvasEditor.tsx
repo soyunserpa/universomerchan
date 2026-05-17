@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import {
-  Upload, Layers, Trash2, RotateCcw, ZoomIn, ZoomOut, Move, Eye
+  Upload, Layers, Trash2, RotateCcw, ZoomIn, ZoomOut, Move, Eye, Check
 } from "lucide-react";
 
 // ============================================================
