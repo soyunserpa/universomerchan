@@ -78,7 +78,10 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
   ) {
     const [internalActiveZone, setInternalActiveZone] = useState<string>(printZones[0]?.positionId || "");
     const activeZone = activeZoneId ?? internalActiveZone;
+    const [hasInteractedWithZone, setHasInteractedWithZone] = useState(false);
+    
     const setActiveZone = useCallback((id: string) => {
+      setHasInteractedWithZone(true);
       setInternalActiveZone(id);
       onActiveZoneChange?.(id);
     }, [onActiveZoneChange]);
@@ -367,7 +370,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     };
 
     // ── RENDER ───────────────────────────────────────────────
-    const isStep1Complete = !!activeZone;
+    const isStep1Complete = hasInteractedWithZone || Object.keys(logos).length > 0;
     const isStep2Complete = Object.keys(logos).length > 0;
 
     return (
