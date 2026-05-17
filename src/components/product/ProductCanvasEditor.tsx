@@ -370,9 +370,9 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     return (
       <div className="space-y-4">
         {/* Zone Tabs */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className="bg-brand-red text-white w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shadow-sm">1</span>
-          <h3 className="font-bold text-gray-900 text-sm">Elige la zona de impresión</h3>
+        <div className="flex items-center gap-3 mb-4 bg-surface-50 p-2 pr-4 rounded-full border border-surface-200 inline-flex shadow-sm">
+          <span className="bg-brand-red text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">1</span>
+          <h3 className="font-bold text-gray-900 text-sm tracking-wide">Elige la zona de impresión</h3>
         </div>
         <div className="flex gap-2 flex-wrap mb-4">
           {printZones.map((zone) => {
@@ -401,9 +401,9 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
           {/* LEFT: Print area canvas */}
           <div className="flex-1 w-full min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-brand-red text-white w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shadow-sm">2</span>
-              <h3 className="font-bold text-gray-900 text-sm">Sube y ajusta tu logotipo</h3>
+            <div className="flex items-center gap-3 mb-4 bg-surface-50 p-2 pr-4 rounded-full border border-surface-200 inline-flex shadow-sm">
+              <span className="bg-brand-red text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">2</span>
+              <h3 className="font-bold text-gray-900 text-sm tracking-wide">Sube y ajusta tu logotipo</h3>
             </div>
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide">
               &Aacute;rea de impresi&oacute;n &middot; {activeZoneData?.maxWidthMm}&times;{activeZoneData?.maxHeightMm}mm

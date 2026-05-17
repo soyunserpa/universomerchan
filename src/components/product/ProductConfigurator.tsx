@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { ProductDetailResponse } from "@/lib/catalog-api";
 import {
   Leaf, ShoppingCart, Palette, Eye, ArrowLeft,
-  Check, Download, Minus, Plus, Info, Gift,
+  Check, Download, Minus, Plus, Info, Gift, Trash2,
   Layers, Loader2, Package, ShieldCheck, Handshake, Star
 } from "lucide-react";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
@@ -977,7 +977,7 @@ function ProductConfiguratorInner({ product }: Props) {
               ) : null;
             })()}
 
-            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
+            <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={step > 1 && zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> A mayor cantidad mayor descuento en imprenta.</span>
@@ -991,7 +991,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
                 className="w-full bg-brand-red text-white py-3.5 rounded-full font-extrabold text-base flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
-                Personalizar con mi Logo <Palette size={18} />
+                Personalizar el producto con tu logo <Palette size={18} />
               </button>
               <button
                 onClick={() => setShowBlankConfirm(true)}
@@ -1000,7 +1000,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 className="w-full border-2 border-gray-300 text-gray-700 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
-                Comprar liso (Sin logo)
+                Añadir al carrito sin personalizar
               </button>
             </div>
           </div>
@@ -1071,9 +1071,9 @@ function ProductConfiguratorInner({ product }: Props) {
             {/* 3. Technique */}
             {selectedPosition && (
               <div className="mb-5 animate-slide-up">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-brand-red text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span>
-                  <label className="text-sm font-bold text-gray-900 leading-none">Elige técnica y colores de impresión</label>
+                <div className="flex items-center gap-3 mb-4 bg-surface-50 p-2 pr-4 rounded-full border border-surface-200 inline-flex shadow-sm">
+                  <span className="bg-brand-red text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span>
+                  <label className="font-bold text-gray-900 text-sm tracking-wide leading-none cursor-pointer">Elige técnica y colores de impresión</label>
                 </div>
                 <div className="space-y-2">
                   {positionData?.techniques.map(tech => {
@@ -1182,6 +1182,15 @@ function ProductConfiguratorInner({ product }: Props) {
 
             <div className="flex gap-3 mt-4">
               <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
+              {zonesCount > 0 && (
+                <button 
+                  onClick={() => { setSelectedTechniques({}); setNumColorsMap({}); }} 
+                  className="px-5 py-2.5 rounded-full border-2 border-red-200 text-red-600 bg-red-50 text-sm font-medium flex items-center gap-2 hover:bg-red-100 transition-colors"
+                  title="Borrar marcaje seleccionado"
+                >
+                  <Trash2 size={14} /> Quitar marcaje
+                </button>
+              )}
               <button onClick={async () => {
                 if (canvasEditorRef.current && hasLogos) {
                   const mockups = await canvasEditorRef.current.exportAllMockups();
