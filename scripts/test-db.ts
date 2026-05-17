@@ -1,18 +1,12 @@
-import postgres from "postgres";
+import { db } from '../src/lib/db';
+import { orders } from '../src/lib/schema';
+import { desc, gte, lt } from 'drizzle-orm';
 
-const sql = postgres("postgres://universomerchan:***REMOVED***@212.227.90.110:5432/universomerchan");
-
-async function main() {
-    const result = await sql`SELECT sku, price_scales FROM variant_prices WHERE price_scales IS NOT NULL LIMIT 5`;
-    console.log("Variantes con escalas:", result);
-
-    const productPrices = await sql`SELECT master_code, price_scales FROM product_prices WHERE price_scales IS NOT NULL LIMIT 5`;
-    console.log("Productos con escalas:", productPrices);
-
-    process.exit(0);
+async function run() {
+  const res = await db.select().from(orders)
+    .where(gte(orders.createdAt, new Date('2026-05-14T00:00:00Z')))
+    .orderBy(desc(orders.createdAt));
+  console.log(JSON.stringify(res, null, 2));
+  process.exit(0);
 }
-
-main().catch(err => {
-    console.error("Error:", err);
-    process.exit(1);
-});
+run();

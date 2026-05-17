@@ -400,7 +400,6 @@ export async function createCheckoutSession(params: {
   // Update order with Stripe session
   await db.update(schema.orders).set({
     stripeSessionId: session.id,
-    status: "pending_payment",
     updatedAt: new Date(),
   }).where(eq(schema.orders.id, orderId));
 
