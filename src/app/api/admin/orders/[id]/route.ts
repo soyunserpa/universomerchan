@@ -3,18 +3,18 @@ import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 
-export async function GET(req: NextRequest, { params }: { params: { orderNumber: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   // Simple auth check via headers
   const authHeader = req.headers.get("authorization");
   if (!authHeader || authHeader !== `Bearer ${process.env.ADMIN_SECRET || "admin-secret"}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { orderNumber } = params;
+  const { id } = params;
 
   try {
     const order = await db.query.orders.findFirst({
-      where: eq(schema.orders.orderNumber, orderNumber),
+      where: eq(schema.orders.id, parseInt(id)),
       with: {
         user: true,
       }
