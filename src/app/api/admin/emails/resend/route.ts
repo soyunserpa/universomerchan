@@ -3,7 +3,6 @@ import { requireAuth } from "@/lib/auth-service";
 import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
-import nodemailer from "nodemailer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,31 +21,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No se puede reenviar este correo porque es antiguo y su contenido HTML no se almacenó." }, { status: 400 });
     }
 
-    // Enviar correo de nuevo
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false, // TLS
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
+    if (!APPS_SCRIPT_URL) {
+      return NextResponse.json({ error: "APPS_SCRIPT_URL no está configurado." }, { status: 500 });
+    }
 
-    await transporter.sendMail({
-      from: `"Universo Merchan" <${process.env.SMTP_FROM || 'hola@universomerchan.com'}>`,
-      to: emailLog.recipientEmail,
-      subject: emailLog.subject,
-      html: emailLog.bodyHtml,
+    // Enviar correo de nuevo a través de Google Apps Script (igual que email-service.ts)
+    const r = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        action: "sendEmail", 
+        to: emailLog.recipientEmail, 
+        subject: emailLog.subject, 
+        htmlBody: emailLog.bodyHtml, 
+        replyTo: "hola@universomerchan.com" 
+      }),
     });
+    
+    const res = await r.json();
+    if (!res.success) {
+      throw new Error(`Apps Script Error: ${res.error}`);
+    }
 
     // Guardar registro de que se ha reenviado
+    // @ts-ignore
     await db.insert(schema.emailLog).values({
       recipientEmail: emailLog.recipientEmail,
+      recipientType: emailLog.recipientType,
       emailType: emailLog.emailType,
       subject: `[REENVIADO] ${emailLog.subject}`,
       bodyHtml: emailLog.bodyHtml,
-      status: "sent"
+      orderId: emailLog.orderId,
+      deliveryStatus: "sent",
+      sentAt: new Date()
     });
 
     return NextResponse.json({ success: true });
