@@ -289,12 +289,6 @@ function ProductConfiguratorInner({ product }: Props) {
   const variant = product.variants[variantIdx];
   const currentColorKey = variant.colorCode || variant.color;
 
-  // Stock logic
-  const maxStock = variant.stock || 0;
-  const isOutOfStock = maxStock <= 0;
-  const isOverStock = !hasSize && qty > maxStock;
-  const canProceed = !isOutOfStock && !isOverStock && qty > 0;
-
   // Available sizes for current color (sorted S → 5XL)
   const sizesForColor = useMemo(() => {
     if (!hasSize) return [];
@@ -324,6 +318,17 @@ function ProductConfiguratorInner({ product }: Props) {
         return a.size!.localeCompare(b.size!);
       });
   }, [hasSize, colorGroups, currentColorKey]);
+
+  // Stock logic
+  const maxStock = variant.stock || 0;
+  
+  const totalColorStock = hasSize
+    ? sizesForColor.reduce((acc, s) => acc + (s.stock || 0), 0)
+    : maxStock;
+
+  const isOutOfStock = totalColorStock <= 0;
+  const isOverStock = !hasSize && qty > maxStock;
+  const canProceed = !isOutOfStock && !isOverStock && qty > 0;
 
   // Auto-sync size selection when color changes (textile products)
   // When the user picks a new color via the existing color selector (setVariantIdx),
