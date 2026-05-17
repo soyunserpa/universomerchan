@@ -1,0 +1,34 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 212.227.90.110
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            # Entrar a la carpeta del proyecto
+            cd /var/www/universomerchan
+            
+            # Descargar los últimos cambios
+            git pull origin main
+            
+            # Instalar nuevas dependencias si las hay
+            npm install
+            
+            # Hacer el build de Next.js
+            npm run build
+            
+            # Reiniciar PM2 para aplicar los cambios sin caída
+            pm2 restart all
