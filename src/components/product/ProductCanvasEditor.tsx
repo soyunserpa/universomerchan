@@ -370,7 +370,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     return (
       <div className="space-y-6">
         {/* Step 1 Card */}
-        <div className="bg-white rounded-2xl border border-surface-200 shadow-sm p-5 sm:p-6">
+        <div className="bg-white rounded-2xl border border-brand-red/30 shadow-sm p-5 sm:p-6">
           <div className="flex gap-3 mb-4 items-start">
           <div className="flex-shrink-0 mt-0.5">
             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
@@ -409,7 +409,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         {/* Main area: Canvas + Preview side by side */}
         <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
           {/* LEFT: Print area canvas */}
-          <div className="flex-1 w-full min-w-0 bg-white rounded-2xl border border-surface-200 shadow-sm p-5 sm:p-6">
+          <div className="flex-1 w-full min-w-0 bg-white rounded-2xl border border-brand-red/30 shadow-sm p-5 sm:p-6">
             <div className="flex gap-3 mb-4 items-start">
               <div className="flex-shrink-0 mt-0.5">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
