@@ -76,7 +76,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
       initialLogos, initialLogoPos, onLogosChange, onLogoPosChange },
     ref
   ) {
-    const [internalActiveZone, setInternalActiveZone] = useState<string>(printZones[0]?.positionId || "");
+    const [internalActiveZone, setInternalActiveZone] = useState<string>("");
     const activeZone = activeZoneId ?? internalActiveZone;
     const [hasInteractedWithZone, setHasInteractedWithZone] = useState(false);
     
@@ -114,7 +114,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     const currentLogoPos = logoPos[activeZone] || { x: 0.5, y: 0.5, scale: 0.65 };
 
     const previewUrl = (() => {
-      if (!activeZoneData) return "";
+      if (!activeZoneData) return proxyUrl(productImage);
       const baseMock = activeZoneData.imageWithArea || activeZoneData.imageBlank;
       if (selectedColorCode) {
         if (activeZoneData.imageVariants?.length) {
@@ -434,19 +434,25 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
             </div>
             <div
               ref={canvasAreaRef}
-              className="relative rounded-xl border-2 border-dashed border-brand-red/30 bg-white overflow-hidden"
+              className="relative rounded-xl border-2 border-dashed border-brand-red/30 bg-white overflow-hidden flex items-center justify-center"
               style={{
-                aspectRatio: `${activeZoneData?.maxWidthMm || 100} / ${activeZoneData?.maxHeightMm || 100}`,
+                aspectRatio: activeZoneData ? `${activeZoneData.maxWidthMm} / ${activeZoneData.maxHeightMm}` : '4 / 3',
                 maxHeight: "420px",
-                backgroundImage: "linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)",
-                backgroundSize: "16px 16px",
-                backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : "linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)",
+                backgroundSize: backgroundImageUrl ? "contain" : "16px 16px",
+                backgroundPosition: backgroundImageUrl ? "center" : "0 0, 0 8px, 8px -8px, -8px 0px",
+                backgroundRepeat: backgroundImageUrl ? "no-repeat" : "repeat"
               }}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
               {/* Logo in the canvas */}
-              {activeLogoData ? (
+              {!activeZoneData ? (
+                <div className="text-center p-6 flex flex-col items-center gap-3 text-gray-400">
+                  <Layers size={40} className="text-gray-300 opacity-50" />
+                  <p className="text-sm font-medium">Selecciona una zona de impresión arriba para comenzar</p>
+                </div>
+              ) : activeLogoData ? (
                 <img
                   src={getDisplayDataUrl(activeLogoData.dataUrl, activeLogoData.fileName)}
                   alt="Logo"
@@ -484,15 +490,17 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
             </div>
 
             {/* Upload button */}
-            <div className="mt-3 flex justify-center">
-              <button
-                onClick={() => document.getElementById(`logo-upload-${activeZone}`)?.click()}
-                className="bg-white text-brand-red text-xs font-semibold px-4 py-2 rounded-full shadow-sm border border-brand-red/20 hover:bg-brand-red hover:text-white transition-colors flex items-center gap-2"
-              >
-                <Upload size={14} />
-                {activeLogoData ? "Cambiar logo" : "Subir logo"}
-              </button>
-            </div>
+            {activeZoneData && (
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={() => document.getElementById(`logo-upload-${activeZone}`)?.click()}
+                  className="bg-white text-brand-red text-xs font-semibold px-4 py-2 rounded-full shadow-sm border border-brand-red/20 hover:bg-brand-red hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Upload size={14} />
+                  {activeLogoData ? "Cambiar logo" : "Subir logo"}
+                </button>
+              </div>
+            )}
 
             <input
               id={`logo-upload-${activeZone}`}

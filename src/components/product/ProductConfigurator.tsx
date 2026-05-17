@@ -986,7 +986,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
             <div className="flex flex-col gap-2 mt-5">
               <button
-                onClick={() => { changeStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
+                onClick={() => { changeStep(2); }}
                 disabled={!canProceed}
                 title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
                 className="w-full bg-brand-red text-white py-3.5 rounded-full font-extrabold text-base flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
