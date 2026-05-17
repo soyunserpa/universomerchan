@@ -408,9 +408,9 @@ function ProductConfiguratorInner({ product }: Props) {
   }, [qty, product.priceScales, product.startingPriceRaw, variant.sku, (product as any).variantPrices]);
 
   const basePrice = useMemo(() => {
-    if (hasSize && Object.keys(sizes).length > 0) {
+    if (hasSize && Object.keys(sizeQuantities).length > 0) {
       let total = 0;
-      for (const [sku, quantity] of Object.entries(sizes)) {
+      for (const [sku, quantity] of Object.entries(sizeQuantities)) {
         if (quantity > 0) {
           total += getUnitPrice(sku, qty) * quantity;
         }
@@ -418,7 +418,7 @@ function ProductConfiguratorInner({ product }: Props) {
       return total;
     }
     return getUnitPrice(variant.sku, qty) * qty;
-  }, [hasSize, sizes, getUnitPrice, variant.sku, qty]);
+  }, [hasSize, sizeQuantities, getUnitPrice, variant.sku, qty]);
 
   const unitProductPrice = qty > 0 ? basePrice / qty : getUnitPrice(variant.sku, 1);
 
@@ -1224,8 +1224,8 @@ function ProductConfiguratorInner({ product }: Props) {
               {[
                 ["Producto", product.name],
                 ["Color", variant.color + (variant.size && !hasSize ? ` / ${variant.size}` : "")],
-                ...(hasSize && Object.keys(sizes).length > 0 ? [
-                  ["Tallas configuradas", Object.entries(sizes).filter(([_, q]) => q > 0).map(([sku, q]) => {
+                ...(hasSize && Object.keys(sizeQuantities).length > 0 ? [
+                  ["Tallas configuradas", Object.entries(sizeQuantities).filter(([_, q]) => q > 0).map(([sku, q]) => {
                     const sz = sizesForColor.find(v => v.sku === sku)?.size || sku;
                     return `${q}× ${sz}`;
                   }).join(", ")]
@@ -1321,7 +1321,7 @@ function ProductConfiguratorInner({ product }: Props) {
                       // Product price scale for 500 using proportional distribution of selected sizes
                       let hypBasePrice = 0;
                       if (hasSize && qty > 0) {
-                        for (const [sku, quantity] of Object.entries(sizes)) {
+                        for (const [sku, quantity] of Object.entries(sizeQuantities)) {
                           if (quantity > 0) {
                             const sizeHypQty = (quantity / qty) * hypQty;
                             hypBasePrice += getUnitPrice(sku, hypQty) * sizeHypQty;
