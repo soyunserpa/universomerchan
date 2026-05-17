@@ -627,7 +627,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
       if (hasSize) {
         for (const sv of sizesForColor) {
-          const sizeQty = sizeQuantities[sv.sku] || 0;
+          const sizeQty = sizeQuantities[sv.size!] || 0;
           if (sizeQty > 0) {
             addItem({
               productMasterCode: product.masterCode,
@@ -891,7 +891,7 @@ function ProductConfiguratorInner({ product }: Props) {
                   {sizesForColor.map((sv, idx) => {
                     const sizeStock = sv.stock;
                     const outOfStock = sizeStock <= 0;
-                    const val = sizeQuantities[sv.sku] || 0;
+                    const val = sizeQuantities[sv.size!] || 0;
                     return (
                       <div key={sv.sku} className={`flex items-center justify-between outline-none p-2 rounded-lg transition-colors ${outOfStock ? 'opacity-50 grayscale' : 'hover:bg-surface-50'} ${idx !== sizesForColor.length - 1 ? 'border-b border-surface-100' : ''}`}>
                         <div className="flex flex-col">
@@ -909,11 +909,7 @@ function ProductConfiguratorInner({ product }: Props) {
                           type="number"
                           disabled={outOfStock}
                           value={val === 0 ? '' : val}
-                          onChange={(e) => {
-                            const numStr = e.target.value.replace(/[^0-9]/g, '');
-                            const num = numStr ? parseInt(numStr, 10) : 0;
-                            setSizeQuantities(prev => ({ ...prev, [sv.sku]: Math.max(0, num) }));
-                          }}
+                          onChange={(e) => setSizeQuantities(prev => ({ ...prev, [sv.size!]: Math.max(0, parseInt(e.target.value) || 0) }))}
                           className="w-20 text-right py-1.5 px-3 text-sm font-bold bg-surface-100 border border-surface-200 rounded-lg outline-none focus:border-brand-red focus:bg-white disabled:cursor-not-allowed text-brand-red placeholder:text-gray-300 transition-all"
                         />
                       </div>
@@ -1284,7 +1280,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 ["Color", variant.color + (variant.size && !hasSize ? ` / ${variant.size}` : "")],
                 ...(hasSize && Object.keys(sizeQuantities).length > 0 ? [
                   ["Tallas configuradas", Object.entries(sizeQuantities).filter(([_, q]) => q > 0).map(([sku, q]) => {
-                    const sz = product.variants.find(v => v.sku === sku)?.size || sku;
+                    const sz = sizesForColor.find(v => v.sku === sku)?.size || sku;
                     return `${q}× ${sz}`;
                   }).join(", ")]
                 ] : []),
