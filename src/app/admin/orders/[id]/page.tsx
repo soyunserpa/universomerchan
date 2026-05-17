@@ -9,7 +9,7 @@ export default function AdminOrderDetailPage() {
   const { authHeaders, logout } = useAdminAuth();
   const params = useParams();
   const router = useRouter();
-  const orderNumber = params.orderNumber as string;
+  const orderNumber = params.id as string;
   
   const [order, setOrder] = useState<any>(null);
   const [orderLines, setOrderLines] = useState<any[]>([]);
