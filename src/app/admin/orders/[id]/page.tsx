@@ -134,6 +134,20 @@ export default function AdminOrderDetailPage() {
                         CON MARCAJE
                       </span>
                     )}
+                    {(line.mockupUrl || line.artworkUrl) && (
+                      <div className="mt-2 flex gap-2">
+                        {line.mockupUrl && (
+                          <a href={line.mockupUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border border-surface-200 rounded overflow-hidden hover:opacity-80 transition-opacity" title="Ver Mockup">
+                            <img src={line.mockupUrl} className="object-cover w-full h-full" alt="Mockup" />
+                          </a>
+                        )}
+                        {line.artworkUrl && (
+                          <a href={line.artworkUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border border-surface-200 rounded overflow-hidden bg-gray-50 hover:opacity-80 transition-opacity" title="Ver Logo">
+                            <img src={line.artworkUrl} className="object-contain w-full h-full p-1" alt="Logo Original" />
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-xs text-gray-600">
                     {line.colorDescription} {line.size && `| Talla: ${line.size}`}

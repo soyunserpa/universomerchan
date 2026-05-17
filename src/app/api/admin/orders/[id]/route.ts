@@ -2,19 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
+import { requireAuth } from "@/lib/auth-service";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  // Simple auth check via headers
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || authHeader !== `Bearer ${process.env.ADMIN_SECRET || "admin-secret"}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { id } = params;
-
   try {
+    // Correctly use the JWT auth service
+    await requireAuth(req.headers.get("authorization"), "admin");
+
+    const orderNumberOrId = params.id;
+
+    // Search by orderNumber since the admin UI passes the orderNumber (e.g., UM-2026-0073)
     const order = await db.query.orders.findFirst({
-      where: eq(schema.orders.id, parseInt(id)),
+      where: eq(schema.orders.orderNumber, orderNumberOrId),
       with: {
         user: true,
       }
