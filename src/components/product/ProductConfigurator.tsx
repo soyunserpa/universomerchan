@@ -1071,11 +1071,16 @@ function ProductConfiguratorInner({ product }: Props) {
             {/* 3. Technique */}
             {selectedPosition && (
               <div className="mb-5 animate-slide-up">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-brand-red text-white font-bold text-sm shadow-md">
-                    3
+                <div className="flex gap-3 mb-4 items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
+                      3
+                    </span>
                   </div>
-                  <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wider">Técnica y Colores</h3>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">Técnica y colores</h3>
+                    <p className="text-[13px] text-gray-500 font-medium leading-tight">Selecciona cómo lo imprimiremos</p>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {positionData?.techniques.map(tech => {

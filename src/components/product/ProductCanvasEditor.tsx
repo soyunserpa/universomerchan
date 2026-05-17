@@ -370,11 +370,16 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     return (
       <div className="space-y-4">
         {/* Zone Tabs */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-brand-red text-white font-bold text-sm shadow-md">
-            1
+        <div className="flex gap-3 mb-4 items-start">
+          <div className="flex-shrink-0 mt-0.5">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
+              1
+            </span>
           </div>
-          <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wider">Zona de impresión</h3>
+          <div>
+            <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">Zona de impresión</h3>
+            <p className="text-[13px] text-gray-500 font-medium leading-tight">Define el área para aplicar tu diseño</p>
+          </div>
         </div>
         <div className="flex gap-2 flex-wrap mb-4">
           {printZones.map((zone) => {
@@ -403,11 +408,16 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
           {/* LEFT: Print area canvas */}
           <div className="flex-1 w-full min-w-0">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-brand-red text-white font-bold text-sm shadow-md">
-                2
+            <div className="flex gap-3 mb-4 items-start">
+              <div className="flex-shrink-0 mt-0.5">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
+                  2
+                </span>
               </div>
-              <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wider">Logotipo</h3>
+              <div>
+                <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">Logotipo</h3>
+                <p className="text-[13px] text-gray-500 font-medium leading-tight">Sube y previsualiza tu diseño final</p>
+              </div>
             </div>
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide">
               &Aacute;rea de impresi&oacute;n &middot; {activeZoneData?.maxWidthMm}&times;{activeZoneData?.maxHeightMm}mm
