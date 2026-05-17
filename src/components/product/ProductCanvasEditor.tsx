@@ -438,10 +438,10 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
               style={{
                 aspectRatio: activeZoneData ? `${activeZoneData.maxWidthMm} / ${activeZoneData.maxHeightMm}` : '4 / 3',
                 maxHeight: "420px",
-                backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : "linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)",
-                backgroundSize: backgroundImageUrl ? "contain" : "16px 16px",
-                backgroundPosition: backgroundImageUrl ? "center" : "0 0, 0 8px, 8px -8px, -8px 0px",
-                backgroundRepeat: backgroundImageUrl ? "no-repeat" : "repeat"
+                backgroundImage: "linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)",
+                backgroundSize: "16px 16px",
+                backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                backgroundRepeat: "repeat"
               }}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
