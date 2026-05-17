@@ -35,8 +35,8 @@ export function MiniCart() {
           {state.items.map((item, i) => (
             <div key={i} className="flex gap-3 py-3 border-b border-surface-100">
               <div className="w-14 h-14 rounded-lg bg-surface-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {item.productImage ? (
-                  <img src={item.productImage} alt={item.productName} className="w-[80%] h-[80%] object-contain" />
+                {item.customization?.mockupUrl || item.productImage ? (
+                  <img src={item.customization?.mockupUrl || item.productImage} alt={item.productName} className="w-[80%] h-[80%] object-contain" />
                 ) : (
                   <Gift size={18} className="text-gray-300" />
                 )}

@@ -180,8 +180,8 @@ function CartContent() {
               <div className="flex gap-4">
                 {/* Image */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-surface-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {item.productImage ? (
-                    <img src={item.productImage} alt={item.productName} className="w-[80%] h-[80%] object-contain" />
+                  {item.customization?.mockupUrl || item.productImage ? (
+                    <img src={item.customization?.mockupUrl || item.productImage} alt={item.productName} className="w-[80%] h-[80%] object-contain" />
                   ) : (
                     <Gift size={24} className="text-gray-300" />
                   )}

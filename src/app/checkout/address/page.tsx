@@ -398,7 +398,7 @@ function CheckoutAddressPage() {
               {state.items.map((item, i) => (
                 <div key={i} className="flex gap-3">
                   <div className="w-12 h-12 rounded-lg bg-surface-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {item.productImage ? <img src={item.productImage} alt="" className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
+                    {item.customization?.mockupUrl || item.productImage ? <img src={item.customization?.mockupUrl || item.productImage} alt="" className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold truncate">{item.productName}</p>

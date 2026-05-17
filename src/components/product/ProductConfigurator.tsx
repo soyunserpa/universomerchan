@@ -1033,8 +1033,15 @@ function ProductConfiguratorInner({ product }: Props) {
                 activeZoneId={selectedPosition}
                 onActiveZoneChange={handleCanvasZoneChange}
                 initialLogos={
-                  globalLogo && globalLogoName 
-                  ? printZones.reduce((acc, z) => ({ ...acc, [z.positionId]: { dataUrl: globalLogo, fileName: globalLogoName } }), {}) 
+                  logoPlacements.length > 0
+                  ? logoPlacements.reduce((acc, lp) => ({ ...acc, [lp.positionId]: { dataUrl: lp.logoDataUrl, fileName: lp.logoFileName } }), {})
+                  : (globalLogo && globalLogoName 
+                    ? printZones.reduce((acc, z) => ({ ...acc, [z.positionId]: { dataUrl: globalLogo, fileName: globalLogoName } }), {}) 
+                    : undefined)
+                }
+                initialLogoPos={
+                  logoPlacements.length > 0
+                  ? logoPlacements.reduce((acc, lp) => ({ ...acc, [lp.positionId]: { x: lp.x || 0.5, y: lp.y || 0.5, scale: lp.scaleX || 0.65 } }), {})
                   : undefined
                 }
               />
