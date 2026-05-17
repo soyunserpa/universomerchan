@@ -367,19 +367,24 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     };
 
     // ── RENDER ───────────────────────────────────────────────
+    const isStep1Complete = !!activeZone;
+    const isStep2Complete = Object.keys(logos).length > 0;
+
     return (
       <div className="space-y-6">
         {/* Step 1 Card */}
-        <div className="bg-white rounded-2xl border border-brand-red/30 shadow-sm p-5 sm:p-6">
+        <div className={`bg-white rounded-2xl border ${isStep1Complete ? 'border-green-500/30' : 'border-brand-red/30'} shadow-sm p-5 sm:p-6 transition-colors duration-300`}>
           <div className="flex gap-3 mb-4 items-start">
           <div className="flex-shrink-0 mt-0.5">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
-              1
+            <span className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-[15px] transition-all duration-300 ${isStep1Complete ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : 'bg-brand-red shadow-[0_0_12px_rgba(235,53,60,0.4)]'}`}>
+              {isStep1Complete ? <Check size={16} strokeWidth={3} /> : "1"}
             </span>
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">Zona de impresión</h3>
-            <p className="text-[13px] text-gray-500 font-medium leading-tight">Define el área para aplicar tu diseño</p>
+            <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase flex items-center gap-2">
+              Zona de impresión
+            </h3>
+            <p className="text-[13px] text-gray-500 font-medium leading-tight">Puedes personalizar desde una hasta <strong className="text-gray-700">todas las zonas</strong> que quieras</p>
           </div>
         </div>
         <div className="flex gap-2 flex-wrap mb-4">
@@ -409,11 +414,11 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         {/* Main area: Canvas + Preview side by side */}
         <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
           {/* LEFT: Print area canvas */}
-          <div className="flex-1 w-full min-w-0 bg-white rounded-2xl border border-brand-red/30 shadow-sm p-5 sm:p-6">
+          <div className={`flex-1 w-full min-w-0 bg-white rounded-2xl border ${isStep2Complete ? 'border-green-500/30' : 'border-brand-red/30'} shadow-sm p-5 sm:p-6 transition-colors duration-300`}>
             <div className="flex gap-3 mb-4 items-start">
               <div className="flex-shrink-0 mt-0.5">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
-                  2
+                <span className={`flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-[15px] transition-all duration-300 ${isStep2Complete ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : 'bg-brand-red shadow-[0_0_12px_rgba(235,53,60,0.4)]'}`}>
+                  {isStep2Complete ? <Check size={16} strokeWidth={3} /> : "2"}
                 </span>
               </div>
               <div>
