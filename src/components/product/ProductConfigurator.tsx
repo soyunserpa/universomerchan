@@ -1070,7 +1070,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
             {/* 3. Technique */}
             {selectedPosition && (
-              <div className="mb-5 animate-slide-up">
+              <div className="mb-5 animate-slide-up bg-white rounded-2xl border border-surface-200 shadow-sm p-5 sm:p-6">
                 <div className="flex gap-3 mb-4 items-start">
                   <div className="flex-shrink-0 mt-0.5">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-[15px] shadow-[0_0_12px_rgba(235,53,60,0.4)]">
