@@ -33,7 +33,16 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       orderBy: schema.orderLines.lineNumber,
     });
 
-    return NextResponse.json({ order: fullOrder, orderLines });
+    let emailLogs: any[] = [];
+    if (user?.email) {
+      // Fetch all emails sent to this user
+      emailLogs = await db.query.emailLog.findMany({
+        where: eq(schema.emailLog.recipientEmail, user.email),
+        orderBy: (fields, { desc }) => [desc(fields.sentAt)],
+      });
+    }
+
+    return NextResponse.json({ order: fullOrder, orderLines, emailLogs });
   } catch (error: any) {
     console.error("Failed to fetch order", error);
     await logServerException(error, { errorType: "server_exception", severity: "medium", url: req.url });

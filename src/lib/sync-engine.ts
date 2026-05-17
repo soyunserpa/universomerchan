@@ -610,27 +610,31 @@ export async function syncActiveOrders(): Promise<{ checked: number; updated: nu
             });
 
             if (orderLine) {
-              const newProofStatus = line.proof_status === "WaitingApproval" ? "waiting_approval" :
-                line.proof_status === "Approved" ? "approved" :
-                  line.proof_status === "ArtworkRequired" ? "artwork_required" :
-                    "in_progress";
+              const isManualProof = orderLine.proofUrl && orderLine.proofUrl.includes("manual=1");
 
-              if (orderLine.proofUrl !== line.proof_url || orderLine.proofStatus !== newProofStatus) {
-                await db.update(schema.orderLines).set({
-                  proofUrl: line.proof_url || orderLine.proofUrl,
-                  proofStatus: newProofStatus,
-                }).where(eq(schema.orderLines.id, orderLine.id));
+              if (!isManualProof) {
+                const newProofStatus = line.proof_status === "WaitingApproval" ? "waiting_approval" :
+                  line.proof_status === "Approved" ? "approved" :
+                    line.proof_status === "ArtworkRequired" ? "artwork_required" :
+                      "in_progress";
 
-                // Trigger email if it just became waiting_approval
-                if (newProofStatus === "waiting_approval" && orderLine.proofStatus !== "waiting_approval") {
-                  const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
-                  if (user) {
-                    await sendProofReadyEmail(user.email, {
-                      firstName: user.firstName || "Cliente",
-                      orderNumber: order.orderNumber,
-                      productName: orderLine.productName || "Producto personalizado",
-                      proofUrl: line.proof_url || orderLine.proofUrl || "",
-                    });
+                if (orderLine.proofUrl !== line.proof_url || orderLine.proofStatus !== newProofStatus) {
+                  await db.update(schema.orderLines).set({
+                    proofUrl: line.proof_url || orderLine.proofUrl,
+                    proofStatus: newProofStatus,
+                  }).where(eq(schema.orderLines.id, orderLine.id));
+
+                  // Trigger email if it just became waiting_approval
+                  if (newProofStatus === "waiting_approval" && orderLine.proofStatus !== "waiting_approval") {
+                    const user = await db.query.users.findFirst({ where: eq(schema.users.id, order.userId) });
+                    if (user) {
+                      await sendProofReadyEmail(user.email, {
+                        firstName: user.firstName || "Cliente",
+                        orderNumber: order.orderNumber,
+                        productName: orderLine.productName || "Producto personalizado",
+                        proofUrl: line.proof_url || orderLine.proofUrl || "",
+                      });
+                    }
                   }
                 }
               }

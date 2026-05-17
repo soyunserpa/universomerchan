@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/components/admin/AdminLayout";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Package, User, MapPin, Euro, AlertTriangle, RefreshCw } from "lucide-react";
+import { ChevronLeft, Package, User, MapPin, Euro, AlertTriangle, RefreshCw, Mail, Send, UploadCloud, CheckCircle } from "lucide-react";
 
 export default function AdminOrderDetailPage() {
   const { authHeaders, logout } = useAdminAuth();
@@ -13,6 +13,7 @@ export default function AdminOrderDetailPage() {
   
   const [order, setOrder] = useState<any>(null);
   const [orderLines, setOrderLines] = useState<any[]>([]);
+  const [emailLogs, setEmailLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [forcingStatus, setForcingStatus] = useState(false);
@@ -28,6 +29,7 @@ export default function AdminOrderDetailPage() {
         }
         setOrder(data.order);
         setOrderLines(data.orderLines);
+        setEmailLogs(data.emailLogs || []);
         setLoading(false);
       })
       .catch(err => {
@@ -38,6 +40,50 @@ export default function AdminOrderDetailPage() {
 
   if (loading) return <div className="p-8 flex justify-center"><RefreshCw className="animate-spin text-gray-300" /></div>;
   if (error) return <div className="p-8 text-red-500 font-bold">{error}</div>;
+
+  const resendEmail = async (logId: number) => {
+    if (!confirm("¿Reenviar este email al cliente?")) return;
+    try {
+      const res = await fetch(`/api/admin/emails/resend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ logId })
+      });
+      if (res.ok) {
+        alert("Email reenviado correctamente.");
+        // Refresh
+        const newData = await fetch(`/api/admin/orders/${orderNumber}`, { headers: authHeaders() }).then(r => r.json());
+        setEmailLogs(newData.emailLogs || []);
+      } else {
+        alert("Error al reenviar email.");
+      }
+    } catch (e) {
+      alert("Error de red.");
+    }
+  };
+
+  const uploadManualProof = async (lineId: number) => {
+    const url = prompt("Introduce la URL pública del boceto (ej. Google Drive, Imgur, etc):");
+    if (!url) return;
+    try {
+      const res = await fetch(`/api/admin/orders/${orderNumber}/proof`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ lineId, proofUrl: url })
+      });
+      if (res.ok) {
+        alert("Boceto adjuntado. Se ha notificado al cliente.");
+        // Refresh
+        const newData = await fetch(`/api/admin/orders/${orderNumber}`, { headers: authHeaders() }).then(r => r.json());
+        setOrderLines(newData.orderLines);
+        setEmailLogs(newData.emailLogs || []);
+      } else {
+        alert("Error al subir boceto.");
+      }
+    } catch (e) {
+      alert("Error de red.");
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -98,11 +144,26 @@ export default function AdminOrderDetailPage() {
             {order.discountApplied && parseFloat(order.discountApplied) > 0 && (
               <div className="flex justify-between text-green-600"><span>Descuento:</span> <span>-{order.discountApplied}€</span></div>
             )}
+            <div className="flex justify-between font-semibold pt-2 border-t border-surface-100">
+              <span>Base Imponible:</span> <span>{parseFloat(order.totalPrice || 0).toFixed(2)}€</span>
+            </div>
+            <div className="flex justify-between text-gray-500">
+              <span>IVA (21%):</span> <span>{(parseFloat(order.totalPrice || 0) * 0.21).toFixed(2)}€</span>
+            </div>
             <div className="flex justify-between font-bold pt-2 border-t border-surface-100 text-lg">
-              <span>TOTAL:</span> <span>{order.totalPrice}€</span>
+              <span>TOTAL FINAL:</span> <span>{(parseFloat(order.totalPrice || 0) * 1.21).toFixed(2)}€</span>
             </div>
             {order.stripeSessionId && <div className="text-[10px] text-gray-400 truncate pt-2">Stripe: {order.stripeSessionId}</div>}
             {order.midoceanOrderNumber && <div className="text-[10px] text-gray-400 truncate">MO: {order.midoceanOrderNumber}</div>}
+            {order.invoicePdfUrl ? (
+              <div className="pt-2">
+                <a href={order.invoicePdfUrl} target="_blank" rel="noreferrer" className="inline-block text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
+                  📄 Ver Factura Stripe
+                </a>
+              </div>
+            ) : (
+              order.status === 'paid' && <div className="pt-2 text-xs text-amber-600 font-semibold bg-amber-50 px-2 py-1 rounded inline-block">⚠️ Factura no disponible</div>
+            )}
           </div>
         </div>
       </div>
@@ -134,18 +195,30 @@ export default function AdminOrderDetailPage() {
                         CON MARCAJE
                       </span>
                     )}
-                    {(line.mockupUrl || line.artworkUrl) && (
+                    {(line.mockupUrl || line.artworkUrl || line.proofUrl) && (
                       <div className="mt-2 flex gap-2">
                         {line.mockupUrl && (
-                          <a href={line.mockupUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border border-surface-200 rounded overflow-hidden hover:opacity-80 transition-opacity" title="Ver Mockup">
+                          <a href={line.mockupUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border border-surface-200 rounded overflow-hidden hover:opacity-80 transition-opacity" title="Ver Mockup Midocean">
                             <img src={line.mockupUrl} className="object-cover w-full h-full" alt="Mockup" />
                           </a>
                         )}
                         {line.artworkUrl && (
-                          <a href={line.artworkUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border border-surface-200 rounded overflow-hidden bg-gray-50 hover:opacity-80 transition-opacity" title="Ver Logo">
+                          <a href={line.artworkUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border border-surface-200 rounded overflow-hidden bg-gray-50 hover:opacity-80 transition-opacity" title="Ver Logo Cliente">
                             <img src={line.artworkUrl} className="object-contain w-full h-full p-1" alt="Logo Original" />
                           </a>
                         )}
+                        {line.proofUrl && (
+                          <a href={line.proofUrl} target="_blank" rel="noreferrer" className="block shrink-0 relative w-12 h-12 border-2 border-brand-red rounded overflow-hidden bg-gray-50 hover:opacity-80 transition-opacity" title="Ver Boceto Manual">
+                            <img src={line.proofUrl} className="object-cover w-full h-full" alt="Boceto Manual" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {line.printConfig && (
+                      <div className="mt-3">
+                         <button onClick={() => uploadManualProof(line.id)} className="text-[10px] font-bold px-2 py-1 bg-surface-100 hover:bg-surface-200 border border-surface-200 rounded flex items-center gap-1 text-gray-700 transition-colors">
+                           <UploadCloud size={12} /> Adjuntar Boceto Manual
+                         </button>
                       </div>
                     )}
                   </td>
@@ -158,6 +231,48 @@ export default function AdminOrderDetailPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Email History */}
+      <div className="bg-white border border-surface-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-surface-100 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-semibold text-gray-800">
+            <Mail size={18} /> Historial de Comunicaciones
+          </div>
+          <span className="text-xs text-gray-500">{emailLogs.length} emails enviados</span>
+        </div>
+        <div className="divide-y divide-surface-100 max-h-80 overflow-y-auto">
+          {emailLogs.length === 0 ? (
+            <div className="p-5 text-center text-sm text-gray-500">No hay correos registrados para este cliente.</div>
+          ) : (
+            emailLogs.map((log: any) => (
+              <div key={log.id} className="p-4 flex items-center justify-between hover:bg-surface-50 transition-colors">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{log.subject}</span>
+                    {log.status === 'sent' ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> ENVIADO</span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full"><AlertTriangle size={10} /> ERROR</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <span className="font-mono bg-gray-100 px-1 rounded">{log.emailType}</span>
+                    <span>{new Date(log.createdAt).toLocaleString()}</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => resendEmail(log.id)}
+                  className="p-2 text-brand-red hover:bg-red-50 rounded-lg transition-colors flex flex-col items-center gap-1"
+                  title="Reenviar este correo exacto al cliente"
+                >
+                  <Send size={16} />
+                  <span className="text-[9px] font-bold">Reenviar</span>
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

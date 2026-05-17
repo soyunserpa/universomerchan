@@ -603,6 +603,7 @@ export const emailLog = pgTable("email_log", {
   //        admin_order_error, admin_order_completed, admin_low_stock
   
   subject: varchar("subject", { length: 300 }),
+  bodyHtml: text("body_html"),
   orderId: integer("order_id").references(() => orders.id),
   
   sentAt: timestamp("sent_at").defaultNow().notNull(),
