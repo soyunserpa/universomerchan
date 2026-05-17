@@ -1071,7 +1071,7 @@ function ProductConfiguratorInner({ product }: Props) {
             {/* 3. Technique */}
             {selectedPosition && (
               <div className="mb-5 animate-slide-up">
-                <div className="flex items-start gap-4 mb-5 p-4 rounded-2xl bg-gradient-to-br from-surface-50 to-white border border-surface-200 shadow-sm relative overflow-hidden">
+                <div className="flex items-start gap-4 mb-5 p-4 rounded-2xl bg-gradient-to-br from-surface-50 to-white border border-brand-red/30 shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-brand-red/[0.03] rounded-bl-full -mr-4 -mt-4" />
                   <div className="flex flex-col items-center gap-2">
                     <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-sm shadow-[0_0_15px_rgba(235,53,60,0.3)] z-10">
