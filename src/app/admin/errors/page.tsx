@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/components/admin/AdminLayout";
-import { AlertTriangle, Check, RefreshCw, Filter, Package, Zap, CreditCard, Eye, Database } from "lucide-react";
+import { AlertTriangle, Check, RefreshCw, Filter, Package, Zap, CreditCard, Eye, Database, Bug } from "lucide-react";
 
 interface ErrorEntry {
   id: number; errorType: string; severity: string; message: string;
@@ -42,6 +42,7 @@ export default function AdminErrorsPage() {
   const typeIcons: Record<string, any> = {
     stock_insufficient: Package, order_api_error: Database, proof_rejected: Eye,
     payment_failed: CreditCard, sync_error: RefreshCw, low_stock: Zap,
+    client_exception: Bug
   };
 
   return (
