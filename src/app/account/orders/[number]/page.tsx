@@ -217,6 +217,11 @@ export default function OrderDetailPage() {
                       <div>
                         <p className="font-semibold text-sm">{line.productName}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{line.color}{line.size ? ` · ${line.size}` : ""} · {line.quantity} uds</p>
+                        {!line.hasCustomization && (
+                          <span className="inline-flex mt-1.5 text-[10px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            Sin marcaje
+                          </span>
+                        )}
                         {line.customizationSummary && <p className="text-xs text-purple-600 mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">{line.customizationSummary}</p>}
                       </div>
                       <p className="font-bold text-sm">{line.lineTotal.toFixed(2)}€</p>

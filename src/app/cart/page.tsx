@@ -204,14 +204,26 @@ function CartContent() {
                   </div>
 
                   {/* Customization badge */}
-                  {item.customization && (
+                  {item.orderType === "NORMAL" ? (
+                    <div className="mt-3 flex flex-col items-start gap-1">
+                      <span className="inline-flex text-[11px] bg-gray-100 text-gray-500 font-bold px-2 py-1 rounded uppercase tracking-wider">
+                        Sin marcaje
+                      </span>
+                      <Link 
+                        href={`/product/${item.productMasterCode.toLowerCase()}`}
+                        className="text-xs text-brand-red hover:underline flex items-center gap-1 font-medium mt-0.5"
+                      >
+                        Añadir personalización
+                      </Link>
+                    </div>
+                  ) : item.customization ? (
                     <div className="mt-2 flex items-center gap-1.5 text-sm">
                       <Palette size={12} className="text-purple-500" />
                       <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded font-medium">
                         {item.customization.positions.map(p => p.techniqueName).join(" + ")}
                       </span>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Quantity + Price */}
                   <div className="flex items-center justify-between mt-3">

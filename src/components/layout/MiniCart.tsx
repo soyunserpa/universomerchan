@@ -43,10 +43,25 @@ export function MiniCart() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{item.productName}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <div className="text-xs text-gray-400 mt-0.5">
                   {item.quantity} uds · {item.color}
-                  {item.customization ? ` · ${item.customization.positions.map(p => p.techniqueName).join(" + ")}` : ""}
-                </p>
+                  {item.orderType === "NORMAL" ? (
+                    <div className="mt-1 flex flex-col items-start gap-1">
+                      <span className="inline-flex text-[10px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        Sin marcaje
+                      </span>
+                      <Link 
+                        href={`/product/${item.productMasterCode.toLowerCase()}`}
+                        onClick={() => toggleCart(false)}
+                        className="text-[11px] text-brand-red hover:underline flex items-center gap-1 font-medium"
+                      >
+                        Añadir personalización
+                      </Link>
+                    </div>
+                  ) : item.customization ? (
+                    ` · ${item.customization.positions.map(p => p.techniqueName).join(" + ")}`
+                  ) : null}
+                </div>
               </div>
               <div className="flex flex-col items-end justify-between">
                 <span className="text-sm font-bold text-brand-red">{item.totalPrice.toFixed(2)}€</span>

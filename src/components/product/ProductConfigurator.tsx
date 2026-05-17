@@ -212,6 +212,11 @@ function ProductConfiguratorInner({ product }: Props) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [baseQty, setBaseQty] = useState(1);
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({});
+  
+  // Modals state
+  const [showBlankConfirm, setShowBlankConfirm] = useState(false);
+  const [showMissingTechWarning, setShowMissingTechWarning] = useState(false);
+
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [selectedTechniques, setSelectedTechniques] = useState<Record<string, string>>({});
   const [numColorsMap, setNumColorsMap] = useState<Record<string, number>>({});
@@ -519,7 +524,15 @@ function ProductConfiguratorInner({ product }: Props) {
 
   // ── ADD TO CART ────────────────────────────────────────────
 
-  const handleAddToCart = async () => {
+  // ── ADD TO CART ────────────────────────────────────────────
+
+  const handleAddToCart = async (forceBlank: boolean = false) => {
+    // Prevent accidental blank order if user uploaded a logo but forgot to pick technique
+    if (!forceBlank && hasLogos && zonesCount === 0) {
+      setShowMissingTechWarning(true);
+      return;
+    }
+
     setIsAddingToCart(true);
     try {
       let mockupUrl: string | null = null;
@@ -768,14 +781,34 @@ function ProductConfiguratorInner({ product }: Props) {
   return (
     <div>
       {/* Step indicator */}
-      <div className="flex gap-1 mb-8">
-        {[{ n: 1, l: "Producto" }, { n: 2, l: "Personalización" }, { n: 3, l: "Resumen" }].map(s => (
-          <div key={s.n} className="flex-1 cursor-pointer" onClick={() => s.n <= step ? changeStep(s.n as any) : null}>
-            <div className={`h-1 rounded-full mb-2 transition-colors duration-300 ${step >= s.n ? "bg-brand-red" : "bg-surface-200"}`} />
-            <span className={`text-xs font-medium ${step === s.n ? "text-brand-red font-semibold" : "text-gray-400"}`}>
-              Paso {s.n}: {s.l}
-            </span>
-          </div>
+      {/* ── STEPS INDICATOR ──────────────────────────────── */}
+      <div className="mb-8 hidden sm:flex bg-surface-50 p-1.5 rounded-2xl border border-surface-200 shadow-sm relative z-10">
+        {[
+          { n: 1, l: "Producto", icon: Package },
+          { n: 2, l: "Personalización", icon: Palette },
+          { n: 3, l: "Resumen y Compra", icon: ShoppingCart }
+        ].map(s => {
+          const isActive = step === s.n;
+          const isCompleted = step > s.n;
+          return (
+            <div
+              key={s.n}
+              onClick={() => s.n <= step ? changeStep(s.n as any) : null}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${s.n <= step ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} ${isActive ? 'bg-white text-brand-red shadow-md scale-[1.02]' : isCompleted ? 'text-gray-900 hover:bg-surface-100' : 'text-gray-400'}`}
+            >
+              <s.icon size={18} className={isActive ? "animate-pulse" : ""} />
+              <span className="hidden md:inline">{s.n}. {s.l}</span>
+              <span className="md:hidden">{s.l}</span>
+              {isCompleted && <Check size={14} className="ml-1 text-green-500" />}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Mobile Steps Indicator */}
+      <div className="sm:hidden flex gap-1 mb-6">
+        {[1, 2, 3].map(n => (
+          <div key={n} className={`h-1.5 rounded-full flex-1 transition-colors duration-300 ${step >= n ? "bg-brand-red" : "bg-surface-200"}`} />
         ))}
       </div>
 
@@ -951,23 +984,23 @@ function ProductConfiguratorInner({ product }: Props) {
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> Para cantidades grandes contactarnos por WhatsApp o email para descuentos especiales.</span>
             </div>
 
-            <div className="flex gap-3 mt-5">
+            <div className="flex flex-col gap-2 mt-5">
               <button
                 onClick={() => { changeStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
                 disabled={!canProceed}
                 title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
-                className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-brand-red text-white py-3.5 rounded-full font-extrabold text-base flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
-                Personalizar <Palette size={16} />
+                Personalizar con mi Logo <Palette size={18} />
               </button>
               <button
-                onClick={handleAddToCart}
+                onClick={() => setShowBlankConfirm(true)}
                 disabled={isAddingToCart || !canProceed}
                 title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
-                className="bg-gray-900 text-white px-5 py-3 rounded-full font-semibold text-sm flex items-center gap-2 hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full border-2 border-gray-300 text-gray-700 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
-                Sin marcaje
+                Comprar liso (Sin logo)
               </button>
             </div>
           </div>
@@ -975,7 +1008,7 @@ function ProductConfiguratorInner({ product }: Props) {
       )}
 
       {/* ── STEP 2: CUSTOMIZATION ────────────────────────── */}
-      {step === 2 && (
+      <div className={step === 2 ? "block" : "hidden"}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in">
           <div>
             {printZones.length > 0 ? (
@@ -1158,13 +1191,13 @@ function ProductConfiguratorInner({ product }: Props) {
                   console.log("[DEBUG] No canvasEditorRef or no logos", !!canvasEditorRef.current, hasLogos);
                 }
                 changeStep(3);
-              }} disabled={zonesCount === 0 || !hasLogos} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                {zonesCount > 0 && hasLogos ? <>Previsualizar <Eye size={16} /></> : "Selecciona técnica y sube logo"}
+              }} disabled={!hasLogos} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                {hasLogos ? <>Revisar y Continuar <Eye size={16} /></> : "Sube tu logo primero"}
               </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ── STEP 3: REVIEW ───────────────────────────────── */}
       {step === 3 && (
@@ -1284,10 +1317,10 @@ function ProductConfiguratorInner({ product }: Props) {
             <div className="flex gap-3">
               <button onClick={() => changeStep(zonesCount > 0 ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
               <button
-                onClick={handleAddToCart}
+                onClick={() => handleAddToCart(false)}
                 disabled={isAddingToCart || !canProceed}
                 title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
-                className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
                 Añadir al carrito
@@ -1425,6 +1458,60 @@ function ProductConfiguratorInner({ product }: Props) {
             <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full mt-3 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center justify-center gap-2 text-gray-500 hover:border-gray-300 transition-colors disabled:opacity-50">
               {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> Generando presupuesto...</> : <><Download size={14} /> Descargar presupuesto PDF</>}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODALS ────────────────────────────────────────────── */}
+      {showBlankConfirm && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-in">
+            <h3 className="text-xl font-bold mb-2 font-display text-gray-900">¿Añadir producto liso?</h3>
+            <p className="text-gray-600 text-sm mb-6">
+              Estás a punto de añadir <strong>{product.name}</strong> liso, sin ningún logotipo ni personalización. ¿Estás seguro?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => { setShowBlankConfirm(false); changeStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
+                className="w-full bg-brand-red text-white py-3 rounded-xl font-bold text-sm hover:bg-brand-red-dark transition-colors"
+              >
+                Cancelar, quiero personalizarlo
+              </button>
+              <button
+                onClick={() => { setShowBlankConfirm(false); handleAddToCart(true); }}
+                className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors"
+              >
+                Sí, añadir sin marcaje
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMissingTechWarning && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border-2 border-amber-400 animate-scale-in">
+            <div className="flex items-center gap-3 mb-3 text-amber-600">
+              <span className="text-3xl">⚠️</span>
+              <h3 className="text-xl font-bold font-display text-gray-900 leading-tight">Falta la técnica de impresión</h3>
+            </div>
+            <p className="text-gray-600 text-sm mb-6">
+              Vemos que has subido o colocado un logotipo en el producto, pero <strong>no has seleccionado la técnica de impresión</strong>. Debes seleccionar una técnica para poder añadirlo personalizado.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => { setShowMissingTechWarning(false); changeStep(2); }}
+                className="w-full bg-brand-red text-white py-3 rounded-xl font-bold text-sm hover:bg-brand-red-dark transition-colors"
+              >
+                Elegir técnica de impresión
+              </button>
+              <button
+                onClick={() => { setShowMissingTechWarning(false); handleAddToCart(true); }}
+                className="w-full bg-gray-100 text-gray-500 py-2 rounded-xl font-semibold text-xs hover:bg-gray-200 transition-colors"
+              >
+                Ignorar logo y comprar liso
+              </button>
+            </div>
           </div>
         </div>
       )}
