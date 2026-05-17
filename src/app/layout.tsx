@@ -20,6 +20,7 @@ import Script from "next/script";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { UtmProvider } from "@/components/providers/UtmProvider";
 import { TrafficTracker } from "@/components/providers/TrafficTracker";
+import { ClientErrorTracker } from "@/components/ClientErrorTracker";
 
 export const metadata: Metadata = {
   title: "Universo Merchan — Regalos corporativos personalizados",
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}
       </Script>
       <body className={`bg-surface-50 text-gray-900 min-h-screen font-sans antialiased ${poppins.variable}`}>
+        <ClientErrorTracker />
         <PostHogProvider>
           <UtmProvider />
           <TrafficTracker />

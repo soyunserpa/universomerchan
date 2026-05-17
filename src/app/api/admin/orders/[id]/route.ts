@@ -3,6 +3,7 @@ import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { requireAuth } from "@/lib/auth-service";
+import { logServerException } from "@/lib/error-logger";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -35,6 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ order: fullOrder, orderLines });
   } catch (error: any) {
     console.error("Failed to fetch order", error);
+    await logServerException(error, { errorType: "server_exception", severity: "medium", url: req.url });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
