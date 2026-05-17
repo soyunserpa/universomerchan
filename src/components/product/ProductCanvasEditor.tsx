@@ -370,9 +370,17 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
     return (
       <div className="space-y-4">
         {/* Zone Tabs */}
-        <div className="flex items-center gap-3 mb-4 bg-surface-50 p-2 pr-4 rounded-full border border-surface-200 inline-flex shadow-sm">
-          <span className="bg-brand-red text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">1</span>
-          <h3 className="font-bold text-gray-900 text-sm tracking-wide">Elige la zona de impresión</h3>
+        <div className="flex items-start gap-4 mb-5 p-4 rounded-2xl bg-gradient-to-br from-surface-50 to-white border border-surface-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-red/[0.03] rounded-bl-full -mr-4 -mt-4" />
+          <div className="flex flex-col items-center gap-2">
+            <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-sm shadow-[0_0_15px_rgba(235,53,60,0.3)] z-10">
+              1
+            </span>
+          </div>
+          <div className="pt-1.5 z-10">
+            <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wider mb-0.5">Zona de impresión</h3>
+            <p className="text-xs text-gray-500 font-medium">Define el área para aplicar tu diseño</p>
+          </div>
         </div>
         <div className="flex gap-2 flex-wrap mb-4">
           {printZones.map((zone) => {
@@ -401,9 +409,17 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
           {/* LEFT: Print area canvas */}
           <div className="flex-1 w-full min-w-0">
-            <div className="flex items-center gap-3 mb-4 bg-surface-50 p-2 pr-4 rounded-full border border-surface-200 inline-flex shadow-sm">
-              <span className="bg-brand-red text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">2</span>
-              <h3 className="font-bold text-gray-900 text-sm tracking-wide">Sube y ajusta tu logotipo</h3>
+            <div className="flex items-start gap-4 mb-5 p-4 rounded-2xl bg-gradient-to-br from-surface-50 to-white border border-surface-200 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-brand-red/[0.03] rounded-bl-full -mr-4 -mt-4" />
+              <div className="flex flex-col items-center gap-2">
+                <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-sm shadow-[0_0_15px_rgba(235,53,60,0.3)] z-10">
+                  2
+                </span>
+              </div>
+              <div className="pt-1.5 z-10">
+                <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wider mb-0.5">Logotipo</h3>
+                <p className="text-xs text-gray-500 font-medium">Sube y previsualiza tu diseño final</p>
+              </div>
             </div>
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide">
               &Aacute;rea de impresi&oacute;n &middot; {activeZoneData?.maxWidthMm}&times;{activeZoneData?.maxHeightMm}mm

@@ -1071,9 +1071,17 @@ function ProductConfiguratorInner({ product }: Props) {
             {/* 3. Technique */}
             {selectedPosition && (
               <div className="mb-5 animate-slide-up">
-                <div className="flex items-center gap-3 mb-4 bg-surface-50 p-2 pr-4 rounded-full border border-surface-200 inline-flex shadow-sm">
-                  <span className="bg-brand-red text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</span>
-                  <label className="font-bold text-gray-900 text-sm tracking-wide leading-none cursor-pointer">Elige técnica y colores de impresión</label>
+                <div className="flex items-start gap-4 mb-5 p-4 rounded-2xl bg-gradient-to-br from-surface-50 to-white border border-surface-200 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-brand-red/[0.03] rounded-bl-full -mr-4 -mt-4" />
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white font-bold text-sm shadow-[0_0_15px_rgba(235,53,60,0.3)] z-10">
+                      3
+                    </span>
+                  </div>
+                  <div className="pt-1.5 z-10">
+                    <h3 className="font-extrabold text-gray-900 text-sm uppercase tracking-wider mb-0.5">Técnica y Colores</h3>
+                    <p className="text-xs text-gray-500 font-medium">Selecciona cómo lo imprimiremos</p>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {positionData?.techniques.map(tech => {
