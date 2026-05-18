@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { requireAuth } from "@/lib/auth-service";
 import { logServerException } from "@/lib/error-logger";
+import { buildOrderTimeline } from "@/lib/customer-account-api";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -46,8 +47,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         // Do not crash the entire order view if email logs fail
       }
     }
+    
+    const timeline = buildOrderTimeline(fullOrder, orderLines);
 
-    return NextResponse.json({ order: fullOrder, orderLines, emailLogs });
+    return NextResponse.json({ order: fullOrder, orderLines, emailLogs, timeline });
   } catch (error: any) {
     console.error("Failed to fetch order", error);
     await logServerException(error, { errorType: "server_exception", severity: "medium", url: req.url });
