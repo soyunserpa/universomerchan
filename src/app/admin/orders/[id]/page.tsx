@@ -196,12 +196,28 @@ export default function AdminOrderDetailPage() {
                       if (typeof config === 'string') {
                         try { config = JSON.parse(config); } catch (e) {}
                       }
+                      
+                      const getTechName = (code: string) => {
+                        const c = code.toUpperCase();
+                        if (c.startsWith('T') && c !== 'TD' && c !== 'TS') return 'Transfer (' + code + ')';
+                        if (c.startsWith('L')) return 'Grabado Láser (' + code + ')';
+                        if (c.startsWith('S')) return 'Serigrafía (' + code + ')';
+                        if (c.startsWith('P')) return 'Tampografía (' + code + ')';
+                        if (c.startsWith('E')) return 'Bordado (' + code + ')';
+                        if (c === 'DL') return 'Gota de Resina (' + code + ')';
+                        if (c === 'DO') return 'Etiqueta Digital (' + code + ')';
+                        if (c === 'TD') return 'Transfer Digital (' + code + ')';
+                        if (c === 'TS') return 'Sublimación (' + code + ')';
+                        if (c === 'B') return 'Termograbado (' + code + ')';
+                        return code;
+                      };
+
                       if (config && config.positions && Array.isArray(config.positions)) {
                         return (
                           <div className="mt-1 flex flex-col gap-1">
                             {config.positions.map((pos: any, i: number) => (
                               <div key={i} className="inline-flex items-center w-fit px-2 py-0.5 bg-purple-50 text-purple-800 text-[10px] rounded border border-purple-200">
-                                <span className="font-bold mr-1">{pos.positionName}:</span> {pos.techniqueName} ({pos.numColors} color{pos.numColors > 1 ? 'es' : ''})
+                                <span className="font-bold mr-1">{pos.positionName}:</span> {getTechName(pos.techniqueName)} ({pos.numColors} color{pos.numColors > 1 ? 'es' : ''})
                               </div>
                             ))}
                           </div>
