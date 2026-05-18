@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth-service";
 import { db } from "@/lib/database";
 import { eq, and } from "drizzle-orm";
 import * as schema from "@/lib/schema";
-import { notifyClientProofReady } from "@/lib/email-service";
+import { sendProofReadyEmail } from "@/lib/email-service";
 import { logServerException } from "@/lib/error-logger";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -29,6 +29,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     if (!user) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
+    const orderLine = await db.query.orderLines.findFirst({
+      where: eq(schema.orderLines.id, lineId)
+    });
+
+    if (!orderLine) return NextResponse.json({ error: "Línea no encontrada" }, { status: 404 });
+
     let finalUrl = proofUrl;
     if (!finalUrl.includes("?")) finalUrl += "?manual=1";
     else finalUrl += "&manual=1";
@@ -46,12 +52,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Enviar correo al cliente de "Boceto Listo para Aprobar"
     try {
-      await notifyClientProofReady({
-        clientName: user.firstName,
-        clientEmail: user.email,
-        orderNumber: order.orderNumber,
-        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://universomerchan.com'}/account/orders/${order.orderNumber}`
-      });
+      if (user.email) {
+        await sendProofReadyEmail(user.email, {
+          orderId: order.id,
+          firstName: user.firstName || "Cliente",
+          orderNumber: order.orderNumber,
+          productName: orderLine.productName || "tu producto",
+          proofUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://universomerchan.com'}/account/orders/${order.orderNumber}`
+        });
+      }
     } catch (e) {
       console.error("No se pudo notificar al cliente del boceto manual", e);
     }
