@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
         // Get logs
         const logsResult = await db.execute(
-            sql`SELECT * FROM email_log ${whereClause} ORDER BY sent_at DESC LIMIT ${limit} OFFSET ${offset}`
+            sql`SELECT * FROM email_log ${whereClause} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`
         );
         const logs = Array.isArray(logsResult) ? logsResult : (logsResult as any).rows;
 

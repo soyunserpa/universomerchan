@@ -207,9 +207,9 @@ function EmailLogs({ authHeaders }: { authHeaders: () => Record<string, string> 
                             logs.map((log: any, i: number) => (
                                 <tr key={log.id || i} className="border-t border-gray-50 hover:bg-gray-50/50 transition-colors">
                                     <td className="px-5 py-3 text-gray-600 whitespace-nowrap">
-                                        {new Date(log.sent_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
+                                        {new Date(log.created_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
                                         <span className="text-gray-400 ml-1 text-xs">
-                                            {new Date(log.sent_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                                            {new Date(log.created_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
                                         </span>
                                     </td>
                                     <td className="px-5 py-3">
@@ -225,10 +225,10 @@ function EmailLogs({ authHeaders }: { authHeaders: () => Record<string, string> 
                                     </td>
                                     <td className="px-5 py-3 text-gray-600 truncate max-w-[300px]">{log.subject || "—"}</td>
                                     <td className="px-5 py-3">
-                                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${log.delivery_status === "sent" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"
+                                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${log.status === "sent" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"
                                             }`}>
-                                            {log.delivery_status === "sent" ? <Check size={12} /> : null}
-                                            {log.delivery_status || "sent"}
+                                            {log.status === "sent" ? <Check size={12} /> : null}
+                                            {log.status || "sent"}
                                         </span>
                                     </td>
                                 </tr>
