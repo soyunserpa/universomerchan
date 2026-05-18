@@ -248,7 +248,7 @@ export default function AdminOrderDetailPage() {
                         )}
                       </div>
                     )}
-                    {line.printConfig && (
+                    {(line.printConfig || (order.orderNumber === "UM-2026-0073" && line.productName?.toUpperCase().includes("SMARTFOLDER"))) && (
                       <div className="mt-3">
                          <button onClick={() => uploadManualProof(line.id)} className="text-[10px] font-bold px-2 py-1 bg-surface-100 hover:bg-surface-200 border border-surface-200 rounded flex items-center gap-1 text-gray-700 transition-colors">
                            <UploadCloud size={12} /> Adjuntar Boceto Manual

@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await db.update(schema.orderLines)
       .set({
         proofUrl: finalUrl,
-        proofStatus: "proof_pending"
+        proofStatus: "waiting_approval"
       })
       .where(and(
         eq(schema.orderLines.id, lineId),
