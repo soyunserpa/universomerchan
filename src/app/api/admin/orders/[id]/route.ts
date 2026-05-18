@@ -39,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         // Fetch all emails sent to this user
         emailLogs = await db.query.emailLog.findMany({
           where: eq(schema.emailLog.recipientEmail, user.email),
-          orderBy: (fields, { desc }) => [desc(fields.sentAt)],
+          orderBy: (fields, { desc }) => [desc(fields.createdAt)],
         });
       } catch (e) {
         console.error("Failed to fetch email logs, skipping:", e);

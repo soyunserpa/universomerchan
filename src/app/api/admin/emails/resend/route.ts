@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
       subject: `[REENVIADO] ${emailLog.subject}`,
       bodyHtml: emailLog.bodyHtml,
       orderId: emailLog.orderId,
-      deliveryStatus: "sent",
-      sentAt: new Date()
+      status: "sent",
+      createdAt: new Date()
     });
 
     return NextResponse.json({ success: true });

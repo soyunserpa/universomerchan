@@ -97,7 +97,7 @@ export async function GET(req: Request) {
           emailType: "review_request",
           subject: "Tu opinión tiene premio: 5% de descuento en Universo Merchan",
           orderId: order.id,
-          deliveryStatus: "sent"
+          status: "sent"
         });
         sentCount++;
         console.log(`[RequestReviews Cron] ✅ Email de reseña enviado a ${order.user.email} (Pedido: ${order.orderNumber})`);

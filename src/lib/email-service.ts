@@ -61,8 +61,8 @@ async function sendEmail(params: SendEmailParams): Promise<boolean> {
       subject: params.subject,
       bodyHtml: params.html,
       orderId: params.orderId,
-      sentAt: new Date(),
-      deliveryStatus,
+      createdAt: new Date(),
+      status: deliveryStatus,
     });
   } catch (dbErr: any) {
     console.error(`[Email DB Log Error] ✗ ${dbErr.message}`);

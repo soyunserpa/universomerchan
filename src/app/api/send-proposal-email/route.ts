@@ -21,7 +21,7 @@ export async function POST(req: Request) {
           recipientType: "customer",
           emailType: "quiz_proposal",
           subject: `Tu propuesta mágica: ${pack.title}`,
-          deliveryStatus: "sent"
+          status: "sent"
         });
       } catch (err) {
         console.error("Failed to log email to db:", err);

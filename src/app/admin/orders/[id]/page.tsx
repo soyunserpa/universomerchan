@@ -285,7 +285,7 @@ export default function AdminOrderDetailPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm">{log.subject}</span>
-                    {log.deliveryStatus === 'sent' ? (
+                    {log.status === 'sent' ? (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> ENVIADO</span>
                     ) : (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full"><AlertTriangle size={10} /> ERROR</span>
@@ -293,7 +293,7 @@ export default function AdminOrderDetailPage() {
                   </div>
                   <div className="text-xs text-gray-500 flex items-center gap-2">
                     <span className="font-mono bg-gray-100 px-1 rounded">{log.emailType}</span>
-                    <span>{new Date(log.sentAt).toLocaleString()}</span>
+                    <span>{new Date(log.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
                 <button 

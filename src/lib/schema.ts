@@ -606,8 +606,8 @@ export const emailLog = pgTable("email_log", {
   bodyHtml: text("body_html"),
   orderId: integer("order_id").references(() => orders.id),
   
-  sentAt: timestamp("sent_at").defaultNow().notNull(),
-  deliveryStatus: varchar("delivery_status", { length: 50 }).default("sent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  status: varchar("status", { length: 50 }).default("sent"),
 });
 
 // ============================================================
