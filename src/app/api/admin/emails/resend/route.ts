@@ -17,10 +17,6 @@ export async function POST(req: NextRequest) {
 
     if (!emailLog) return NextResponse.json({ error: "Email not found" }, { status: 404 });
     
-    if (!emailLog.bodyHtml) {
-      return NextResponse.json({ error: "No se puede reenviar este correo porque es antiguo y su contenido HTML no se almacenó." }, { status: 400 });
-    }
-
     const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
     if (!APPS_SCRIPT_URL) {
       return NextResponse.json({ error: "APPS_SCRIPT_URL no está configurado." }, { status: 500 });
@@ -51,10 +47,9 @@ export async function POST(req: NextRequest) {
       recipientType: emailLog.recipientType,
       emailType: emailLog.emailType,
       subject: `[REENVIADO] ${emailLog.subject}`,
-      bodyHtml: emailLog.bodyHtml,
       orderId: emailLog.orderId,
-      status: "sent",
-      createdAt: new Date()
+      deliveryStatus: "sent",
+      sentAt: new Date()
     });
 
     return NextResponse.json({ success: true });
