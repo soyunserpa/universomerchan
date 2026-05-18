@@ -731,8 +731,17 @@ export async function handleProofApproval(
   }
 
   if (approved) {
-    // Approve in Midocean
-    await midoceanApi.approveProof(order.midoceanOrderNumber, midoceanLineId);
+    // Approve in Midocean ONLY if it is not a manual proof
+    if (!orderLine.proofUrl?.includes("manual=1")) {
+      try {
+        await midoceanApi.approveProof(order.midoceanOrderNumber, midoceanLineId);
+      } catch (error) {
+        console.error("Failed to approve Midocean proof:", error);
+        // Continue to update local DB anyway
+      }
+    } else {
+      console.log(`[Manual Proof] Skipping Midocean approval for line ${lineId}`);
+    }
 
     // Update local DB
     await db.update(schema.orderLines).set({
