@@ -190,11 +190,19 @@ export default function AdminOrderDetailPage() {
                   <td className="px-5 py-3 font-mono text-xs">{line.sku}</td>
                   <td className="px-5 py-3">
                     <p className="font-semibold">{line.productName}</p>
-                    {line.printConfig && (
+                    {line.printConfig && typeof line.printConfig === 'object' && line.printConfig.positions ? (
+                      <div className="mt-1 flex flex-col gap-1">
+                        {line.printConfig.positions.map((pos: any, i: number) => (
+                          <div key={i} className="inline-flex items-center w-fit px-2 py-0.5 bg-purple-50 text-purple-800 text-[10px] rounded border border-purple-200">
+                            <span className="font-bold mr-1">{pos.positionName}:</span> {pos.techniqueName} ({pos.numColors} color{pos.numColors > 1 ? 'es' : ''})
+                          </div>
+                        ))}
+                      </div>
+                    ) : line.printConfig ? (
                       <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-bold tracking-wide">
                         CON MARCAJE
                       </span>
-                    )}
+                    ) : null}
                     {(line.mockupUrl || line.artworkUrl || line.proofUrl) && (
                       <div className="mt-2 flex gap-2">
                         {line.mockupUrl && (
