@@ -155,6 +155,8 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 </div>
                 <Link 
                   href={`/product/${pData.masterCode.toLowerCase()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full py-2.5 bg-brand-red text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-red-700 transition-colors shadow-sm"
                 >
                   Configurar <ExternalLink size={14} />
