@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, CheckCircle, Package } from "lucide-react";
-import { useCart } from "@/lib/cart-store";
-import { useRouter } from "next/navigation";
+import { Package, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { MessageCircle } from "lucide-react";
 
 export default function InteractiveProposal({ productDataMap, printData }: { productDataMap: any; printData: any }) {
-  const router = useRouter();
-  const { addItem } = useCart();
-  
   const [qtyAdult, setQtyAdult] = useState(300);
+  const [qtyWomen, setQtyWomen] = useState(0);
   const [qtyKids, setQtyKids] = useState(300);
-  const totalQty = qtyAdult + qtyKids;
+  const totalQty = qtyAdult + qtyKids + qtyWomen;
 
   const [colorCodes, setColorCodes] = useState<{ [key: string]: string }>({});
 
@@ -22,6 +20,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
       desc: "Modelo Regent 150g. Relación calidad-precio inmejorable. Resistente a lavados, ideal para un regalo general sin gastar demasiado.",
       adultCode: "S11380",
       kidsCode: "S11970",
+      womenCode: "S01825",
     },
     {
       id: 1,
@@ -29,6 +28,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
       desc: "Modelo Imperial 190g. Una camiseta más gruesa y duradera, con un tacto más suave y premium. La mejor si buscas un recuerdo duradero.",
       adultCode: "S11500",
       kidsCode: "S11770",
+      womenCode: "S11502",
     },
     {
       id: 2,
@@ -36,6 +36,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
       desc: "Modelo Pioneer orgánico. Perfectas si la academia valora la sostenibilidad y busca transmitir un mensaje eco-friendly a sus alumnos.",
       adultCode: "S03565",
       kidsCode: "S03578",
+      womenCode: "S03579",
     }
   ];
 
@@ -73,72 +74,17 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     };
   };
 
-  const handleAddToCart = (opt: any) => {
-    const adultData = productDataMap[opt.adultCode];
-    const kidsData = productDataMap[opt.kidsCode];
-    
-    const adultColor = colorCodes[opt.adultCode] || adultData?.variants?.[0]?.colorCode;
-    const kidsColor = colorCodes[opt.kidsCode] || kidsData?.variants?.[0]?.colorCode;
-    
-    const adultVariant = adultData?.variants?.find((v: any) => v.colorCode === adultColor) || adultData?.variants?.[0];
-    const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === kidsColor) || kidsData?.variants?.[0];
-
-    const adultCalc = calculateCost(qtyAdult, adultVariant, adultData);
-    const kidsCalc = calculateCost(qtyKids, kidsVariant, kidsData);
-
-    const getCustomizationPayload = () => ({
-      positions: [
-        { positionId: "CHEST", positionName: "Pecho", techniqueId: "ST1", techniqueName: "Serigrafía", printWidthMm: 100, printHeightMm: 100, numColors: 1, pmsColors: [], instructions: "" },
-        { positionId: "BACK", positionName: "Espalda", techniqueId: "ST1", techniqueName: "Serigrafía", printWidthMm: 280, printHeightMm: 420, numColors: 1, pmsColors: [], instructions: "" }
-      ],
-      artworkUrl: "",
-      artworkFileName: "logo_pendiente.png",
-      mockupUrl: null
-    });
-
-    if (qtyAdult > 0 && adultVariant) {
-      addItem({
-        productMasterCode: adultData.masterCode,
-        productName: adultData.name,
-        variantSku: adultVariant.sizes?.[0]?.sku || adultVariant.code || adultVariant.sku,
-        variantId: adultVariant.sizes?.[0]?.sku || adultVariant.code || adultVariant.sku,
-        color: adultVariant.colorDescription || adultVariant.colorCode,
-        colorCode: adultVariant.colorCode,
-        size: adultVariant.sizes?.[0]?.name || "Unisex",
-        quantity: qtyAdult,
-        unitPriceProduct: adultCalc.costCamSellPerUnit,
-        unitPriceTotal: adultCalc.unitPVP,
-        totalPrice: adultCalc.totalPVP,
-        customization: getCustomizationPayload(),
-        orderType: "PRINT",
-        productImage: adultVariant.images?.[0] || adultData.mainImage,
-      });
-    }
-    
-    if (qtyKids > 0 && kidsVariant) {
-      addItem({
-        productMasterCode: kidsData.masterCode,
-        productName: kidsData.name,
-        variantSku: kidsVariant.sizes?.[0]?.sku || kidsVariant.code || kidsVariant.sku,
-        variantId: kidsVariant.sizes?.[0]?.sku || kidsVariant.code || kidsVariant.sku,
-        color: kidsVariant.colorDescription || kidsVariant.colorCode,
-        colorCode: kidsVariant.colorCode,
-        size: kidsVariant.sizes?.[0]?.name || "Kids",
-        quantity: qtyKids,
-        unitPriceProduct: kidsCalc.costCamSellPerUnit,
-        unitPriceTotal: kidsCalc.unitPVP,
-        totalPrice: kidsCalc.totalPVP,
-        customization: getCustomizationPayload(),
-        orderType: "PRINT",
-        productImage: kidsVariant.images?.[0] || kidsData.mainImage,
-      });
-    }
-    
-    router.push('/cart');
-  };
-
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-12 relative">
+      <a 
+        href="https://wa.me/34614446640" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer"
+      >
+        <MessageCircle size={32} />
+      </a>
+
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
           Propuesta Aniversario <br/><span className="text-brand-red">Academia Gijón</span>
@@ -148,20 +94,27 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
         </p>
       </div>
 
-      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-surface-200 mb-12 max-w-2xl mx-auto">
+      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-surface-200 mb-12 max-w-3xl mx-auto">
         <h3 className="font-bold text-gray-900 mb-6 flex items-center justify-center gap-2 text-xl">
-          <Package className="text-brand-red" /> Ajuste de Cantidades
+          <Package className="text-brand-red" /> Ajuste de Cantidades Estimadas
         </h3>
-        <div className="space-y-6">
+        <p className="text-center text-sm text-gray-500 mb-6">El coste de las pantallas y fotolitos se diluye entre todas las unidades. Ajusta las barras para ver cómo baja el precio unitario a mayor cantidad.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
-              Adulto (Unisex) <span className="bg-gray-100 px-3 py-1 rounded-md text-gray-900">{qtyAdult} uds</span>
+              Adulto (Unisex) <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-900">{qtyAdult}</span>
             </label>
             <input type="range" min="0" max="1000" step="10" value={qtyAdult} onChange={(e) => setQtyAdult(parseInt(e.target.value))} className="w-full accent-brand-red" />
           </div>
           <div>
             <label className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
-              Infantil <span className="bg-gray-100 px-3 py-1 rounded-md text-gray-900">{qtyKids} uds</span>
+              Mujer (Entallada) <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-900">{qtyWomen}</span>
+            </label>
+            <input type="range" min="0" max="1000" step="10" value={qtyWomen} onChange={(e) => setQtyWomen(parseInt(e.target.value))} className="w-full accent-brand-red" />
+          </div>
+          <div>
+            <label className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
+              Infantil <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-900">{qtyKids}</span>
             </label>
             <input type="range" min="0" max="1000" step="10" value={qtyKids} onChange={(e) => setQtyKids(parseInt(e.target.value))} className="w-full accent-brand-red" />
           </div>
@@ -172,86 +125,71 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
         {options.map((opt, idx) => {
           const adultData = productDataMap[opt.adultCode];
           const kidsData = productDataMap[opt.kidsCode];
+          const womenData = productDataMap[opt.womenCode];
           
-          if (!adultData || !kidsData) return null;
+          if (!adultData || !kidsData || !womenData) return null;
 
           const adultColor = colorCodes[opt.adultCode] || adultData?.variants?.[0]?.colorCode;
           const kidsColor = colorCodes[opt.kidsCode] || kidsData?.variants?.[0]?.colorCode;
+          const womenColor = colorCodes[opt.womenCode] || womenData?.variants?.[0]?.colorCode;
           
           const adultVariant = adultData?.variants?.find((v: any) => v.colorCode === adultColor) || adultData?.variants?.[0];
           const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === kidsColor) || kidsData?.variants?.[0];
+          const womenVariant = womenData?.variants?.find((v: any) => v.colorCode === womenColor) || womenData?.variants?.[0];
 
-          const adultCalc = calculateCost(qtyAdult, adultVariant, adultData);
-          const kidsCalc = calculateCost(qtyKids, kidsVariant, kidsData);
-          const grandTotal = adultCalc.totalPVP + kidsCalc.totalPVP;
+          const adultCalc = calculateCost(Math.max(1, qtyAdult), adultVariant, adultData);
+          const kidsCalc = calculateCost(Math.max(1, qtyKids), kidsVariant, kidsData);
+          const womenCalc = calculateCost(Math.max(1, qtyWomen), womenVariant, womenData);
+
+          const renderItemCol = (title: string, pData: any, variant: any, codeKey: string, priceCalc: any) => (
+            <div className="flex-1 flex flex-col">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{title}</span>
+              <img src={variant?.images?.[0] || pData.mainImage} className="w-full aspect-square object-contain mix-blend-multiply drop-shadow-sm bg-white rounded-xl border border-gray-100 p-2 mb-3" alt={title} />
+              <div className="flex flex-wrap gap-1.5 justify-center mb-4">
+                {pData.variants?.map((v: any) => (
+                  <button 
+                    key={v.colorCode} onClick={() => setColorCodes(prev => ({ ...prev, [codeKey]: v.colorCode }))}
+                    className={`w-5 h-5 rounded-full transition-all outline-none ${variant?.colorCode === v.colorCode ? 'ring-2 ring-brand-red ring-offset-1 scale-110' : 'border border-gray-200'}`}
+                    style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
+                  />
+                ))}
+              </div>
+              <div className="mt-auto bg-white p-3 rounded-xl border border-gray-100 text-center flex flex-col gap-2">
+                <div>
+                  <span className="block text-xs text-gray-500 font-medium">Precio Unitario (Inc. Marcaje)</span>
+                  <span className="text-lg font-black text-gray-900">{priceCalc.unitPVP.toFixed(2)} €</span>
+                </div>
+                <Link 
+                  href={`/product/${pData.masterCode.toLowerCase()}`}
+                  className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-brand-red transition-colors"
+                >
+                  Configurar <ExternalLink size={14} />
+                </Link>
+              </div>
+            </div>
+          );
 
           return (
-            <div key={idx} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col md:flex-row">
-              <div className="w-full md:w-2/5 bg-gray-50 p-6 md:p-8 flex flex-col justify-center border-r border-gray-100">
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Versión Adulto</span>
-                    <img src={adultVariant?.images?.[0] || adultData.mainImage} className="w-full aspect-square object-contain mix-blend-multiply drop-shadow-sm bg-white rounded-xl border border-gray-100 p-2" alt="Adulto" />
-                    <div className="flex flex-wrap gap-1.5 mt-3 justify-center">
-                      {adultData.variants?.map((v: any) => (
-                        <button 
-                          key={v.colorCode} onClick={() => setColorCodes(prev => ({ ...prev, [opt.adultCode]: v.colorCode }))}
-                          className={`w-6 h-6 rounded-full transition-all outline-none ${adultColor === v.colorCode ? 'ring-2 ring-brand-red ring-offset-1 scale-110' : 'border border-gray-200'}`}
-                          style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Versión Niño</span>
-                    <img src={kidsVariant?.images?.[0] || kidsData.mainImage} className="w-full aspect-square object-contain mix-blend-multiply drop-shadow-sm bg-white rounded-xl border border-gray-100 p-2" alt="Niño" />
-                    <div className="flex flex-wrap gap-1.5 mt-3 justify-center">
-                      {kidsData.variants?.map((v: any) => (
-                        <button 
-                          key={v.colorCode} onClick={() => setColorCodes(prev => ({ ...prev, [opt.kidsCode]: v.colorCode }))}
-                          className={`w-6 h-6 rounded-full transition-all outline-none ${kidsColor === v.colorCode ? 'ring-2 ring-brand-red ring-offset-1 scale-110' : 'border border-gray-200'}`}
-                          style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
-                        />
-                      ))}
-                    </div>
-                  </div>
+            <div key={idx} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col lg:flex-row">
+              <div className="w-full lg:w-1/3 p-8 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-gray-100 bg-gray-50/50">
+                <h2 className="text-3xl font-black text-gray-900 mb-4">{opt.title}</h2>
+                <p className="text-gray-600 mb-6 leading-relaxed">{opt.desc}</p>
+                <div className="bg-white rounded-xl p-5 border border-gray-100 mt-auto shadow-sm">
+                  <h4 className="font-bold text-sm text-gray-900 mb-3">Tu presupuesto incluye:</h4>
+                  <ul className="text-sm text-gray-600 space-y-2.5 font-medium">
+                    <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Serigrafía a 1 color (Pecho izquierdo)</li>
+                    <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Serigrafía a 1 color (Espalda grande)</li>
+                    <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Pantallas y fotolitos incluidos en PVP</li>
+                    <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Manipulación y embolsado incluidos</li>
+                  </ul>
                 </div>
               </div>
               
-              <div className="w-full md:w-3/5 p-6 md:p-10 flex flex-col">
-                <h2 className="text-2xl font-black text-gray-900 mb-2">{opt.title}</h2>
-                <p className="text-gray-600 mb-6">{opt.desc}</p>
-                
-                <div className="bg-gray-50 rounded-xl p-5 mb-6 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-700 text-sm">Adulto ({qtyAdult} uds)</span>
-                    <span className="font-bold text-lg">{qtyAdult > 0 ? adultCalc.unitPVP.toFixed(2) : '0.00'} € <span className="text-xs text-gray-500 font-normal">/ud</span></span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-700 text-sm">Niño ({qtyKids} uds)</span>
-                    <span className="font-bold text-lg">{qtyKids > 0 ? kidsCalc.unitPVP.toFixed(2) : '0.00'} € <span className="text-xs text-gray-500 font-normal">/ud</span></span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 mt-2">
-                    <ul className="text-xs text-gray-500 space-y-1.5 font-medium">
-                      <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500"/> Serigrafía a 1 color incluida (Pecho pequeño y Espalda grande)</li>
-                      <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500"/> Costes fijos de fotolitos y pantallas incluidos</li>
-                      <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500"/> Manipulación y preparación incluidas</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-auto flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="text-center md:text-left">
-                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Precio Total (Sin IVA)</span>
-                    <span className="text-3xl font-black text-brand-red">{grandTotal.toFixed(2)} €</span>
-                  </div>
-                  <button 
-                    onClick={() => handleAddToCart(opt)}
-                    disabled={totalQty === 0}
-                    className="w-full md:w-auto px-8 py-4 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-brand-red transition-all shadow-lg disabled:opacity-50"
-                  >
-                    Elegir Opción <ShoppingCart size={20} />
-                  </button>
+              <div className="w-full lg:w-2/3 bg-gray-50/30 p-6 md:p-8 flex flex-col justify-center">
+                <div className="flex flex-col md:flex-row gap-6 md:gap-4">
+                  {renderItemCol("Versión Adulto", adultData, adultVariant, opt.adultCode, adultCalc)}
+                  {renderItemCol("Versión Mujer", womenData, womenVariant, opt.womenCode, womenCalc)}
+                  {renderItemCol("Versión Niño", kidsData, kidsVariant, opt.kidsCode, kidsCalc)}
                 </div>
               </div>
             </div>

@@ -35,7 +35,11 @@ const getHex = (desc: string) => {
 };
 
 export default async function AcademiaGijonPage() {
-  const codes = ["S11380", "S11970", "S11500", "S11770", "S03565", "S03578"];
+  const codes = [
+    "S11380", "S11970", "S01825", // Regent: Adult, Kids, Women
+    "S11500", "S11770", "S11502", // Imperial: Adult, Kids, Women
+    "S03565", "S03578", "S03579"  // Pioneer: Adult, Kids, Women
+  ];
   
   // 1. Base Products
   const products = await db.query.products.findMany({ where: inArray(schema.products.masterCode, codes) });
