@@ -823,7 +823,10 @@ function ProductConfiguratorInner({ product }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in">
           {/* Image */}
           <div>
-            <div className="w-full aspect-square bg-surface-50 rounded-3xl flex items-center justify-center mb-3 overflow-hidden">
+            <div className="w-full aspect-square bg-surface-50 rounded-3xl flex items-center justify-center mb-3 relative overflow-hidden">
+              <div className="absolute top-4 right-4 z-10">
+                <FavoriteButton productId={product.id} variant="icon" />
+              </div>
               {variant.images && variant.images.length > 0 ? (
                 <img src={variant.images[activeImageIndex]?.urlHiRes || variant.images[activeImageIndex]?.url} alt={product.name} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
               ) : variant.mainImage ? (
@@ -859,9 +862,6 @@ function ProductConfiguratorInner({ product }: Props) {
 
             <div className="flex items-center justify-between gap-4 mb-2">
               <h1 className="font-display font-extrabold text-3xl">{product.name} {product.shortDescription}</h1>
-              <div className="flex-shrink-0">
-                <FavoriteButton productId={product.id} variant="icon" />
-              </div>
             </div>
             {product.longDescription && <p className="text-base text-black leading-relaxed mb-6">{product.longDescription}</p>}
 
@@ -1017,6 +1017,9 @@ function ProductConfiguratorInner({ product }: Props) {
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
                 Añadir al carrito sin personalizar
               </button>
+              <div className="w-full flex justify-center mt-2">
+                <FavoriteButton productId={product.id} variant="button" />
+              </div>
             </div>
           </div>
         </div>
