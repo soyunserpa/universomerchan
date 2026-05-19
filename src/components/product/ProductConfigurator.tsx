@@ -9,6 +9,7 @@ import {
   Check, Download, Minus, Plus, Info, Gift, Trash2,
   Layers, Loader2, Package, ShieldCheck, Handshake, Star
 } from "lucide-react";
+import { FavoriteButton } from "./FavoriteButton";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
 import { useEffect, Suspense } from "react";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
