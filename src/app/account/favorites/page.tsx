@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Package, Eye, Truck, FileText, User, Heart, Loader2, LogOut } from "lucide-react";
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductCard } from "@/components/catalog/ProductCard";
 
 export default function AccountFavoritesPage() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();

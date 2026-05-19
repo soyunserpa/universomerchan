@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   Package, Clock, CheckCircle, Truck, AlertTriangle, Eye, Gift,
   ShoppingCart, FileText, User, LogOut, ChevronRight, RefreshCw, Trash2,
-, Heart } from "lucide-react";
+  Heart } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 
 interface Order {
