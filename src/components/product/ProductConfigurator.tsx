@@ -857,9 +857,9 @@ function ProductConfiguratorInner({ product }: Props) {
               <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">REF: {product.masterCode}</span>
             </div>
 
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="font-display font-extrabold text-3xl mb-2">{product.name} {product.shortDescription}</h1>
-              <div className="mt-1 flex-shrink-0">
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <h1 className="font-display font-extrabold text-3xl">{product.name} {product.shortDescription}</h1>
+              <div className="flex-shrink-0">
                 <FavoriteButton productId={product.id} variant="icon" />
               </div>
             </div>
