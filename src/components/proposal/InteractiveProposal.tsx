@@ -18,6 +18,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
   const [kidsColorCode, setKidsColorCode] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const totalQty = qtyAdult + qtyKids;
 
   const options = [
@@ -66,7 +67,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
   const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === kidsColorCode) || kidsData?.variants?.[0];
 
   const calculateCost = (qty: number, variant: any, pData: any) => {
-    if (qty === 0 || !pData) return { costCam: 0, handling: 0, print: 0, setup: 0, totalPVP: 0, unitPVP: 0 };
+    if (qty === 0 || !pData) return { costCam: 0, handling: 0, print: 0, setup: 0, totalPVP: 0, unitPVP: 0, costCamSellPerUnit: 0 };
     
     // 1. Base Cost
     let costCam = 0;
@@ -98,6 +99,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
 
     const unitPVP = costCamSell + handlingSell + totalPrintSell + setupSellPerUnit;
     return {
+      costCamSellPerUnit: costCamSell,
       costCam: costCamSell * qty,
       handling: handlingSell * qty,
       print: totalPrintSell * qty,
@@ -120,31 +122,74 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const getCustomizationPayload = (variantCode: string, imgFront: string, imgBack: string) => {
+    return {
+      positions: [
+        {
+          positionId: "CHEST",
+          positionName: "Pecho",
+          techniqueId: "ST1",
+          numColors: 1,
+          mockups: {
+            [variantCode]: imgFront,
+          }
+        },
+        {
+          positionId: "BACK",
+          positionName: "Espalda",
+          techniqueId: "ST1",
+          numColors: 1,
+          mockups: {
+            [variantCode]: imgBack,
+          }
+        }
+      ],
+      setupCosts: [
+         { positionId: "CHEST", techniqueId: "ST1", name: "Pantalla y Fotolitos Pecho", price: printData.setup * 1.5 },
+         { positionId: "BACK", techniqueId: "ST1", name: "Pantalla y Fotolitos Espalda", price: printData.setup * 1.5 }
+      ]
+    };
+  };
+
   const handleAprobarPresupuesto = () => {
     if (qtyAdult > 0 && adultVariant) {
       addItem({
-        productId: adultData.masterCode,
-        name: adultData.name,
-        price: adultCalc.unitPVP,
-        quantity: qtyAdult,
-        image: adultVariant.images?.[0] || adultData.mainImage,
+        productMasterCode: adultData.masterCode,
+        productName: adultData.name,
+        variantSku: adultVariant.sizes?.[0]?.sku || adultVariant.code,
+        variantId: adultVariant.sizes?.[0]?.sku || adultVariant.code,
+        color: adultVariant.colorDescription || adultVariant.colorCode,
+        colorCode: adultVariant.colorCode,
         size: adultVariant.sizes?.[0]?.name || "Unisex",
-        color: adultVariant.colorCode,
-        sku: adultVariant.sizes?.[0]?.sku
+        quantity: qtyAdult,
+        unitPriceProduct: adultCalc.costCamSellPerUnit,
+        unitPriceTotal: adultCalc.unitPVP,
+        totalPrice: adultCalc.totalPVP,
+        customization: getCustomizationPayload(adultVariant.colorCode, adultVariant.images?.[0] || adultData.mainImage, adultVariant.images?.[1] || adultData.mainImage),
+        orderType: "customized",
+        productImage: adultVariant.images?.[0] || adultData.mainImage,
       });
     }
+    
     if (qtyKids > 0 && kidsVariant) {
       addItem({
-        productId: kidsData.masterCode,
-        name: kidsData.name,
-        price: kidsCalc.unitPVP,
-        quantity: qtyKids,
-        image: kidsVariant.images?.[0] || kidsData.mainImage,
+        productMasterCode: kidsData.masterCode,
+        productName: kidsData.name,
+        variantSku: kidsVariant.sizes?.[0]?.sku || kidsVariant.code,
+        variantId: kidsVariant.sizes?.[0]?.sku || kidsVariant.code,
+        color: kidsVariant.colorDescription || kidsVariant.colorCode,
+        colorCode: kidsVariant.colorCode,
         size: kidsVariant.sizes?.[0]?.name || "Kids",
-        color: kidsVariant.colorCode,
-        sku: kidsVariant.sizes?.[0]?.sku
+        quantity: qtyKids,
+        unitPriceProduct: kidsCalc.costCamSellPerUnit,
+        unitPriceTotal: kidsCalc.unitPVP,
+        totalPrice: kidsCalc.totalPVP,
+        customization: getCustomizationPayload(kidsVariant.colorCode, kidsVariant.images?.[0] || kidsData.mainImage, kidsVariant.images?.[1] || kidsData.mainImage),
+        orderType: "customized",
+        productImage: kidsVariant.images?.[0] || kidsData.mainImage,
       });
     }
+    
     router.push('/cart');
   };
 
@@ -231,23 +276,23 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">Adulto: {adultData?.name}</span>
                 <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded-full">{adultVariant?.sizes?.length || 0} Tallas</span>
               </div>
-              <div className="flex gap-4 mb-4 h-48">
+              <div className="flex gap-4 mb-4 h-56">
                 <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
                   <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">PECHO</span>
                   {adultVariant?.images?.[0] && <img src={adultVariant.images[0]} alt="Pecho" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[25%] left-[65%] w-[15%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
+                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[32%] left-[58%] w-[12%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
                 </div>
                 <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
                   <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">ESPALDA</span>
                   {adultVariant?.images?.[1] && <img src={adultVariant.images[1]} alt="Espalda" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[30%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
+                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[28%] left-1/2 -translate-x-1/2 w-[25%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2 mt-auto">
+              <div className="flex flex-wrap gap-2 mt-auto pt-2">
                 {adultData?.variants?.map((v: any) => (
                   <button 
                     key={v.colorCode} onClick={() => setAdultColorCode(v.colorCode)}
-                    className={`w-6 h-6 rounded-full border-2 transition-all ${adultColorCode === v.colorCode ? 'border-brand-red scale-110 shadow-md' : 'border-gray-200 hover:scale-105'}`}
+                    className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${adultColorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110' : 'border-2 border-surface-200 hover:border-surface-300'}`}
                     style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
                   />
                 ))}
@@ -260,23 +305,23 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">Niño: {kidsData?.name}</span>
                 <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded-full">{kidsVariant?.sizes?.length || 0} Tallas</span>
               </div>
-              <div className="flex gap-4 mb-4 h-48">
+              <div className="flex gap-4 mb-4 h-56">
                 <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
                   <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">PECHO</span>
                   {kidsVariant?.images?.[0] && <img src={kidsVariant.images[0]} alt="Pecho" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[25%] left-[65%] w-[15%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
+                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[32%] left-[58%] w-[12%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
                 </div>
                 <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
                   <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">ESPALDA</span>
                   {kidsVariant?.images?.[1] && <img src={kidsVariant.images[1]} alt="Espalda" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[30%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
+                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[28%] left-1/2 -translate-x-1/2 w-[25%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2 mt-auto">
+              <div className="flex flex-wrap gap-2 mt-auto pt-2">
                 {kidsData?.variants?.map((v: any) => (
                   <button 
                     key={v.colorCode} onClick={() => setKidsColorCode(v.colorCode)}
-                    className={`w-6 h-6 rounded-full border-2 transition-all ${kidsColorCode === v.colorCode ? 'border-brand-red scale-110 shadow-md' : 'border-gray-200 hover:scale-105'}`}
+                    className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${kidsColorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110' : 'border-2 border-surface-200 hover:border-surface-300'}`}
                     style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
                   />
                 ))}
