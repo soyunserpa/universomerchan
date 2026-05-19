@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
         categoryLevel1: schema.products.categoryLevel1,
         slug: schema.products.slug,
         basePriceSell: schema.products.basePriceSell,
-        minOrderQuantity: schema.products.minOrderQuantity,
         featuredImageUrl: schema.products.featuredImageUrl,
       })
       .from(schema.userFavorites)
