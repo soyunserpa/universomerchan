@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
         masterCode: schema.products.masterCode,
         shortDescription: schema.products.shortDescription,
         categoryLevel1: schema.products.categoryLevel1,
+        isGreen: schema.products.isGreen,
         digitalAssets: schema.products.digitalAssets,
       })
       .from(schema.userFavorites)
@@ -42,7 +43,14 @@ export async function GET(req: NextRequest) {
         name: f.shortDescription || f.masterCode,
         shortDescription: f.shortDescription || "",
         category: f.categoryLevel1 || "",
+        categoryLevel2: "",
+        material: "",
+        dimensions: "",
+        isGreen: f.isGreen || false,
+        printable: true,
+        startingPrice: "Desde 0.00€",
         startingPriceRaw: 0, // We can skip price loading here to keep it fast, or load from variant_prices
+        totalStock: 0,
         mainImage: mainImage,
         variants: [],
         productId: f.productId // For React key
