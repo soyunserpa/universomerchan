@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 logs --nostream --lines 100', (err, stream) => {
+    conn.exec('cat /var/www/universomerchan/src/app/api/admin/orders/\\[id\\]/route.ts | grep buildOrderTimeline', (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())
               .on('data', (d) => process.stdout.write(d))

@@ -117,6 +117,19 @@ export const users = pgTable("users", {
 }));
 
 // ============================================================
+// FAVORITES (Wishlist)
+// ============================================================
+
+export const userFavorites = pgTable("user_favorites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userProductIdx: uniqueIndex("user_product_idx").on(table.userId, table.productId),
+}));
+
+// ============================================================
 // LEADS (CRM) — Generated from Octane AI style Quiz
 // ============================================================
 

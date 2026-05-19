@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useGlobalLogo } from "@/lib/global-logo-store";
-import { Search, ShoppingCart, User, Menu, X, Loader2, Sparkles } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, Loader2, Sparkles, Heart } from "lucide-react";
+import { useFavorites } from "@/lib/favorites-store";
 
 export function Header() {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export function Header() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { globalLogo, globalLogoName, setGlobalLogo, clearGlobalLogo } = useGlobalLogo();
+  const { favoriteIds } = useFavorites();
 
   const navLinks = [
     { href: "/catalog", label: "Catálogo" },
@@ -256,6 +258,18 @@ export function Header() {
               </button>
             )}
           </div>
+
+          
+          {/* Favorites */}
+          <Link aria-label="Favoritos" href="/account/favorites" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red hidden sm:flex pt-1 relative">
+            <Heart size={20} className="transition-transform group-hover:-translate-y-0.5" />
+            {favoriteIds.length > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-brand-red text-white text-[9px] font-bold w-[16px] h-[16px] rounded-full flex items-center justify-center shadow-sm">
+                {favoriteIds.length}
+              </span>
+            )}
+            <span className="text-[10px] font-bold hidden md:block transition-colors">Favoritos</span>
+          </Link>
 
           {/* User */}
           <Link aria-label="Mi Cuenta" href="/account/orders" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red hidden sm:flex pt-1">

@@ -1,7 +1,14 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 logs --nostream --lines 100', (err, stream) => {
+    const query = `
+      SELECT p.master_code, vp.price, vp.price_scales 
+      FROM variant_prices vp 
+      JOIN products p ON p.master_code = vp.master_code
+      WHERE p.master_code LIKE '%MO9401%'
+      LIMIT 1;
+    `;
+    conn.exec(`sudo -u postgres psql -d universomerchan -t -c "${query.replace(/\n/g, ' ')}"`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())
               .on('data', (d) => process.stdout.write(d))

@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Leaf, Palette, Star } from "lucide-react";
+import { Leaf, Palette, Star, Heart } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { useAuth } from "@/lib/auth-context";
 import { useGlobalLogo } from "@/lib/global-logo-store";
+import { useFavorites } from "@/lib/favorites-store";
+import { useRouter, usePathname } from "next/navigation";
 
 export function ProductCard({ product, index, isTopVenta }: { product: CatalogProductResponse; index: number; isTopVenta?: boolean }) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { globalLogo } = useGlobalLogo();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const router = useRouter();
+  const pathname = usePathname();
   
   const uniqueColors = product.variants
     .filter((v, i, arr) => arr.findIndex((x) => x.color === v.color) === i)
@@ -36,6 +41,27 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
     >
       {/* Image */}
       <div className="w-full aspect-square bg-surface-50 flex items-center justify-center relative overflow-hidden group">
+        
+        {/* Favorite Button */}
+        <button
+          onClick={async (e) => {
+            e.preventDefault(); // Prevent Link navigation
+            e.stopPropagation();
+            if (!isAuthenticated) {
+              router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}&autoFavorite=${product.id}`);
+              return;
+            }
+            await toggleFavorite(product.id);
+          }}
+          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 hover:bg-white text-gray-400 hover:text-brand-red transition-all shadow-sm group/fav"
+          aria-label={isFavorite(product.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+        >
+          <Heart 
+            size={18} 
+            className={`transition-all ${isFavorite(product.id) ? "fill-brand-red text-brand-red scale-110" : "group-hover/fav:scale-110"}`} 
+          />
+        </button>
+
         {product.mainImage ? (
           <>
             <div className="w-[68%] h-[68%] relative z-10">

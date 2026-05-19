@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
     FileText, Package, User, LogOut, ExternalLink, RefreshCw, Eye, Truck, FileQuestion
-} from "lucide-react";
+, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AccountQuotesPage() {
@@ -60,6 +60,7 @@ export default function AccountQuotesPage() {
                         { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
                         { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
                         { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
+            { href: "/account/favorites", icon: Heart, label: "Favoritos" },
                         { href: "/account/profile", icon: User, label: "Mi perfil" },
                     ].map(item => (
                         <Link key={item.href} href={item.href} className={`flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 transition-colors ${item.href === "/account/quotes" ? "bg-surface-50 text-brand-red font-bold" : "text-sm font-medium text-gray-600"}`}>

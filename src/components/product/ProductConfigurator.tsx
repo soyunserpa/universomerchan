@@ -856,7 +856,12 @@ function ProductConfiguratorInner({ product }: Props) {
               <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">REF: {product.masterCode}</span>
             </div>
 
-            <h1 className="font-display font-extrabold text-3xl mb-2">{product.name} {product.shortDescription}</h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="font-display font-extrabold text-3xl mb-2">{product.name} {product.shortDescription}</h1>
+              <div className="mt-1 flex-shrink-0">
+                <FavoriteButton productId={product.id} variant="icon" />
+              </div>
+            </div>
             {product.longDescription && <p className="text-base text-black leading-relaxed mb-6">{product.longDescription}</p>}
 
             {/* Color selector */}

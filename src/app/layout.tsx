@@ -10,6 +10,8 @@ const poppins = Poppins({
 });
 import { CartProvider } from "@/lib/cart-store";
 import { AuthProvider } from "@/lib/auth-context";
+import { FavoritesProvider } from "@/lib/favorites-store";
+import { AutoFavoriteHandler } from "@/components/providers/AutoFavoriteHandler";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
@@ -156,14 +158,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           />
           <AuthProvider>
-            <CartProvider>
-              <Header />
-              <MiniCart />
-              <main className="min-h-[60vh]">{children}</main>
-              <ChatbotBubble />
-              <Footer />
-              <CookieBanner />
-            </CartProvider>
+            <FavoritesProvider>
+              <AutoFavoriteHandler />
+              <CartProvider>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <MiniCart />
+                  <main className="flex-1 pt-[72px] sm:pt-24">{children}</main>
+                  <ChatbotBubble />
+                  <Footer />
+                  <CookieBanner />
+                </div>
+              </CartProvider>
+            </FavoritesProvider>
           </AuthProvider>
         </PostHogProvider>
       </body>

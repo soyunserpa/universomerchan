@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 logs --nostream --lines 100', (err, stream) => {
+    conn.exec(`sudo -u postgres psql -d universomerchan -t -c "SELECT order_number, midocean_order_number FROM orders WHERE order_number = 'UM-2026-0073';"`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())
               .on('data', (d) => process.stdout.write(d))
