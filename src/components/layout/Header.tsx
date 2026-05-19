@@ -261,7 +261,7 @@ export function Header() {
 
           
           {/* Favorites */}
-          <Link aria-label="Favoritos" href="/account/favorites" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red hidden sm:flex pt-1 relative">
+          <Link aria-label="Favoritos" href="/account/favorites" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red pt-1 relative">
             <Heart size={20} className="transition-transform group-hover:-translate-y-0.5" />
             {favoriteIds.length > 0 && (
               <span className="absolute -top-1.5 -right-2 bg-brand-red text-white text-[9px] font-bold w-[16px] h-[16px] rounded-full flex items-center justify-center shadow-sm">
@@ -272,7 +272,7 @@ export function Header() {
           </Link>
 
           {/* User */}
-          <Link aria-label="Mi Cuenta" href="/account/orders" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red hidden sm:flex pt-1">
+          <Link aria-label="Mi Cuenta" href="/account/orders" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red pt-1">
             <User size={20} className="transition-transform group-hover:-translate-y-0.5" />
             <span className="text-[10px] font-bold hidden md:block transition-colors">Mi Cuenta</span>
           </Link>
