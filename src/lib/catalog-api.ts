@@ -122,6 +122,7 @@ export interface GetProductListOptions {
   greenOnly?: boolean;
   sort?: "name" | "price_asc" | "price_desc" | "newest" | "stock";
   budget?: string; // e.g. "under_1", "1_to_5", "5_to_20", "over_20"
+  masterCodes?: string[];
 }
 
 export async function getProductList(options: GetProductListOptions = {}): Promise<{ products: CatalogProductResponse[]; total: number; pages: number }> {
@@ -134,11 +135,16 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     greenOnly, 
     sort = "newest",
     color,
-    budget
+    budget,
+    masterCodes
   } = options;
 
   // Build where conditions
   const conditions = [eq(schema.products.isVisible, true)];
+
+  if (masterCodes && masterCodes.length > 0) {
+    conditions.push(inArray(schema.products.masterCode, masterCodes));
+  }
 
   if (category && category !== "Todos") {
     conditions.push(eq(schema.products.categoryLevel1, category));

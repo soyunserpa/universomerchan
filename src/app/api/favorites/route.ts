@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/database";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import * as schema from "@/lib/schema";
 import { requireAuth } from "@/lib/auth-service";
+import { getProductList } from "@/lib/catalog-api";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,50 +13,30 @@ export async function GET(req: NextRequest) {
     }
     const user = auth.user;
 
-    const favorites = await db
+    // Fetch the base favorite IDs and Master Codes to know what to load
+    const favoritesBase = await db
       .select({
-        favoriteId: schema.userFavorites.id,
         productId: schema.products.id,
         masterCode: schema.products.masterCode,
-        shortDescription: schema.products.shortDescription,
-        categoryLevel1: schema.products.categoryLevel1,
-        isGreen: schema.products.isGreen,
-        digitalAssets: schema.products.digitalAssets,
       })
       .from(schema.userFavorites)
       .innerJoin(schema.products, eq(schema.userFavorites.productId, schema.products.id))
       .where(eq(schema.userFavorites.userId, user.id))
-      .orderBy(schema.userFavorites.createdAt);
+      .orderBy(desc(schema.userFavorites.createdAt));
 
-    // Get an array of just the product IDs so the frontend can quickly check if a product is favorited
-    const favoriteProductIds = favorites.map(f => f.productId);
+    const favoriteProductIds = favoritesBase.map(f => f.productId);
+    const masterCodes = favoritesBase.map(f => f.masterCode);
 
-    const formattedFavorites = favorites.map(f => {
-      // Extract main image from digitalAssets JSON array
-      let mainImage = "";
-      if (f.digitalAssets && Array.isArray(f.digitalAssets) && f.digitalAssets.length > 0) {
-        mainImage = f.digitalAssets[0].url || "";
-      }
-
-      return {
-        id: f.productId,
-        masterCode: f.masterCode,
-        name: f.shortDescription || f.masterCode,
-        shortDescription: f.shortDescription || "",
-        category: f.categoryLevel1 || "",
-        categoryLevel2: "",
-        material: "",
-        dimensions: "",
-        isGreen: f.isGreen || false,
-        printable: true,
-        startingPrice: "Desde 0.00€",
-        startingPriceRaw: 0, // We can skip price loading here to keep it fast, or load from variant_prices
-        totalStock: 0,
-        mainImage: mainImage,
-        variants: [],
-        productId: f.productId // For React key
-      };
-    });
+    let formattedFavorites: any[] = [];
+    
+    if (masterCodes.length > 0) {
+      // Use the robust catalog-api to load FULL product data (prices, stock, images, variants)
+      const result = await getProductList({ masterCodes, limit: masterCodes.length });
+      
+      // Preserve the descending creation order
+      const productMap = new Map(result.products.map(p => [p.masterCode, p]));
+      formattedFavorites = masterCodes.map(code => productMap.get(code)).filter(Boolean);
+    }
 
     return NextResponse.json({ favorites: formattedFavorites, favoriteProductIds });
   } catch (error: any) {
