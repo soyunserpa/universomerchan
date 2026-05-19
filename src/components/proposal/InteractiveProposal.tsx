@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Upload, Sparkles, ShoppingCart, CheckCircle, Info } from "lucide-react";
-import useCart from "@/store/useCart";
+import { useCart } from "@/lib/cart-store";
 import { useRouter } from "next/navigation";
 
 export default function InteractiveProposal({ productDataMap, printData }: { productDataMap: any; printData: any }) {
