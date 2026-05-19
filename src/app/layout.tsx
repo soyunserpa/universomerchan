@@ -164,7 +164,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div className="flex flex-col min-h-screen">
                   <Header />
                   <MiniCart />
-                  <main className="flex-1 pt-[72px] sm:pt-24">{children}</main>
+                  <main className="flex-1 min-h-[60vh]">{children}</main>
                   <ChatbotBubble />
                   <Footer />
                   <CookieBanner />
