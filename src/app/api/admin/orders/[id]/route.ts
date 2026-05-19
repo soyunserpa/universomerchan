@@ -48,7 +48,18 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
     }
     
-    const timeline = buildOrderTimeline({ ...fullOrder, lines: orderLines } as any);
+    const timeline = buildOrderTimeline({
+      ...fullOrder,
+      totalPrice: parseFloat(fullOrder.totalPrice?.toString() || "0"),
+      createdAt: fullOrder.createdAt?.toISOString() || new Date().toISOString(),
+      paidAt: fullOrder.paidAt?.toISOString() || null,
+      shippedAt: fullOrder.shippedAt?.toISOString() || null,
+      lines: orderLines.map((line: any) => ({
+        ...line,
+        proofApprovedAt: line.proofApprovedAt?.toISOString() || null,
+        proofRejectedAt: line.proofRejectedAt?.toISOString() || null,
+      }))
+    } as any);
 
     return NextResponse.json({ order: fullOrder, orderLines, emailLogs, timeline });
   } catch (error: any) {
