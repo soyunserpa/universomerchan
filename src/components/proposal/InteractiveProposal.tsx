@@ -2,6 +2,7 @@
 
 import { Package, ExternalLink, MessageCircle, Mail } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function InteractiveProposal({ productDataMap }: { productDataMap: any }) {
   const options = [
@@ -42,6 +43,26 @@ export default function InteractiveProposal({ productDataMap }: { productDataMap
       }
     }
   ];
+
+  useEffect(() => {
+    // Only track once per session
+    if (!sessionStorage.getItem('proposal_tracked')) {
+      fetch('/api/track-proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'view' })
+      }).catch(console.error);
+      sessionStorage.setItem('proposal_tracked', 'true');
+    }
+  }, []);
+
+  const trackClick = (optionTitle: string) => {
+    fetch('/api/track-proposal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'click_order', option: optionTitle })
+    }).catch(console.error);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 relative">
@@ -130,6 +151,7 @@ export default function InteractiveProposal({ productDataMap }: { productDataMap
 
                 <a 
                   href={`mailto:pedidos@universomerchan.com?subject=Pedido Academia Gijón - ${encodeURIComponent(opt.title)}&body=${encodeURIComponent(`Hola Universo Merchan,\n\nNos gustaría realizar el pedido basado en la ${opt.title}.\n\nPor favor, contactadnos para concretar las cantidades finales por talla y color.\n\nUn saludo,`)}`}
+                  onClick={() => trackClick(opt.title)}
                   className="mt-6 w-full py-3.5 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-all shadow-md"
                 >
                   <Mail size={18} /> Hacemos el pedido por ti
