@@ -54,3 +54,9 @@ Este documento guarda un registro estructurado de las grandes modificaciones y n
 - **El Problema:** La plataforma integraba con la API de Midocean y recogía automáticamente los Tracking Numbers de pedidos *normales* automatizados. Sin embargo, si un pedido tenía un flujo manual (bocetos offline, pedidos combinados manuales), no existía interfaz gráfica para que el admin añadiera el transportista o tracking.
 - **La Solución Arquitectónica:** Se implementó una ruta dedicada `POST /api/admin/orders/[id]/tracking` y se añadió un widget de Tracking dentro del visualizador de pedido de Administrador (\`/admin/orders/[id]\`). Al rellenarlo, no solo se acopla el código a la BD, sino que dispara retroactivamente el flujo estándar `sendOrderShippedEmail` simulando que el sistema automatizado ha hecho el envío. 
 - **Timeline Visible:** Para equiparar la visualización entre Admin y Cliente, se importó el helper puro de frontend `buildOrderTimeline` dentro del Endpoint central del Administrador.
+
+### 12. Sistema de Favoritos (Wishlist) y Captación de Leads
+- **Arquitectura de Base de Datos:** Se ha introducido la tabla `user_favorites` con claves foráneas apuntando a `users` y `products`.
+- **Integración Global:** Se implementó `FavoritesProvider` y un interceptor `AutoFavoriteHandler` en el \`layout\` principal. Esto permite que el corazón de "Añadir a favoritos" reaccione inmediatamente.
+- **Redirección de Autenticación (Hooking):** Si un invitado pulsa el corazón, se bloquea y se le envía a `/auth/login?redirect=...&autoFavorite=[id]`. Al completar el login o registro exitoso, el handler intercepta el parámetro URL y graba el favorito automáticamente sin que el cliente tenga que volver a pulsar nada.
+- **UI:** El botón de Favoritos en la página de producto incluye una sutil animación de "latido" (\`animate-pulse\`) programada para dispararse tras 10 segundos de inactividad, incitando a la acción. 
