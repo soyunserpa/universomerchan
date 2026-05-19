@@ -324,7 +324,7 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
   const enriched: CatalogProductResponse[] = [];
 
   const productIds = products.map((p) => p.id);
-  const masterCodes = products.map((p) => p.masterCode);
+  const productMasterCodes = products.map((p) => p.masterCode);
 
   let allVariants = [];
   let allStock = [];
@@ -344,13 +344,13 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     }
 
     allPrices = await db.query.productPrices.findMany({
-      where: inArray(schema.productPrices.masterCode, masterCodes),
+      where: inArray(schema.productPrices.masterCode, productMasterCodes),
     });
 
     try {
-      if (masterCodes.length > 0) {
+      if (productMasterCodes.length > 0) {
         const dbPos = await db.execute(
-          sql`SELECT master_code, position_image_blank FROM print_positions WHERE master_code = ANY(ARRAY[${sql.join(masterCodes.map(c => sql`${c}`), sql`, `)}]) AND position_image_blank IS NOT NULL`
+          sql`SELECT master_code, position_image_blank FROM print_positions WHERE master_code = ANY(ARRAY[${sql.join(productMasterCodes.map(c => sql`${c}`), sql`, `)}]) AND position_image_blank IS NOT NULL`
         );
         allPrintPositions = (dbPos as any).rows || dbPos || [];
       }
