@@ -19,11 +19,22 @@ const parseJson = (val: any, defaultVal: any = []) => {
   return val;
 };
 
-// Helper to convert color group to hex (simplified, catalog-api has a full list but we can pass basic hexes)
 const colorMap: Record<string, string> = {
-  "blanco": "#FFFFFF", "negro": "#000000", "rojo": "#FF0000", "azul": "#0000FF",
-  "marino": "#000080", "verde": "#008000", "amarillo": "#FFFF00", "naranja": "#FFA500",
-  "gris": "#808080", "rosa": "#FFC0CB", "morado": "#800080", "burdeos": "#800020"
+  "blanco": "#FFFFFF", "white": "#FFFFFF",
+  "negro": "#000000", "black": "#000000",
+  "rojo": "#FF0000", "red": "#FF0000",
+  "marino": "#000080", "navy": "#000080", "french navy": "#1B2A49",
+  "royal": "#4169E1", "azul": "#0000FF", "blue": "#0000FF",
+  "verde": "#008000", "green": "#008000", "kelly": "#4CBB17",
+  "amarillo": "#FFFF00", "yellow": "#FFFF00", "gold": "#FFD700",
+  "naranja": "#FFA500", "orange": "#FFA500",
+  "gris": "#808080", "grey": "#808080", "gray": "#808080", "melange": "#A9A9A9", "heather": "#A9A9A9",
+  "rosa": "#FFC0CB", "pink": "#FFC0CB",
+  "morado": "#800080", "purple": "#800080",
+  "burdeos": "#800020", "burgundy": "#800020", "wine": "#800020",
+  "sand": "#C2B280", "arena": "#C2B280",
+  "khaki": "#F0E68C", "caqui": "#F0E68C",
+  "fuchsia": "#FF00FF", "fucsia": "#FF00FF"
 };
 const getHex = (desc: string) => {
   if (!desc) return "#ccc";

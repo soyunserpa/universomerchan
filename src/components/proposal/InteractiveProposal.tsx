@@ -11,7 +11,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
   const [qtyKids, setQtyKids] = useState(300);
   const totalQty = qtyAdult + qtyKids + qtyWomen;
 
-  const [colorCodes, setColorCodes] = useState<{ [key: string]: string }>({});
+  const [selectedColorForOption, setSelectedColorForOption] = useState<{ [key: number]: string }>({});
 
   const options = [
     {
@@ -129,26 +129,25 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
           
           if (!adultData || !kidsData || !womenData) return null;
 
-          const adultColor = colorCodes[opt.adultCode] || adultData?.variants?.[0]?.colorCode;
-          const kidsColor = colorCodes[opt.kidsCode] || kidsData?.variants?.[0]?.colorCode;
-          const womenColor = colorCodes[opt.womenCode] || womenData?.variants?.[0]?.colorCode;
+          const defaultColor = adultData?.variants?.[0]?.colorCode || "06"; // Fallback to 06 (White) or first
+          const targetColorCode = selectedColorForOption[opt.id] || defaultColor;
           
-          const adultVariant = adultData?.variants?.find((v: any) => v.colorCode === adultColor) || adultData?.variants?.[0];
-          const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === kidsColor) || kidsData?.variants?.[0];
-          const womenVariant = womenData?.variants?.find((v: any) => v.colorCode === womenColor) || womenData?.variants?.[0];
+          const adultVariant = adultData?.variants?.find((v: any) => v.colorCode === targetColorCode) || adultData?.variants?.[0];
+          const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === targetColorCode) || kidsData?.variants?.[0];
+          const womenVariant = womenData?.variants?.find((v: any) => v.colorCode === targetColorCode) || womenData?.variants?.[0];
 
           const adultCalc = calculateCost(Math.max(1, qtyAdult), adultVariant, adultData);
           const kidsCalc = calculateCost(Math.max(1, qtyKids), kidsVariant, kidsData);
           const womenCalc = calculateCost(Math.max(1, qtyWomen), womenVariant, womenData);
 
-          const renderItemCol = (title: string, pData: any, variant: any, codeKey: string, priceCalc: any) => (
+          const renderItemCol = (title: string, pData: any, variant: any, priceCalc: any) => (
             <div className="flex-1 flex flex-col">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{title}</span>
               <img src={variant?.images?.[0] || pData.mainImage} className="w-full aspect-square object-contain mix-blend-multiply drop-shadow-sm bg-white rounded-xl border border-gray-100 p-2 mb-3" alt={title} />
               <div className="flex flex-wrap gap-1.5 justify-center mb-4">
                 {pData.variants?.map((v: any) => (
                   <button 
-                    key={v.colorCode} onClick={() => setColorCodes(prev => ({ ...prev, [codeKey]: v.colorCode }))}
+                    key={v.colorCode} onClick={() => setSelectedColorForOption(prev => ({ ...prev, [opt.id]: v.colorCode }))}
                     className={`w-5 h-5 rounded-full transition-all outline-none ${variant?.colorCode === v.colorCode ? 'ring-2 ring-brand-red ring-offset-1 scale-110' : 'border border-gray-200'}`}
                     style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
                   />
@@ -187,9 +186,9 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
               
               <div className="w-full lg:w-2/3 bg-gray-50/30 p-6 md:p-8 flex flex-col justify-center">
                 <div className="flex flex-col md:flex-row gap-6 md:gap-4">
-                  {renderItemCol("Versión Adulto", adultData, adultVariant, opt.adultCode, adultCalc)}
-                  {renderItemCol("Versión Mujer", womenData, womenVariant, opt.womenCode, womenCalc)}
-                  {renderItemCol("Versión Niño", kidsData, kidsVariant, opt.kidsCode, kidsCalc)}
+                  {renderItemCol("Versión Adulto", adultData, adultVariant, adultCalc)}
+                  {renderItemCol("Versión Mujer", womenData, womenVariant, womenCalc)}
+                  {renderItemCol("Versión Niño", kidsData, kidsVariant, kidsCalc)}
                 </div>
               </div>
             </div>
