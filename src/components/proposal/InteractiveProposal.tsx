@@ -129,16 +129,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
           
           if (!adultData || !kidsData || !womenData) return null;
 
-          const adultCodes = adultData.variants.map((v: any) => v.colorCode);
-          const womenCodes = womenData.variants.map((v: any) => v.colorCode);
-          const kidsCodes = kidsData.variants.map((v: any) => v.colorCode);
-
-          let commonColor = adultCodes.find((c: string) => womenCodes.includes(c) && kidsCodes.includes(c));
-          if (!commonColor) {
-            commonColor = adultCodes.includes("06") ? "06" : adultCodes[0];
-          }
-
-          const targetColorCode = selectedColorForOption[opt.id] || commonColor;
+          const targetColorCode = "06"; // Hardcode white
           
           const adultVariant = adultData?.variants?.find((v: any) => v.colorCode === targetColorCode) || adultData?.variants?.[0];
           const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === targetColorCode) || kidsData?.variants?.[0];
@@ -153,13 +144,9 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{title}</span>
               <img src={variant?.images?.[0] || pData.mainImage} className="w-full aspect-square object-contain mix-blend-multiply drop-shadow-sm bg-white rounded-xl border border-gray-100 p-2 mb-3" alt={title} />
               <div className="flex flex-wrap gap-1.5 justify-center mb-4">
-                {pData.variants?.map((v: any) => (
-                  <button 
-                    key={v.colorCode} onClick={() => setSelectedColorForOption(prev => ({ ...prev, [opt.id]: v.colorCode }))}
-                    className={`w-7 h-7 rounded-full transition-all ring-offset-2 outline-none ${variant?.colorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110' : 'border-2 border-gray-200 hover:border-gray-300'}`}
-                    style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
-                  />
-                ))}
+                <span className="text-[11px] font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
+                  +{pData.variants?.length || 0} colores a elegir
+                </span>
               </div>
               <div className="mt-auto bg-white p-3 rounded-xl border border-gray-100 text-center flex flex-col gap-2">
                 <div>
