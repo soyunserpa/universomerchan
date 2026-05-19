@@ -41,11 +41,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     if (!token) return;
 
     // Optimistic UI update
-    const isFav = favoriteIds.includes(productId);
+    const isFav = Array.isArray(favoriteIds) && favoriteIds.includes(productId);
     if (isFav) {
-      setFavoriteIds(prev => prev.filter(id => id !== productId));
+      setFavoriteIds(prev => Array.isArray(prev) ? prev.filter(id => id !== productId) : []);
     } else {
-      setFavoriteIds(prev => [...prev, productId]);
+      setFavoriteIds(prev => Array.isArray(prev) ? [...prev, productId] : [productId]);
     }
 
     try {
@@ -62,16 +62,16 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       if (data.error) {
         // Revert on error
         if (isFav) {
-          setFavoriteIds(prev => [...prev, productId]);
+          setFavoriteIds(prev => Array.isArray(prev) ? [...prev, productId] : [productId]);
         } else {
-          setFavoriteIds(prev => prev.filter(id => id !== productId));
+          setFavoriteIds(prev => Array.isArray(prev) ? prev.filter(id => id !== productId) : []);
         }
       } else {
         // Sync with server state just to be sure
         if (data.isFavorite && !isFav) {
-          setFavoriteIds(prev => Array.from(new Set([...prev, productId])));
+          setFavoriteIds(prev => Array.from(new Set([...(Array.isArray(prev) ? prev : []), productId])));
         } else if (!data.isFavorite && isFav) {
-          setFavoriteIds(prev => prev.filter(id => id !== productId));
+          setFavoriteIds(prev => Array.isArray(prev) ? prev.filter(id => id !== productId) : []);
         }
       }
     } catch (e) {
@@ -86,6 +86,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isFavorite = (productId: number) => {
+    if (!Array.isArray(favoriteIds)) {
+      console.error("favoriteIds is not an array!", favoriteIds);
+      return false;
+    }
     return favoriteIds.includes(productId);
   };
 
