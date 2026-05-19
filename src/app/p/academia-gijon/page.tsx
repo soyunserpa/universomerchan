@@ -50,16 +50,18 @@ export default async function AcademiaGijonPage() {
   let blankImages: any = {};
   try {
     const dbPos = await db.execute(
-      sql`SELECT master_code, position_id, position_description, position_image_blank FROM print_positions WHERE master_code = ANY(ARRAY[${sql.join(codes.map(c => sql`${c}`), sql`, `)}]) AND position_image_blank IS NOT NULL`
+      sql`SELECT master_code, position_id, position_description, position_image_blank, position_bounding_box FROM print_positions WHERE master_code = ANY(ARRAY[${sql.join(codes.map(c => sql`${c}`), sql`, `)}]) AND position_image_blank IS NOT NULL`
     );
     const rows = (dbPos as any).rows || dbPos || [];
     for (const r of rows) {
-      if (!blankImages[r.master_code]) blankImages[r.master_code] = { front: null, back: null };
+      if (!blankImages[r.master_code]) blankImages[r.master_code] = { front: null, back: null, frontBox: null, backBox: null };
       if (r.position_description?.toLowerCase().includes("chest") || r.position_id?.toLowerCase().includes("front")) {
         blankImages[r.master_code].front = r.position_image_blank;
+        blankImages[r.master_code].frontBox = r.position_bounding_box;
       }
       if (r.position_description?.toLowerCase().includes("back") || r.position_id?.toLowerCase().includes("back")) {
         blankImages[r.master_code].back = r.position_image_blank;
+        blankImages[r.master_code].backBox = r.position_bounding_box;
       }
     }
   } catch (e) { console.error(e); }
@@ -125,6 +127,8 @@ export default async function AcademiaGijonPage() {
       mainImage,
       blankFront: blankImages[p.masterCode]?.front || mainImage,
       blankBack: blankImages[p.masterCode]?.back || mainImage,
+      frontBox: blankImages[p.masterCode]?.frontBox,
+      backBox: blankImages[p.masterCode]?.backBox,
       variants: Object.values(colorGroups),
       manipulationScales: parseJson(manipRow?.handlingPriceScales, null)
     };

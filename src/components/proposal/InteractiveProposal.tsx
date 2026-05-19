@@ -5,6 +5,16 @@ import { Upload, Sparkles, ShoppingCart, CheckCircle, Info } from "lucide-react"
 import { useCart } from "@/lib/cart-store";
 import { useRouter } from "next/navigation";
 
+const parseBox = (str: string | null) => {
+  if (!str) return null;
+  try {
+    const arr = JSON.parse(str);
+    if (Array.isArray(arr) && arr[0]) return arr[0];
+    if (typeof arr === 'object' && arr.x !== undefined) return arr;
+    return null;
+  } catch(e) { return null; }
+};
+
 export default function InteractiveProposal({ productDataMap, printData }: { productDataMap: any; printData: any }) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -25,21 +35,21 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     {
       id: 0,
       title: "Opción 1: Económica con Calidad",
-      desc: "Nuestra recomendación por relación calidad-precio. Modelo básico pero resistente.",
+      desc: "Modelo Regent 150g. Relación calidad-precio inmejorable. Resistente a lavados, ideal para un regalo general sin gastar demasiado.",
       adultCode: "S11380",
       kidsCode: "S11970",
     },
     {
       id: 1,
       title: "Opción 2: Premium (Mayor grosor)",
-      desc: "Modelo Imperial de 190g. Una camiseta más gruesa y duradera.",
+      desc: "Modelo Imperial 190g. Una camiseta más gruesa y duradera, con un tacto más suave y premium. La mejor si buscas un recuerdo duradero.",
       adultCode: "S11500",
       kidsCode: "S11770",
     },
     {
       id: 2,
       title: "Opción 3: 100% Ecológica",
-      desc: "Camisetas orgánicas modelo Pioneer. Perfectas si la academia valora la sostenibilidad.",
+      desc: "Modelo Pioneer orgánico. Perfectas si la academia valora la sostenibilidad y busca transmitir un mensaje eco-friendly a sus alumnos.",
       adultCode: "S03565",
       kidsCode: "S03578",
     }
@@ -122,42 +132,50 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const getCustomizationPayload = (variantCode: string, imgFront: string, imgBack: string) => {
+  const getCustomizationPayload = () => {
     return {
       positions: [
         {
           positionId: "CHEST",
           positionName: "Pecho",
           techniqueId: "ST1",
+          techniqueName: "Serigrafía",
+          printWidthMm: 100,
+          printHeightMm: 100,
           numColors: 1,
-          mockups: {
-            [variantCode]: imgFront,
-          }
+          pmsColors: [],
+          instructions: ""
         },
         {
           positionId: "BACK",
           positionName: "Espalda",
           techniqueId: "ST1",
+          techniqueName: "Serigrafía",
+          printWidthMm: 280,
+          printHeightMm: 420,
           numColors: 1,
-          mockups: {
-            [variantCode]: imgBack,
-          }
+          pmsColors: [],
+          instructions: ""
         }
       ],
-      setupCosts: [
-         { positionId: "CHEST", techniqueId: "ST1", name: "Pantalla y Fotolitos Pecho", price: printData.setup * 1.5 },
-         { positionId: "BACK", techniqueId: "ST1", name: "Pantalla y Fotolitos Espalda", price: printData.setup * 1.5 }
-      ]
+      artworkUrl: logoBase64 || "",
+      artworkFileName: logoBase64 ? "logo_academia.png" : "",
+      mockupUrl: null
     };
   };
 
   const handleAprobarPresupuesto = () => {
+    if (!logoBase64) {
+      alert("⚠️ Debes subir el logotipo de la academia antes de poder añadir al carrito para confirmar el presupuesto.");
+      return;
+    }
+
     if (qtyAdult > 0 && adultVariant) {
       addItem({
         productMasterCode: adultData.masterCode,
         productName: adultData.name,
-        variantSku: adultVariant.sizes?.[0]?.sku || adultVariant.code,
-        variantId: adultVariant.sizes?.[0]?.sku || adultVariant.code,
+        variantSku: adultVariant.sizes?.[0]?.sku || adultVariant.code || adultVariant.sku,
+        variantId: adultVariant.sizes?.[0]?.sku || adultVariant.code || adultVariant.sku,
         color: adultVariant.colorDescription || adultVariant.colorCode,
         colorCode: adultVariant.colorCode,
         size: adultVariant.sizes?.[0]?.name || "Unisex",
@@ -165,8 +183,8 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
         unitPriceProduct: adultCalc.costCamSellPerUnit,
         unitPriceTotal: adultCalc.unitPVP,
         totalPrice: adultCalc.totalPVP,
-        customization: getCustomizationPayload(adultVariant.colorCode, adultVariant.images?.[0] || adultData.mainImage, adultVariant.images?.[1] || adultData.mainImage),
-        orderType: "customized",
+        customization: getCustomizationPayload(),
+        orderType: "PRINT",
         productImage: adultVariant.images?.[0] || adultData.mainImage,
       });
     }
@@ -175,8 +193,8 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
       addItem({
         productMasterCode: kidsData.masterCode,
         productName: kidsData.name,
-        variantSku: kidsVariant.sizes?.[0]?.sku || kidsVariant.code,
-        variantId: kidsVariant.sizes?.[0]?.sku || kidsVariant.code,
+        variantSku: kidsVariant.sizes?.[0]?.sku || kidsVariant.code || kidsVariant.sku,
+        variantId: kidsVariant.sizes?.[0]?.sku || kidsVariant.code || kidsVariant.sku,
         color: kidsVariant.colorDescription || kidsVariant.colorCode,
         colorCode: kidsVariant.colorCode,
         size: kidsVariant.sizes?.[0]?.name || "Kids",
@@ -184,13 +202,43 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
         unitPriceProduct: kidsCalc.costCamSellPerUnit,
         unitPriceTotal: kidsCalc.unitPVP,
         totalPrice: kidsCalc.totalPVP,
-        customization: getCustomizationPayload(kidsVariant.colorCode, kidsVariant.images?.[0] || kidsData.mainImage, kidsVariant.images?.[1] || kidsData.mainImage),
-        orderType: "customized",
+        customization: getCustomizationPayload(),
+        orderType: "PRINT",
         productImage: kidsVariant.images?.[0] || kidsData.mainImage,
       });
     }
     
     router.push('/cart');
+  };
+
+  const renderProductImage = (isChest: boolean, variant: any, pData: any) => {
+    const box = isChest ? parseBox(pData?.frontBox) : parseBox(pData?.backBox);
+    let logoStyle: React.CSSProperties = { top: "32%", left: "58%", width: "12%", objectFit: "contain", mixBlendMode: "multiply", opacity: 0.9, zIndex: 20 };
+    
+    if (box) {
+       // Convert box properties to % for CSS (x, y, w, h are based on 1000x1000 standard images usually, or if <= 1 then they are percentages)
+       const scale = box.x <= 1 ? 100 : 0.1; 
+       logoStyle = {
+         top: `${box.y * scale}%`,
+         left: `${box.x * scale}%`,
+         width: `${box.w * scale}%`,
+         height: `${box.h * scale}%`,
+         objectFit: "contain",
+         mixBlendMode: "multiply",
+         opacity: 0.9,
+         zIndex: 20
+       };
+    } else if (!isChest) {
+       logoStyle = { top: "28%", left: "50%", transform: "translateX(-50%)", width: "25%", objectFit: "contain", mixBlendMode: "multiply", opacity: 0.9, zIndex: 20 };
+    }
+
+    return (
+      <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100 shadow-inner">
+        <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">{isChest ? "PECHO" : "ESPALDA"}</span>
+        {variant?.images?.[isChest ? 0 : 1] && <img src={variant.images[isChest ? 0 : 1]} alt={isChest ? "Pecho" : "Espalda"} className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
+        {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute drop-shadow-sm" style={logoStyle} />}
+      </div>
+    );
   };
 
   return (
@@ -212,7 +260,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
               <Sparkles className="text-purple-300" /> Previsualiza tu logotipo
             </h3>
             <p className="text-purple-100 opacity-90 max-w-md text-sm">
-              Sube el logo de la academia (preferiblemente oscuro sobre fondo transparente) para previsualizarlo instantáneamente en el pecho y espalda de las camisetas.
+              Sube el logo de la academia (preferiblemente oscuro sobre fondo transparente) para previsualizarlo instantáneamente en el pecho y espalda de las camisetas. Obligatorio para comprar.
             </p>
           </div>
           <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg, image/svg+xml" onChange={handleLogoUpload} />
@@ -234,13 +282,13 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 <div 
                   key={opt.id} 
                   onClick={() => handleOptionChange(i)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedOption === i ? 'border-brand-red bg-red-50/30' : 'border-surface-200 hover:border-gray-300'}`}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedOption === i ? 'border-brand-red bg-red-50/30 ring-2 ring-red-100' : 'border-surface-200 hover:border-gray-300'}`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-bold text-gray-900 text-sm">{opt.title}</span>
                     {selectedOption === i && <CheckCircle size={16} className="text-brand-red" />}
                   </div>
-                  <p className="text-xs text-gray-500">{opt.desc}</p>
+                  <p className="text-xs text-gray-600 leading-snug">{opt.desc}</p>
                 </div>
               ))}
             </div>
@@ -276,23 +324,15 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">Adulto: {adultData?.name}</span>
                 <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded-full">{adultVariant?.sizes?.length || 0} Tallas</span>
               </div>
-              <div className="flex gap-4 mb-4 h-56">
-                <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
-                  <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">PECHO</span>
-                  {adultVariant?.images?.[0] && <img src={adultVariant.images[0]} alt="Pecho" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[32%] left-[58%] w-[12%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
-                </div>
-                <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
-                  <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">ESPALDA</span>
-                  {adultVariant?.images?.[1] && <img src={adultVariant.images[1]} alt="Espalda" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[28%] left-1/2 -translate-x-1/2 w-[25%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
-                </div>
+              <div className="flex gap-4 mb-4 h-64">
+                {renderProductImage(true, adultVariant, adultData)}
+                {renderProductImage(false, adultVariant, adultData)}
               </div>
               <div className="flex flex-wrap gap-2 mt-auto pt-2">
                 {adultData?.variants?.map((v: any) => (
                   <button 
                     key={v.colorCode} onClick={() => setAdultColorCode(v.colorCode)}
-                    className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${adultColorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110' : 'border-2 border-surface-200 hover:border-surface-300'}`}
+                    className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${adultColorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110 shadow-md' : 'border-2 border-surface-200 hover:border-surface-300'}`}
                     style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
                   />
                 ))}
@@ -305,23 +345,15 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">Niño: {kidsData?.name}</span>
                 <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded-full">{kidsVariant?.sizes?.length || 0} Tallas</span>
               </div>
-              <div className="flex gap-4 mb-4 h-56">
-                <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
-                  <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">PECHO</span>
-                  {kidsVariant?.images?.[0] && <img src={kidsVariant.images[0]} alt="Pecho" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[32%] left-[58%] w-[12%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
-                </div>
-                <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100">
-                  <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">ESPALDA</span>
-                  {kidsVariant?.images?.[1] && <img src={kidsVariant.images[1]} alt="Espalda" className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-                  {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute top-[28%] left-1/2 -translate-x-1/2 w-[25%] object-contain mix-blend-multiply opacity-90 drop-shadow-sm z-20" />}
-                </div>
+              <div className="flex gap-4 mb-4 h-64">
+                {renderProductImage(true, kidsVariant, kidsData)}
+                {renderProductImage(false, kidsVariant, kidsData)}
               </div>
               <div className="flex flex-wrap gap-2 mt-auto pt-2">
                 {kidsData?.variants?.map((v: any) => (
                   <button 
                     key={v.colorCode} onClick={() => setKidsColorCode(v.colorCode)}
-                    className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${kidsColorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110' : 'border-2 border-surface-200 hover:border-surface-300'}`}
+                    className={`w-8 h-8 rounded-full transition-all ring-offset-2 outline-none ${kidsColorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110 shadow-md' : 'border-2 border-surface-200 hover:border-surface-300'}`}
                     style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
                   />
                 ))}
@@ -359,10 +391,10 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
             </div>
             <button 
               onClick={handleAprobarPresupuesto} disabled={totalQty === 0}
-              className="w-full bg-brand-red text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors shadow-lg ${!logoBase64 ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none' : 'bg-brand-red text-white hover:bg-red-700 shadow-red-500/30'}`}
             >
               <ShoppingCart size={22} />
-              Aprobar Presupuesto y Proceder al Pago
+              {logoBase64 ? 'Aprobar Presupuesto y Proceder al Pago' : 'Sube tu logo para añadir al carrito'}
             </button>
           </div>
         </div>
