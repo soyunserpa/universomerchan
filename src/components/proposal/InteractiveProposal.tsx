@@ -17,7 +17,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     {
       id: 0,
       title: "Opción 1: Económica con Calidad",
-      desc: "Modelo Regent 150g. Relación calidad-precio inmejorable. Resistente a lavados, ideal para un regalo general sin gastar demasiado.",
+      desc: "Modelo Regent 150g (100% Algodón semi-peinado). Relación calidad-precio inmejorable. Resistente a lavados, ideal para un regalo general sin gastar demasiado.",
       adultCode: "S11380",
       kidsCode: "S11970",
       womenCode: "S01825",
@@ -25,7 +25,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     {
       id: 1,
       title: "Opción 2: Premium (Mayor grosor)",
-      desc: "Modelo Imperial 190g. Una camiseta más gruesa y duradera, con un tacto más suave y premium. La mejor si buscas un recuerdo duradero.",
+      desc: "Modelo Imperial 190g (100% Algodón semi-peinado). Una camiseta más gruesa y duradera, con un tacto más suave y premium. La mejor si buscas un recuerdo duradero.",
       adultCode: "S11500",
       kidsCode: "S11770",
       womenCode: "S11502",
@@ -33,7 +33,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     {
       id: 2,
       title: "Opción 3: 100% Ecológica",
-      desc: "Modelo Pioneer orgánico. Perfectas si la academia valora la sostenibilidad y busca transmitir un mensaje eco-friendly a sus alumnos.",
+      desc: "Modelo Pioneer 175g (100% Algodón orgánico certificado). Perfectas si la academia valora la sostenibilidad y busca transmitir un mensaje eco-friendly a sus alumnos.",
       adultCode: "S03565",
       kidsCode: "S03578",
       womenCode: "S03579",
