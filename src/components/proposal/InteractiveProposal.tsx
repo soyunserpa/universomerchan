@@ -17,7 +17,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
     {
       id: 0,
       title: "Opción 1: Económica con Calidad",
-      desc: "Modelo Regent 150g (100% Algodón semi-peinado). Relación calidad-precio inmejorable. Resistente a lavados, ideal para un regalo general sin gastar demasiado.",
+      desc: "Modelo Regent 150g (100% Algodón semi-peinado). Relación calidad-precio inmejorable. Resistente a lavados, ideal para un regalo general.",
       adultCode: "S11380",
       kidsCode: "S11970",
       womenCode: "S01825",
