@@ -3,6 +3,8 @@ import * as schema from "@/lib/schema";
 import { eq, inArray, sql } from "drizzle-orm";
 import InteractiveProposal from "@/components/proposal/InteractiveProposal";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Propuesta Aniversario - Academia Gijón | Universo Merchan",
   description: "Propuesta personalizada de merchandising para Academia Gijón",

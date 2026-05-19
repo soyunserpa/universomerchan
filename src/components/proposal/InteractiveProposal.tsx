@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Upload, Sparkles, ShoppingCart, CheckCircle, Info } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { useRouter } from "next/navigation";
+import { PreviewWithLogo } from "@/components/product/ProductCanvasEditor";
 
 const parseBox = (str: string | null) => {
   if (!str) return null;
@@ -212,31 +213,25 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
   };
 
   const renderProductImage = (isChest: boolean, variant: any, pData: any) => {
-    const box = isChest ? parseBox(pData?.frontBox) : parseBox(pData?.backBox);
-    let logoStyle: React.CSSProperties = { top: "32%", left: "58%", width: "12%", objectFit: "contain", mixBlendMode: "multiply", opacity: 0.9, zIndex: 20 };
-    
-    if (box) {
-       // Convert box properties to % for CSS (x, y, w, h are based on 1000x1000 standard images usually, or if <= 1 then they are percentages)
-       const scale = box.x <= 1 ? 100 : 0.1; 
-       logoStyle = {
-         top: `${box.y * scale}%`,
-         left: `${box.x * scale}%`,
-         width: `${box.w * scale}%`,
-         height: `${box.h * scale}%`,
-         objectFit: "contain",
-         mixBlendMode: "multiply",
-         opacity: 0.9,
-         zIndex: 20
-       };
-    } else if (!isChest) {
-       logoStyle = { top: "28%", left: "50%", transform: "translateX(-50%)", width: "25%", objectFit: "contain", mixBlendMode: "multiply", opacity: 0.9, zIndex: 20 };
-    }
+    const zoneData = {
+      positionId: isChest ? "CHEST" : "BACK",
+      positionName: isChest ? "Pecho" : "Espalda",
+      boundingBox: isChest ? pData?.frontBox : pData?.backBox,
+      imageBlank: variant?.images?.[isChest ? 0 : 1] || "",
+    };
 
     return (
-      <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100 shadow-inner">
+      <div className="relative w-1/2 bg-gray-50 rounded-xl overflow-hidden flex flex-col p-2 border border-gray-100 shadow-inner">
         <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 z-10">{isChest ? "PECHO" : "ESPALDA"}</span>
-        {variant?.images?.[isChest ? 0 : 1] && <img src={variant.images[isChest ? 0 : 1]} alt={isChest ? "Pecho" : "Espalda"} className="object-contain w-full h-full mix-blend-multiply relative z-0" />}
-        {logoBase64 && <img src={logoBase64} alt="Logo" className="absolute drop-shadow-sm" style={logoStyle} />}
+        <div className="flex-1 relative flex items-center justify-center -mt-2">
+          <PreviewWithLogo
+            previewUrl={variant?.images?.[isChest ? 0 : 1] || ""}
+            productName={pData.name}
+            activeLogoData={logoBase64 ? { dataUrl: logoBase64, fileName: "logo_academia.png" } : undefined}
+            activeZoneData={zoneData as any}
+            currentLogoPos={{ x: 0.5, y: 0.5, scale: isChest ? 0.65 : 0.85 }}
+          />
+        </div>
       </div>
     );
   };
