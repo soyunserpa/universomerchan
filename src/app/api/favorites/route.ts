@@ -19,9 +19,7 @@ export async function GET(req: NextRequest) {
         masterCode: schema.products.masterCode,
         shortDescription: schema.products.shortDescription,
         categoryLevel1: schema.products.categoryLevel1,
-        slug: schema.products.slug,
-        basePriceSell: schema.products.basePriceSell,
-        featuredImageUrl: schema.products.featuredImageUrl,
+        digitalAssets: schema.products.digitalAssets,
       })
       .from(schema.userFavorites)
       .innerJoin(schema.products, eq(schema.userFavorites.productId, schema.products.id))
@@ -31,17 +29,25 @@ export async function GET(req: NextRequest) {
     // Get an array of just the product IDs so the frontend can quickly check if a product is favorited
     const favoriteProductIds = favorites.map(f => f.productId);
 
-    const formattedFavorites = favorites.map(f => ({
-      id: f.productId,
-      masterCode: f.masterCode,
-      name: f.shortDescription || f.masterCode,
-      shortDescription: f.shortDescription || "",
-      category: f.categoryLevel1 || "",
-      startingPriceRaw: parseFloat(f.basePriceSell?.toString() || "0"),
-      mainImage: f.featuredImageUrl || "",
-      variants: [],
-      productId: f.productId // For React key
-    }));
+    const formattedFavorites = favorites.map(f => {
+      // Extract main image from digitalAssets JSON array
+      let mainImage = "";
+      if (f.digitalAssets && Array.isArray(f.digitalAssets) && f.digitalAssets.length > 0) {
+        mainImage = f.digitalAssets[0].url || "";
+      }
+
+      return {
+        id: f.productId,
+        masterCode: f.masterCode,
+        name: f.shortDescription || f.masterCode,
+        shortDescription: f.shortDescription || "",
+        category: f.categoryLevel1 || "",
+        startingPriceRaw: 0, // We can skip price loading here to keep it fast, or load from variant_prices
+        mainImage: mainImage,
+        variants: [],
+        productId: f.productId // For React key
+      };
+    });
 
     return NextResponse.json({ favorites: formattedFavorites, favoriteProductIds });
   } catch (error: any) {
