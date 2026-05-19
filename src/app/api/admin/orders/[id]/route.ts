@@ -48,7 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
     }
     
-    const timeline = buildOrderTimeline(fullOrder, orderLines);
+    const timeline = buildOrderTimeline({ ...fullOrder, lines: orderLines } as any);
 
     return NextResponse.json({ order: fullOrder, orderLines, emailLogs, timeline });
   } catch (error: any) {
