@@ -129,8 +129,16 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
           
           if (!adultData || !kidsData || !womenData) return null;
 
-          const defaultColor = adultData?.variants?.[0]?.colorCode || "06"; // Fallback to 06 (White) or first
-          const targetColorCode = selectedColorForOption[opt.id] || defaultColor;
+          const adultCodes = adultData.variants.map((v: any) => v.colorCode);
+          const womenCodes = womenData.variants.map((v: any) => v.colorCode);
+          const kidsCodes = kidsData.variants.map((v: any) => v.colorCode);
+
+          let commonColor = adultCodes.find((c: string) => womenCodes.includes(c) && kidsCodes.includes(c));
+          if (!commonColor) {
+            commonColor = adultCodes.includes("06") ? "06" : adultCodes[0];
+          }
+
+          const targetColorCode = selectedColorForOption[opt.id] || commonColor;
           
           const adultVariant = adultData?.variants?.find((v: any) => v.colorCode === targetColorCode) || adultData?.variants?.[0];
           const kidsVariant = kidsData?.variants?.find((v: any) => v.colorCode === targetColorCode) || kidsData?.variants?.[0];
@@ -148,7 +156,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 {pData.variants?.map((v: any) => (
                   <button 
                     key={v.colorCode} onClick={() => setSelectedColorForOption(prev => ({ ...prev, [opt.id]: v.colorCode }))}
-                    className={`w-5 h-5 rounded-full transition-all outline-none ${variant?.colorCode === v.colorCode ? 'ring-2 ring-brand-red ring-offset-1 scale-110' : 'border border-gray-200'}`}
+                    className={`w-7 h-7 rounded-full transition-all ring-offset-2 outline-none ${variant?.colorCode === v.colorCode ? 'ring-2 ring-brand-red border-brand-red scale-110' : 'border-2 border-gray-200 hover:border-gray-300'}`}
                     style={{ backgroundColor: v.hex || '#fff' }} title={v.colorDescription}
                   />
                 ))}
@@ -160,7 +168,7 @@ export default function InteractiveProposal({ productDataMap, printData }: { pro
                 </div>
                 <Link 
                   href={`/product/${pData.masterCode.toLowerCase()}`}
-                  className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-brand-red transition-colors"
+                  className="w-full py-2.5 bg-brand-red text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-red-700 transition-colors shadow-sm"
                 >
                   Configurar <ExternalLink size={14} />
                 </Link>
