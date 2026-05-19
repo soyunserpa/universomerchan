@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/database";
 import { eq, and } from "drizzle-orm";
 import * as schema from "@/lib/schema";
-import { getUserFromHeaders } from "@/lib/auth-service";
+import { requireAuth } from "@/lib/auth-service";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getUserFromHeaders(req.headers.get("authorization"));
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    const auth = await requireAuth(req.headers.get("authorization"));
+    if ('error' in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const user = auth.user;
 
     const favorites = await db
       .select({
@@ -52,10 +53,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserFromHeaders(req.headers.get("authorization"));
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    const auth = await requireAuth(req.headers.get("authorization"));
+    if ('error' in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const user = auth.user;
 
     const body = await req.json();
     const { productId } = body;
