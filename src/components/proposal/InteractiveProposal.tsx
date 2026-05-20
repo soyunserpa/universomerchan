@@ -26,7 +26,7 @@ export default function InteractiveProposal({ productDataMap }: { productDataMap
       kidsCode: "S11770",
       womenCode: "S11502",
       prices: {
-        adult: { 100: "4.88", 200: "4.68", 300: "4.55" },
+        adult: { 100: "5.68", 200: "5.40", 300: "5.05" },
         kids: { 100: "3.94", 200: "3.74", 300: "3.61" }
       }
     },
