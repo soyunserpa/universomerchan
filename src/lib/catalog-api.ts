@@ -33,7 +33,7 @@ function safeParseJsonArray(val: any): any[] {
 
 const DEFAULT_MARGINS = {
   productMarginPct: 40,
-  printMarginPct: 50,
+  printMarginPct: 40,
 };
 
 /** Load global + category margins from admin_settings (one query). */

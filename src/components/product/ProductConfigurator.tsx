@@ -21,7 +21,7 @@ import { useSearchParams } from "next/navigation";
 // ============================================================
 
 // Default margins — overridden by product.margins (resolved per-category from DB)
-const DEFAULT_MARGINS = { productMarginPct: 40, printMarginPct: 50, clientDiscountPct: 0 };
+const DEFAULT_MARGINS = { productMarginPct: 40, printMarginPct: 40, clientDiscountPct: 0 };
 const CANVAS_SIZE = 600;
 
 // ============================================================
