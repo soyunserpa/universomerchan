@@ -1125,7 +1125,8 @@ function ProductConfiguratorInner({ product }: Props) {
                              });
                            } else {
                              setSelectedTechniques(prev => ({...prev, [selectedPosition]: tech.techniqueId}));
-                             setNumColorsMap(prev => ({...prev, [selectedPosition]: 1})); 
+                             const initialColors = (tech.maxColors && tech.maxColors > 1) ? 2 : 1;
+                             setNumColorsMap(prev => ({...prev, [selectedPosition]: initialColors})); 
                            }
                          }}
                         className={`w-full p-3.5 rounded-xl border-2 text-left flex justify-between items-center transition-all ${isSelected ? "border-brand-red bg-brand-red/[0.05]" : "border-surface-200 hover:border-gray-300"}`}
@@ -1155,7 +1156,10 @@ function ProductConfiguratorInner({ product }: Props) {
               <div className="mb-5 animate-slide-up">
                 <label className="text-sm font-semibold mb-2 block">2. Colores del logo</label>
                 <div className="flex gap-2">
-                  {Array.from({ length: techniqueData?.maxColors || 5 }, (_, i) => i + 1).slice(0, 6).map(n => (
+                  {Array.from({ length: techniqueData?.maxColors || 5 }, (_, i) => i + 1)
+                    .filter(n => (techniqueData?.maxColors && techniqueData.maxColors > 1) ? n >= 2 : n === 1)
+                    .slice(0, 6)
+                    .map(n => (
                     <button key={n} onClick={() => setNumColorsMap(prev => ({...prev, [selectedPosition]: n}))} className={`w-10 h-10 rounded-lg border-2 font-bold text-sm transition-all ${currentNumColors === n ? "border-brand-red bg-brand-red/10 text-brand-red" : "border-surface-200 text-gray-400"}`}>{n}</button>
                   ))}
                 </div>
