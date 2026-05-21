@@ -154,6 +154,18 @@ function calculateRealPrintCost(params: {
 }
 
 // ============================================================
+// HELPERS
+// ============================================================
+
+function isWhiteGarment(colorKey: string | undefined | null): boolean {
+  if (!colorKey) return false;
+  const c = colorKey.toLowerCase();
+  return c.includes("blanco") || c.includes("white") || c.includes("blanc") || 
+         c.includes("natural") || c.includes("arena") || c.includes("sand") || 
+         c.includes("beige") || c.includes("cream") || c.includes("ivory") || c.includes("marfil");
+}
+
+// ============================================================
 // COMPONENT
 // ============================================================
 
@@ -1125,7 +1137,8 @@ function ProductConfiguratorInner({ product }: Props) {
                              });
                            } else {
                              setSelectedTechniques(prev => ({...prev, [selectedPosition]: tech.techniqueId}));
-                             const initialColors = (tech.maxColors && tech.maxColors > 1) ? 2 : 1;
+                             const requiresUnderbase = !isWhiteGarment(currentColorKey);
+                             const initialColors = (tech.maxColors && tech.maxColors > 1 && requiresUnderbase) ? 2 : 1;
                              setNumColorsMap(prev => ({...prev, [selectedPosition]: initialColors})); 
                            }
                          }}
@@ -1157,7 +1170,10 @@ function ProductConfiguratorInner({ product }: Props) {
                 <label className="text-sm font-semibold mb-2 block">2. Colores del logo</label>
                 <div className="flex gap-2">
                   {Array.from({ length: techniqueData?.maxColors || 5 }, (_, i) => i + 1)
-                    .filter(n => (techniqueData?.maxColors && techniqueData.maxColors > 1) ? n >= 2 : n === 1)
+                    .filter(n => {
+                       const requiresUnderbase = !isWhiteGarment(currentColorKey);
+                       return (techniqueData?.maxColors && techniqueData.maxColors > 1 && requiresUnderbase) ? n >= 2 : n >= 1;
+                    })
                     .slice(0, 6)
                     .map(n => (
                     <button key={n} onClick={() => setNumColorsMap(prev => ({...prev, [selectedPosition]: n}))} className={`w-10 h-10 rounded-lg border-2 font-bold text-sm transition-all ${currentNumColors === n ? "border-brand-red bg-brand-red/10 text-brand-red" : "border-surface-200 text-gray-400"}`}>{n}</button>
