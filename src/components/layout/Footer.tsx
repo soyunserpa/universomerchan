@@ -10,7 +10,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <Image src="/images/logo.svg" alt="Universo Merchan" width={200} height={32} className="h-8 w-auto" />
+              <Image src="/logos/universo-merchan-white.png" alt="Universo Merchan" width={200} height={40} className="h-10 w-auto" />
             </div>
             <p className="text-sm text-white leading-relaxed max-w-xs">
               Consigue que tu marca se recuerde. Regalos corporativos que generan emociones y conexiones reales.
