@@ -9,6 +9,7 @@ const companies = [
   { name: "Instituto DI", src: "/logos/institutodi.png" },
   { name: "Metapro Academy", src: "/logos/metapro.png" },
   { name: "Quiero Un Serpa", src: "/logos/quierounserpa.png" },
+  { name: "Nordés", src: "/logos/nordes.png" },
 ];
 
 function Logo({ name, src, customClass }: { name: string; src: string; customClass?: string }) {
@@ -72,17 +73,17 @@ export function CompanyLogos() {
           <div className="flex items-center w-full pause-on-hover">
             <div className="flex items-center gap-10 sm:gap-20 animate-slide whitespace-nowrap min-w-max px-10">
               {companies.map((company, i) => (
-                <Logo key={`first-${i}`} name={company.name} src={company.src} />
+                <Logo key={`first-${i}`} name={company.name} src={company.src} customClass={company.customClass} />
               ))}
             </div>
             <div className="flex items-center gap-10 sm:gap-20 animate-slide whitespace-nowrap min-w-max px-10">
               {companies.map((company, i) => (
-                <Logo key={`second-${i}`} name={company.name} src={company.src} />
+                <Logo key={`second-${i}`} name={company.name} src={company.src} customClass={company.customClass} />
               ))}
             </div>
              <div className="flex items-center gap-10 sm:gap-20 animate-slide whitespace-nowrap min-w-max px-10">
               {companies.map((company, i) => (
-                <Logo key={`third-${i}`} name={company.name} src={company.src} />
+                <Logo key={`third-${i}`} name={company.name} src={company.src} customClass={company.customClass} />
               ))}
             </div>
           </div>
