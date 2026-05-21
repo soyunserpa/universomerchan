@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProductDetail, getProductList, type CatalogProductResponse } from "@/lib/catalog-api";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
+export const dynamic = "force-dynamic";
 import { ProductAccordion } from "@/components/product/ProductAccordion";
 import { ProductCard } from "@/components/catalog/ProductCard";
 
