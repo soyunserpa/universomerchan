@@ -80,23 +80,10 @@ function calculateRealPrintCost(params: {
   let selectedRange = pricing.varCosts?.[0]; // Default: first range
 
   if (pricingType === "AreaRange" || pricingType === "ColourAreaRange") {
-    // Find range matching the print area
-    const area = (printAreaMm2 || 0) / 100; // Convert mm2 to cm2 for Midocean pricing ranges
-    for (const range of pricing.varCosts || []) {
-      if (area >= range.areaFrom && area <= range.areaTo) {
-        selectedRange = range;
-        break;
-      }
-    }
-    // If no match (e.g. area is too small), use the first (cheapest) range
-    if (!selectedRange && pricing.varCosts?.length) {
-      // If no match, check if area is larger than all ranges. If so, use the last (most expensive) range.
-      const lastRange = pricing.varCosts[pricing.varCosts.length - 1];
-      if (area > lastRange.areaTo) {
-        selectedRange = lastRange;
-      } else {
-        selectedRange = pricing.varCosts[0];
-      }
+    // Opción B solicitada por el usuario: Cobrar siempre el tramo más caro de Área por defecto
+    // para cubrirse las espaldas con transfers/DTF gigantes.
+    if (pricing.varCosts && pricing.varCosts.length > 0) {
+      selectedRange = pricing.varCosts[pricing.varCosts.length - 1]; // El último tramo siempre es el más caro
     }
   }
 
