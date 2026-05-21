@@ -973,7 +973,8 @@ function getTechniqueDescription(id: string, midoceanName: string): string {
     UV: "Impresión UV — Full color sobre superficies rígidas",
     UVP: "Impresión UV 360° — Envolvente full color",
     ST: "Serigrafía Textil — Colores vivos en telas",
-    ST1: "Transfer Digital — Full color fotográfico en textil",
+    ST1: "Serigrafía Textil — Colores vivos en telas",
+    TDT: "Transfer Digital — Full color fotográfico en textil",
     DTF: "DTF Transfer — Textura suave, colores vibrantes",
     SUB: "Sublimación — Full color en cerámica y poliéster",
     DL: "Impresión Digital Directa — Full color sin límite",
@@ -1004,10 +1005,10 @@ function getTechniquePricingType(id: string): string {
   const types: Record<string, string> = {
     S2: "NumberOfColours", B: "NumberOfPositions", L3: "NumberOfPositions",
     E: "AreaRange", UV: "ColourAreaRange", UVP: "AreaRange",
-    ST: "NumberOfColours", ST1: "AreaRange", DTF: "AreaRange",
+    ST: "NumberOfColours", ST1: "NumberOfColours", DTF: "AreaRange",
     T1: "AreaRange", P1: "NumberOfColours", SUB: "AreaRange",
     P5: "NumberOfColours", DL: "AreaRange", S5: "NumberOfColours",
-    TD1: "AreaRange", TR: "NumberOfColours",
+    TD1: "AreaRange", TR: "NumberOfColours", TDT: "AreaRange",
   };
   return types[id] || "NumberOfColours";
 }
