@@ -293,10 +293,16 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
   // Sort
   let primaryOrderBy;
   switch (sort) {
-    case "price_asc": primaryOrderBy = asc(schema.products.masterCode); break; // Will sort by price after
-    case "price_desc": primaryOrderBy = desc(schema.products.masterCode); break;
+    case "price_asc": 
+      primaryOrderBy = sql`COALESCE(products.custom_price, (SELECT CAST(price_scales->0->>'price' AS NUMERIC) FROM product_prices WHERE master_code = products.master_code LIMIT 1), 0) ASC`; 
+      break;
+    case "price_desc": 
+      primaryOrderBy = sql`COALESCE(products.custom_price, (SELECT CAST(price_scales->0->>'price' AS NUMERIC) FROM product_prices WHERE master_code = products.master_code LIMIT 1), 0) DESC`; 
+      break;
     case "newest": primaryOrderBy = desc(schema.products.createdAt); break;
-    case "stock": primaryOrderBy = desc(schema.products.masterCode); break;
+    case "stock": 
+      primaryOrderBy = sql`COALESCE((SELECT SUM(s.quantity) FROM stock s JOIN product_variants v ON s.sku = v.sku WHERE v.product_id = products.id), 0) DESC`; 
+      break;
     default: primaryOrderBy = asc(schema.products.productName);
   }
 
@@ -473,15 +479,6 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
       numberOfPrintPositions: product.numberOfPrintPositions || 0,
       mainImage,
     });
-  }
-
-  // Sort by price if needed (had to do it after enrichment)
-  if (sort === "price_asc") {
-    enriched.sort((a, b) => a.startingPriceRaw - b.startingPriceRaw);
-  } else if (sort === "price_desc") {
-    enriched.sort((a, b) => b.startingPriceRaw - a.startingPriceRaw);
-  } else if (sort === "stock") {
-    enriched.sort((a, b) => b.totalStock - a.totalStock);
   }
 
   return {
