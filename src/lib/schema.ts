@@ -744,3 +744,27 @@ export const trafficSessions = pgTable("traffic_sessions", {
   sourceIdx: index("traffic_sessions_source_idx").on(table.source),
   createdAtIdx: index("traffic_sessions_created_at_idx").on(table.createdAt),
 }));
+
+// ============================================================
+// UCP CARTS — Google Universal Cart 
+// ============================================================
+
+export const ucpCarts = pgTable("ucp_carts", {
+  id: serial("id").primaryKey(),
+  ucpCartId: varchar("ucp_cart_id", { length: 255 }).notNull().unique(), // Google-provided session/cart ID
+  
+  // JSON structure storing items and quantities exactly as requested by Google UCP
+  items: jsonb("items").default("[]").notNull(),
+  
+  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).default("0"),
+  currency: varchar("currency", { length: 3 }).default("EUR"),
+  
+  status: varchar("status", { length: 50 }).default("active").notNull(), // active, checked_out, expired
+  
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  cartIdIdx: uniqueIndex("ucp_carts_id_idx").on(table.ucpCartId),
+  statusIdx: index("ucp_carts_status_idx").on(table.status),
+}));
