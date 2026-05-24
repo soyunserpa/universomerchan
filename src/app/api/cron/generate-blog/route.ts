@@ -116,6 +116,20 @@ ${shuffled.map(p => `- ${p.productName} -> URL: https://universomerchan.com/prod
       console.error("[Blog Cron] No se pudieron cargar productos para el contexto", err);
     }
 
+    let recentTitlesContext = "";
+    try {
+      const recentPosts = await db.query.blogPosts.findMany({
+        columns: { title: true },
+        orderBy: (posts, { desc }) => [desc(posts.publishedAt)],
+        limit: 10
+      });
+      if (recentPosts.length > 0) {
+        recentTitlesContext = `\n\nARTÍCULOS PUBLICADOS RECIENTEMENTE (PROHIBIDO REPETIR ESTOS TEMAS EXACTOS):\n${recentPosts.map(p => `- ${p.title}`).join('\n')}`;
+      }
+    } catch (err) {
+      console.error("[Blog Cron] No se pudieron cargar artículos recientes para el contexto", err);
+    }
+
     // ======================================
     // 0. COMPROBAR CADUCIDAD DE TOKEN LINKEDIN
     // ======================================
@@ -154,6 +168,9 @@ REGLAS DE ORO:
 - Nunca empieces con frases genéricas como "En el mundo actual...".
 - Usa "tú", no "usted". Máximo 1 exclamación por artículo.
 - Integra mínimo 3 hipervínculos internamente a categorías en el HTML simulado de manera natural y no forzada.
+- VERIFICACIÓN CRÍTICA DE PRODUCTOS: Asegúrate doblemente de que cuando hablas de un producto específico, el enlace que adjuntas corresponda exactamente a él. Es un error gravísimo hablar de "una taza" y poner un enlace a "una camiseta". Usa la lógica y verifica que el texto y la URL proporcionada en 'PRODUCTOS DESTACADOS' coincidan en contexto.
+- SEO AVANZADO: A Google le gusta la semántica clara. Prioriza la indexabilidad estructurando correctamente los H2 y H3, y utiliza palabras clave LSI (Latent Semantic Indexing) relevantes para el merchandising.
+- ESTRATEGIA DE LINKEDIN INTACTA: Mantén la estrategia actual de LinkedIn devolviendo correctamente el objeto JSON con el post corto que genera valor directo y el comentario con el enlace, no alteres esta estructura técnica.
 
 Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
 {
@@ -168,7 +185,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
         },
         {
           role: "user",
-          content: specificPrompt + productContext
+          content: specificPrompt + productContext + recentTitlesContext
         }
       ],
       response_format: { type: "json_object" }
