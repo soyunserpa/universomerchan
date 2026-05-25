@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 import { db } from "@/lib/database";
 import { blogPosts, products } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 import { uploadArtwork } from "@/lib/artwork-upload";
 import { notifyAdminSystemAlert } from "@/lib/email-service";
 import { revalidatePath } from "next/cache";
@@ -241,7 +242,17 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
     // 4. GUARDAR EN BASE DE DATOS
     // ======================================
     const baseSlug = generateSlug(articleData.title);
-    const uniqueSlug = `${baseSlug}-${Math.floor(Math.random() * 100)}`;
+    let uniqueSlug = baseSlug;
+    let slugCounter = 1;
+
+    while (true) {
+      const existing = await db.query.blogPosts.findFirst({
+        where: eq(blogPosts.slug, uniqueSlug)
+      });
+      if (!existing) break;
+      uniqueSlug = `${baseSlug}-${slugCounter}`;
+      slugCounter++;
+    }
 
     console.log(`[Blog Cron] Guardando post en BD. Título: ${articleData.title}`);
     const [newPost] = await db.insert(blogPosts).values({

@@ -35,6 +35,20 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   const wordCount = post.body ? post.body.replace(/<[^>]*>?/gm, '').split(/\s+/).length : 0;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
+  // Pre-process body for TOC
+  const toc: { id: string, text: string }[] = [];
+  
+  let processedBody = post.body.includes('<p>') || post.body.includes('<h') || post.body.includes('<br')
+    ? post.body 
+    : post.body.split(/\n+/).filter(Boolean).map(text => `<p>${text}</p>`).join('');
+
+  processedBody = processedBody.replace(/<h2.*?>(.*?)<\/h2>/gi, (match, content) => {
+    const rawText = content.replace(/<[^>]+>/g, ''); // strip any inner HTML tags
+    const id = rawText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    toc.push({ id, text: rawText });
+    return `<h2 id="${id}">${content}</h2>`;
+  });
+
   return (
     <article className="min-h-screen bg-white pb-24">
       {/* Blog Header / Cover */}
@@ -95,14 +109,40 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
       {/* Article Content */}
       <div className={`container-custom max-w-4xl mx-auto ${!post.featuredImage ? 'mt-16' : ''}`}>
+        
+        {/* Table of Contents */}
+        {toc.length > 0 && (
+          <div className="mb-10 bg-gray-50 p-6 rounded-xl border border-gray-100">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-4">Índice de contenidos</h3>
+            <ul className="space-y-2">
+              {toc.map((item, index) => (
+                <li key={index}>
+                  <a href={`#${item.id}`} className="text-brand-red hover:underline decoration-1 underline-offset-4">
+                    {item.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div 
           className="prose prose-lg md:prose-xl prose-red max-w-none prose-headings:font-display prose-headings:font-bold prose-h2:text-3xl prose-h3:text-2xl prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-brand-red prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-sm"
-          dangerouslySetInnerHTML={{ 
-            __html: post.body.includes('<p>') || post.body.includes('<h') || post.body.includes('<br')
-              ? post.body 
-              : post.body.split(/\n+/).filter(Boolean).map(text => `<p>${text}</p>`).join('')
-          }}
+          dangerouslySetInnerHTML={{ __html: processedBody }}
         />
+        
+        {/* Author E-E-A-T Box */}
+        <div className="mt-16 pt-8 pb-8 border-t border-gray-100 flex gap-6 items-start">
+          <div className="w-16 h-16 rounded-full bg-brand-red text-white flex-shrink-0 flex items-center justify-center font-bold font-display text-2xl">
+            UM
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Escrito por Universo Merchan</h3>
+            <p className="text-gray-600 leading-relaxed text-sm">
+              Especialistas con más de 15 años de experiencia en la personalización y distribución de regalos corporativos y merchandising publicitario. Ayudamos a las empresas de España a potenciar su marca con estrategias de impacto visual.
+            </p>
+          </div>
+        </div>
         
         {/* Footer / Share actions */}
         <div className="mt-16 pt-8 border-t border-gray-100 flex justify-between items-center text-gray-500">
@@ -117,14 +157,21 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Article",
+            "@type": "BlogPosting",
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `https://universomerchan.com/blog/${post.slug}`
+            },
             headline: post.title,
+            description: post.metaDescription || post.excerpt,
+            url: `https://universomerchan.com/blog/${post.slug}`,
             image: post.featuredImage ? [post.featuredImage] : undefined,
             datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
             dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : (post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined),
             author: {
               "@type": "Organization",
               name: "Universo Merchan",
+              url: "https://universomerchan.com"
             },
             publisher: {
               "@type": "Organization",
