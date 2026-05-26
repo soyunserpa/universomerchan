@@ -50,7 +50,7 @@ export async function POST(req: Request) {
           "Regalos empresa por menos de 3€ que no parecen baratos",
           "Guía de tazas personalizadas para empresas"
         ],
-        prompt: `Escribe una guía de compra de [TEMA] para empresas españolas que buscan merchandising personalizado. Estructura exacta: 1. Título H1 con keyword (máx 65 char), 2. Intro de 100 palabras: problema + para quién es esta guía, 3. H2: Qué mirar antes de comprar, 4. H2: Comparativa de opciones, 5. H2: Recomendación según tipo de empresa/evento, 6. H2: Preguntas frecuentes (3-4), 7. CTA final. Tono profesional, directo, sin frases vacías y con precios orientativos reales.`
+        prompt: `Escribe una guía de compra de [TEMA] para empresas españolas que buscan merchandising personalizado. Estructura exacta: 1. Título H1 con keyword (máx 65 char), 2. Intro de 100 palabras: problema + para quién es esta guía, 3. H2: Qué mirar antes de comprar, 4. H2: Comparativa de opciones, 5. H2: Recomendación según tipo de empresa/evento, 6. H2: Preguntas frecuentes (3-4), 7. Conclusión persuasiva animando a comprar (usa un H2 natural, NUNCA escribas la palabra "CTA"). Tono profesional, directo, sin frases vacías y con precios orientativos reales.`
       },
       {
         type: "Comparativa Técnica",
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
           "Algodón orgánico vs RPET vs yute para bolsas",
           "Cerámica vs vidrio vs acero para tazas"
         ],
-        prompt: `Escribe una comparativa técnica entre [TEMA] para merchandising corporativo en España. Estructura: 1. Título H1 formato '[A] vs [B]: guía', 2. Intro breve, 3. Tabla comparativa HTML con 5 criterios, 4. H2 detalle de cada opción, 5. H2 'Cuándo elegir cada una', 6. CTA final. Precios reales en euros, tono directo.`
+        prompt: `Escribe una comparativa técnica entre [TEMA] para merchandising corporativo en España. Estructura: 1. Título H1 formato '[A] vs [B]: guía', 2. Intro breve, 3. Tabla comparativa HTML con 5 criterios, 4. H2 detalle de cada opción, 5. H2 'Cuándo elegir cada una', 6. Conclusión persuasiva (NUNCA uses la palabra "CTA" en el subtítulo). Precios reales en euros, tono directo.`
       },
       {
         type: "Checklist / How-To",
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
           "Cómo calcular el coste real de un regalo corporativo",
           "7 errores al pedir merchandising por primera vez"
         ],
-        prompt: `Escribe un artículo práctico tipo checklist sobre [TEMA] para responsables de RRHH o compras. Estructura: 1. Título práctico H1, 2. Intro del problema, 3. Checklist de 6-10 pasos numerados, 4. Sección de 3-5 errores comunes, 5. CTA final. Tono directo, sin relleno, aportando valor práctico.`
+        prompt: `Escribe un artículo práctico tipo checklist sobre [TEMA] para responsables de RRHH o compras. Estructura: 1. Título práctico H1, 2. Intro del problema, 3. Checklist de 6-10 pasos numerados, 4. Sección de 3-5 errores comunes, 5. Párrafo de cierre animando a comprar (NUNCA escribas la palabra "CTA"). Tono directo, sin relleno, aportando valor práctico.`
       },
       {
         type: "Caso de Uso por Sector",
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
           "Merchandising para el sector educativo",
           "Regalos empresa para el sector salud y farmacéutico"
         ],
-        prompt: `Escribe un artículo sobre cómo el sector de [TEMA] puede usar merchandising. Estructura: 1. Título H1 'Merchandising para [sector]: X ideas', 2. Intro del contexto, 3. 4-5 ideas de productos concretos con link, 4. Ejemplo práctico realista (sin inventar marcas), 5. CTA a landing. Sin emojis ni relleno.`
+        prompt: `Escribe un artículo sobre cómo el sector de [TEMA] puede usar merchandising. Estructura: 1. Título H1 'Merchandising para [sector]: X ideas', 2. Intro del contexto, 3. 4-5 ideas de productos concretos con link, 4. Ejemplo práctico realista (sin inventar marcas), 5. Cierre persuasivo hacia nuestra tienda (NUNCA escribas la palabra "CTA"). Sin emojis ni relleno.`
       },
       {
         type: "FAQ / Educativo corto",
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
           "¿Qué diferencia hay entre serigrafía y tampografía?",
           "¿Se puede personalizar con colores Pantone exactos?"
         ],
-        prompt: `Responde la pregunta «[TEMA]» para alguien que busca merchandising en España. Estructura: 1. H1: la pregunta exacta, 2. Respuesta directa en 2 frases, 3. Explicación detallada, 4. Ejemplo práctico, 5. CTA breve. Al grano y muy útil.`
+        prompt: `Responde la pregunta «[TEMA]» para alguien que busca merchandising en España. Estructura: 1. H1: la pregunta exacta, 2. Respuesta directa en 2 frases, 3. Explicación detallada, 4. Ejemplo práctico, 5. Despedida y llamada a la acción (NUNCA escribas la palabra "CTA"). Al grano y muy útil.`
       }
     ];
 
@@ -102,16 +102,30 @@ export async function POST(req: Request) {
 
     let productContext = "";
     try {
+      // Obtenemos un conjunto grande de productos con su categoría para tener diversidad
       const dbProducts = await db.select({
         masterCode: products.masterCode,
-        productName: products.productName
-      }).from(products).limit(300);
+        productName: products.productName,
+        category: products.categoryLevel1
+      }).from(products).limit(1000); // 1000 es suficientemente grande para tener surtido
       
-      const shuffled = dbProducts.sort(() => 0.5 - Math.random()).slice(0, 3);
+      // Shuffle para aleatorizar y extraemos 40 productos
+      const shuffled = dbProducts.sort(() => 0.5 - Math.random()).slice(0, 40);
+      
       if (shuffled.length > 0) {
-        productContext = `\n\nPRODUCTOS DESTACADOS (OBLIGATORIO):
-Encuentra una forma natural de mencionar y enlazar al menos 1 o 2 de los siguientes productos TOP VENTAS de nuestro catálogo. Usa la URL exacta proporcionada en el href del tag <a>:
-${shuffled.map(p => `- ${p.productName} -> URL: https://universomerchan.com/product/${p.masterCode}`).join('\n')}`;
+        const catalogJson = shuffled.map(p => ({
+          nombre: p.productName,
+          categoria: p.category || "General",
+          url: `https://universomerchan.com/product/${p.masterCode}`
+        }));
+
+        productContext = `\n\nCATÁLOGO DE PRODUCTOS DISPONIBLES (JSON):
+${JSON.stringify(catalogJson, null, 2)}
+
+INSTRUCCIÓN VITAL: 
+Arriba tienes un JSON con una muestra de nuestro catálogo actual categorizado. 
+DEBES elegir 1, 2 o 3 productos de ese JSON que SEAN TOTALMENTE COHERENTES con el tema que estás tratando (ej. si hablas de botellas, busca en el JSON algo que sea botella, no uses bolsas). 
+Menciónalos de forma natural en tu artículo usando EXACTAMENTE la 'url' proporcionada en el JSON para el atributo href.`;
       }
     } catch (err) {
       console.error("[Blog Cron] No se pudieron cargar productos para el contexto", err);
@@ -169,7 +183,7 @@ REGLAS DE ORO:
 - Nunca empieces con frases genéricas como "En el mundo actual...".
 - Usa "tú", no "usted". Máximo 1 exclamación por artículo.
 - Integra mínimo 3 hipervínculos internamente a categorías en el HTML simulado de manera natural y no forzada.
-- VERIFICACIÓN CRÍTICA DE PRODUCTOS: Asegúrate doblemente de que cuando hablas de un producto específico, el enlace que adjuntas corresponda exactamente a él. Es un error gravísimo hablar de "una taza" y poner un enlace a "una camiseta". Usa la lógica y verifica que el texto y la URL proporcionada en 'PRODUCTOS DESTACADOS' coincidan en contexto.
+- VERIFICACIÓN CRÍTICA DE PRODUCTOS: Es un error gravísimo hablar de "una taza" y enlazar a "una camiseta". Consulta el CATÁLOGO JSON que se te proporciona y escoge SOLO productos cuya 'categoria' o 'nombre' tengan coherencia directa con lo que estás escribiendo.
 - SEO AVANZADO: A Google le gusta la semántica clara. Prioriza la indexabilidad estructurando correctamente los H2 y H3, y utiliza palabras clave LSI (Latent Semantic Indexing) relevantes para el merchandising.
 - ESTRATEGIA DE LINKEDIN INTACTA: Mantén la estrategia actual de LinkedIn devolviendo correctamente el objeto JSON con el post corto que genera valor directo y el comentario con el enlace, no alteres esta estructura técnica.
 
