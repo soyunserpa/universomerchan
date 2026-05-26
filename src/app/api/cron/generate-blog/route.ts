@@ -206,19 +206,18 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
       prompt: articleData.imagePrompt,
       n: 1,
       size: "1024x1024",
-      quality: "auto"
+      quality: "auto",
+      response_format: "b64_json"
     });
 
-    const dallEUrl = imageResponse.data[0].url;
-    if (!dallEUrl) throw new Error("No URL returned from gpt-image-2");
+    const b64Data = imageResponse.data[0].b64_json;
+    if (!b64Data) throw new Error("No image data returned from gpt-image-2");
 
     // ======================================
     // 3. DESCARGAR Y GUARDAR IMAGEN EN SERVIDOR
     // ======================================
-    console.log(`[Blog Cron] Descargando imagen...`);
-    const imageFetch = await fetch(dallEUrl);
-    const arrayBuffer = await imageFetch.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    console.log(`[Blog Cron] Procesando imagen base64...`);
+    const buffer = Buffer.from(b64Data, "base64");
 
     // We use your local uploadArtwork utility
     const uploadRes = await uploadArtwork(
@@ -234,8 +233,8 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
       featuredImageUrl = uploadRes.fileUrl;
       console.log(`[Blog Cron] Imagen guardada en: ${featuredImageUrl}`);
     } else {
-      console.warn(`[Blog Cron] Fallo al guardar la imagen de forma permanente, usando temporal URL. Error: ${uploadRes.error}`);
-      featuredImageUrl = dallEUrl; // fallback
+      console.warn(`[Blog Cron] Fallo al guardar la imagen de forma permanente. Error: ${uploadRes.error}`);
+      featuredImageUrl = "https://universomerchan.com/images/default-blog.png"; // fallback
     }
 
     // ======================================
