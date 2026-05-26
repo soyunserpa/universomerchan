@@ -206,7 +206,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
       prompt: articleData.imagePrompt,
       n: 1,
       size: "1024x1024",
-      quality: "standard"
+      quality: "auto"
     });
 
     const dallEUrl = imageResponse.data[0].url;
