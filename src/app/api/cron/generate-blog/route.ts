@@ -205,9 +205,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
       model: "gpt-image-2",
       prompt: articleData.imagePrompt,
       n: 1,
-      size: "1024x1024",
-      quality: "auto",
-      response_format: "b64_json"
+      size: "1024x1024"
     });
 
     const b64Data = imageResponse.data[0].b64_json;
