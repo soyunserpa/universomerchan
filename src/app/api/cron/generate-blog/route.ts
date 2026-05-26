@@ -156,9 +156,9 @@ ${shuffled.map(p => `- ${p.productName} -> URL: https://universomerchan.com/prod
     // ======================================
     // 1. GENERAR TEXTO CON GPT-4o
     // ======================================
-    console.log(`[Blog Cron] Llamando a OpenAI GPT-5.5...`);
+    console.log(`[Blog Cron] Llamando a OpenAI GPT-5.4...`);
     const chatResponse = await openai.chat.completions.create({
-      model: "gpt-5.5",
+      model: "gpt-5.4",
       messages: [
         {
           role: "system",
@@ -193,7 +193,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
     });
 
     const rawJson = chatResponse.choices[0].message.content;
-    if (!rawJson) throw new Error("No response from GPT-5.5");
+    if (!rawJson) throw new Error("No response from GPT-5.4");
     
     const articleData = JSON.parse(rawJson);
 
