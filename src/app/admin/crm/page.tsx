@@ -233,7 +233,7 @@ export default function CRMDashboard() {
                           </a>
                         )}
                         <a 
-                          href={`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_KEY || 'current'}/person/${lead.email}#recordings`}
+                          href={`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID || 'current'}/person/${lead.email}#recordings`}
                           target="_blank"
                           rel="noreferrer"
                           title="Ver grabaciones de sesión en PostHog"

@@ -144,14 +144,14 @@ export default function AnalyticsPage() {
                 onChange={(e) => setEmailQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && emailQuery) {
-                    window.open(`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_KEY || 'current'}/person/${emailQuery}#recordings`, "_blank");
+                    window.open(`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID || 'current'}/person/${emailQuery}#recordings`, "_blank");
                   }
                 }}
               />
             </div>
             <button 
               disabled={!emailQuery}
-              onClick={() => window.open(`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_KEY || 'current'}/person/${emailQuery}#recordings`, "_blank")}
+              onClick={() => window.open(`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID || 'current'}/person/${emailQuery}#recordings`, "_blank")}
               className="bg-brand-red text-white font-bold px-6 py-3 rounded-xl hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <PlayCircle size={20} /> Ver Vídeos
