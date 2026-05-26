@@ -156,9 +156,9 @@ ${shuffled.map(p => `- ${p.productName} -> URL: https://universomerchan.com/prod
     // ======================================
     // 1. GENERAR TEXTO CON GPT-4o
     // ======================================
-    console.log(`[Blog Cron] Llamando a OpenAI GPT-4o...`);
+    console.log(`[Blog Cron] Llamando a OpenAI GPT-5.5...`);
     const chatResponse = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.5",
       messages: [
         {
           role: "system",
@@ -180,7 +180,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
   "excerpt": "Párrafo breve introductorio.",
   "linkedinPost": "Un micro-post B2B para LinkedIn: 1) Hook inicial sin emoji, 2) Cuerpo aportando valor real, 3) 3 hashtags del sector.",
   "linkedinComment": "Texto simple exacto: 'La guía completa la tienes aquí: [enlace]'.",
-  "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para DALL-E 3 que genere la imagen corporativa fotorealista perfecta para el artículo. (Sin texto)",
+  "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para gpt-image-2 que genere la imagen corporativa fotorealista perfecta para el artículo. (Sin texto)",
   "body": "El artículo en HTML semántico (<h2>, <p>, <ul>, <strong>). Siguiendo las instrucciones de estructura exactas pedidas por el usuario. Directamente los elementos interiores sin html ni body."
 }`
         },
@@ -193,16 +193,16 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
     });
 
     const rawJson = chatResponse.choices[0].message.content;
-    if (!rawJson) throw new Error("No response from GPT-4o");
+    if (!rawJson) throw new Error("No response from GPT-5.5");
     
     const articleData = JSON.parse(rawJson);
 
     // ======================================
-    // 2. GENERAR IMAGEN CON DALL-E 3
+    // 2. GENERAR IMAGEN CON GPT-IMAGE-2
     // ======================================
-    console.log(`[Blog Cron] Llamando a DALL-E 3 para la imagen... Prompt: ${articleData.imagePrompt.substring(0, 50)}...`);
+    console.log(`[Blog Cron] Llamando a gpt-image-2 para la imagen... Prompt: ${articleData.imagePrompt.substring(0, 50)}...`);
     const imageResponse = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-2",
       prompt: articleData.imagePrompt,
       n: 1,
       size: "1024x1024",
@@ -210,7 +210,7 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
     });
 
     const dallEUrl = imageResponse.data[0].url;
-    if (!dallEUrl) throw new Error("No URL returned from DALL-E 3");
+    if (!dallEUrl) throw new Error("No URL returned from gpt-image-2");
 
     // ======================================
     // 3. DESCARGAR Y GUARDAR IMAGEN EN SERVIDOR
