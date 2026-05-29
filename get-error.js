@@ -1,7 +1,24 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('tail -n 30 /root/.pm2/logs/universomerchan-error.log', (err, stream) => {
+    conn.exec(`cat << 'INNEREOF' > /var/www/universomerchan/get-error-db.js
+const postgres = require('postgres');
+require('dotenv').config();
+
+async function run() {
+  const sql = postgres(process.env.DATABASE_URL, { max: 1 });
+  try {
+    const res = await sql\`SELECT * FROM error_log WHERE error_type = 'client_exception' ORDER BY created_at DESC LIMIT 1\`;
+    console.log(JSON.stringify(res[0], null, 2));
+  } catch (err) {
+    console.error("Error:", err);
+  } finally {
+    await sql.end();
+  }
+}
+run();
+INNEREOF
+cd /var/www/universomerchan && node get-error-db.js`, (err, stream) => {
         if (err) throw err;
         stream.on('close', () => conn.end())
               .on('data', (d) => process.stdout.write(d))

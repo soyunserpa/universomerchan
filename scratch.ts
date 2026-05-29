@@ -1,13 +1,19 @@
-import { db } from "./src/lib/database";
-import * as schema from "./src/lib/schema";
-import { eq } from "drizzle-orm";
+import { db } from './src/lib/database';
+import { products } from './src/lib/schema';
+import { inArray } from 'drizzle-orm';
 
 async function run() {
-  const order = await db.query.orders.findFirst({
-    where: eq(schema.orders.orderNumber, "UM-2026-0073")
+  const codes = ['MO2235', 'MO9702', 'MO6752', 'MO6115', 'MO9817', 'MO7263', 'MO6232', 'MO9604', 'MO2624', 'MO6426'];
+  const res = await db.query.products.findMany({
+    where: inArray(products.masterCode, codes)
   });
-  console.log("midoceanOrderNumber:", order?.midoceanOrderNumber);
-  console.log("orderType:", order?.orderType);
+  
+  res.forEach(p => {
+    const assets = p.digitalAssets as any[];
+    const img = assets?.find(a => a.type === 'image')?.url || 'No image';
+    console.log(`${p.masterCode}: ${img}`);
+  });
   process.exit(0);
 }
+
 run();

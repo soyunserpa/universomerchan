@@ -1,10 +1,14 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('pm2 logs --nostream --lines 100', (err, stream) => {
+    conn.exec('pm2 logs universo-tienda --lines 50 --nostream', (err, stream) => {
         if (err) throw err;
-        stream.on('close', () => conn.end())
-              .on('data', (d) => process.stdout.write(d))
-              .stderr.on('data', (d) => process.stderr.write(d));
+        stream.on('close', (code, signal) => {
+            conn.end();
+        }).on('data', (data) => {
+            process.stdout.write(data);
+        }).stderr.on('data', (data) => {
+            process.stderr.write(data);
+        });
     });
 }).connect({ host: '212.227.90.110', port: 22, username: 'root', password: '***REMOVED***' });

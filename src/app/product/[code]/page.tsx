@@ -190,15 +190,36 @@ export async function generateMetadata({ params }: ProductPageProps) {
   const slug = product.name ? product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : "";
   const deterministicUrl = `/product/${product.masterCode.toLowerCase()}-${slug}`;
 
+  // Optimize Title (Target: 50-60 chars)
+  let optimizedTitle = `${product.name} Personalizado | Universo Merchan`;
+  if (optimizedTitle.length < 40) {
+    optimizedTitle = `${product.name} Personalizado - Regalos Corporativos | Universo Merchan`;
+  }
+
+  // Optimize Description (Target: 120-155 chars)
+  let rawDesc = product.shortDescription || product.longDescription || "";
+  // Strip HTML if any
+  rawDesc = rawDesc.replace(/<[^>]*>?/gm, '');
+  
+  let optimizedDesc = rawDesc.substring(0, 80).trim();
+  if (optimizedDesc.length > 0 && !optimizedDesc.endsWith('.')) optimizedDesc += '.';
+  
+  optimizedDesc = `${optimizedDesc} Descubre nuestro catálogo de regalos corporativos sostenibles y merchandising. ¡Pide presupuesto de tu ${product.name} personalizado hoy mismo!`;
+
+  // Cap at 155 to avoid truncation warnings in audits
+  if (optimizedDesc.length > 155) {
+    optimizedDesc = optimizedDesc.substring(0, 152) + '...';
+  }
+
   return {
-    title: `${product.name} — Universo Merchan`,
-    description: product.shortDescription,
+    title: optimizedTitle,
+    description: optimizedDesc,
     alternates: {
       canonical: deterministicUrl
     },
     openGraph: {
-      title: `${product.name} — Personalízalo con tu marca`,
-      description: product.shortDescription,
+      title: optimizedTitle,
+      description: optimizedDesc,
       images: product.mainImage ? [product.mainImage] : undefined,
       url: `https://universomerchan.com${deterministicUrl}`,
     },

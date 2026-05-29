@@ -1,11 +1,10 @@
-const { neon } = require('@neondatabase/serverless');
-const sql = neon("postgresql://neondb_owner:F1rM8cAhxLbs@ep-blue-sea-a2rww68i-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require");
-async function main() {
-try {
-  await sql`SELECT * FROM search_queries LIMIT 1`;
-  console.log("Table exists");
-} catch(e) {
-  console.error("Error:", e.message);
+import 'dotenv/config';
+import { db } from './src/lib/database';
+import { products } from './src/lib/schema';
+import { eq } from 'drizzle-orm';
+async function run() {
+  const p = await db.query.products.findFirst({ where: eq(products.masterCode, 'S11500') });
+  console.log(JSON.stringify(p.printPositions, null, 2));
+  process.exit(0);
 }
-}
-main();
+run();

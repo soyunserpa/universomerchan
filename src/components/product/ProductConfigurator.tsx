@@ -866,7 +866,12 @@ function ProductConfiguratorInner({ product }: Props) {
             </div>
 
             <div className="flex items-center justify-between gap-4 mb-2">
-              <h1 className="font-display font-extrabold text-3xl">{product.name} {product.shortDescription}</h1>
+              <div className="flex flex-col">
+                <h1 className="font-display font-extrabold text-3xl">{product.name}</h1>
+                {product.shortDescription && (
+                  <h2 className="text-xl font-medium text-gray-700 mt-1">{product.shortDescription}</h2>
+                )}
+              </div>
             </div>
             {product.longDescription && <p className="text-base text-black leading-relaxed mb-6">{product.longDescription}</p>}
 

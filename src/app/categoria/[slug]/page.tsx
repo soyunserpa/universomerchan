@@ -11,9 +11,25 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const cat = categories.find(c => c.slug === params.slug);
   if (!cat) return { title: "Categoría no encontrada" };
 
+  // Optimize Title (50-60 chars)
+  let optimizedTitle = `${cat.name} Personalizados para Empresas | Universo Merchan`;
+  if (optimizedTitle.length < 40) {
+    optimizedTitle = `${cat.name} Personalizados - Regalos Corporativos | Universo Merchan`;
+  }
+
+  // Inject user keywords dynamically into description
+  const isSustainable = cat.slug.includes("sostenible") || cat.slug.includes("eco");
+  const keyword = cat.slug === "camisetas" ? "camisetas personalizadas" : (isSustainable ? "regalos corporativos sostenibles" : "merchandising B2B");
+  
+  let optimizedDesc = `Catálogo premium de ${cat.name.toLowerCase()} y ${keyword}. Personaliza online con tu logo y recibe presupuestos con descuentos por volumen. ¡Descúbrelo!`;
+  
+  if (optimizedDesc.length > 155) {
+    optimizedDesc = optimizedDesc.substring(0, 152) + '...';
+  }
+
   return {
-    title: `${cat.name} Personalizados para Empresas | Universo Merchan`,
-    description: `Catálogo premium de ${cat.name.toLowerCase()} para marketing B2B. Personaliza online con tu logo y recibe presupuestos instantáneos con descuentos por volumen. Envío rápido.`,
+    title: optimizedTitle,
+    description: optimizedDesc,
     alternates: {
       canonical: `/categoria/${params.slug}`
     }
