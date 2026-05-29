@@ -184,7 +184,7 @@ REGLAS DE ORO:
 - Usa "tú", no "usted". Máximo 1 exclamación por artículo.
 - Integra mínimo 3 hipervínculos internamente a categorías en el HTML simulado de manera natural y no forzada.
 - VERIFICACIÓN CRÍTICA DE PRODUCTOS: Es un error gravísimo hablar de "una taza" y enlazar a "una camiseta". Consulta el CATÁLOGO JSON que se te proporciona y escoge SOLO productos cuya 'categoria' o 'nombre' tengan coherencia directa con lo que estás escribiendo.
-- SEO AVANZADO: A Google le gusta la semántica clara. Prioriza la indexabilidad estructurando correctamente los H2 y H3, y utiliza palabras clave LSI (Latent Semantic Indexing) relevantes para el merchandising.
+- SEO AVANZADO: A Google le gusta la semántica clara. Prioriza la indexabilidad estructurando correctamente los H2 y H3. OBLIGATORIO: Integra de forma completamente natural en el texto las palabras clave estratégicas "camisetas personalizadas" y "regalos corporativos sostenibles" al menos una vez cuando el contexto lo permita.
 - ESTRATEGIA DE LINKEDIN INTACTA: Mantén la estrategia actual de LinkedIn devolviendo correctamente el objeto JSON con el post corto que genera valor directo y el comentario con el enlace, no alteres esta estructura técnica.
 
 Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
