@@ -227,7 +227,7 @@ export default function QuizPage() {
              <h3 className="text-2xl font-bold text-gray-900 mb-4">¿Te ha gustado la selección?</h3>
              <p className="text-gray-600 mb-8 max-w-xl mx-auto">{recommendedPack.closing}</p>
              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-               <Link href="/contacto" className="inline-flex items-center justify-center px-8 py-4 bg-brand-red text-white rounded-xl font-bold hover:bg-red-700 hover:-translate-y-1 transition-all shadow-lg shadow-red-500/30">
+               <Link href="/#contacto" className="inline-flex items-center justify-center px-8 py-4 bg-brand-red text-white rounded-xl font-bold hover:bg-red-700 hover:-translate-y-1 transition-all shadow-lg shadow-red-500/30">
                  Solicitar Presupuesto Formal
                </Link>
                <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-8 py-4 bg-[#25D366] text-white rounded-xl font-bold hover:bg-[#1ebe57] hover:-translate-y-1 transition-all shadow-lg shadow-[#25D366]/30 gap-2">

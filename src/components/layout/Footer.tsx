@@ -39,6 +39,7 @@ export function Footer() {
           <div>
             <h3 className="font-display font-bold text-sm text-white mb-4">Empresa</h3>
             {[
+              { label: "Asistente IA", href: "/quiz" },
               { label: "Sobre nosotros", href: "/#sobre-nosotros" },
               { label: "Cómo funciona", href: "/#como-funciona" },
               { label: "Contacto", href: "/#contacto" },
