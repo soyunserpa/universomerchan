@@ -1066,7 +1066,7 @@ function ProductConfiguratorInner({ product }: Props) {
               />
             ) : (
               <div className="w-full aspect-square bg-surface-50 rounded-3xl relative flex items-center justify-center overflow-hidden">
-                {variant.mainImage && <img src={variant.mainImage} alt="" className="w-[68%] h-[68%] object-contain" />}
+                {variant.mainImage && <img src={variant.mainImage} alt={product.name} className="w-[68%] h-[68%] object-contain" />}
                 <div className="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md">Sin zonas de impresión disponibles</div>
               </div>
             )}

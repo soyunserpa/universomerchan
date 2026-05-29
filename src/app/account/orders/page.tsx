@@ -248,7 +248,7 @@ export default function AccountOrdersPage() {
                   <div className="flex gap-2">
                     {order.lines.slice(0, 4).map((line, i) => (
                       <div key={i} className="w-12 h-12 rounded-lg bg-surface-50 flex items-center justify-center overflow-hidden border border-surface-200">
-                        {line.productImage ? <img src={line.productImage} alt="" className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
+                        {line.productImage ? <img src={line.productImage} alt={line.productName || "Producto"} className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
                       </div>
                     ))}
                     {order.lines.length > 4 && <div className="w-12 h-12 rounded-lg bg-surface-100 flex items-center justify-center text-xs text-gray-400 font-semibold">+{order.lines.length - 4}</div>}

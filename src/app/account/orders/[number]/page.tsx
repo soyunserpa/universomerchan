@@ -210,7 +210,7 @@ export default function OrderDetailPage() {
               <div key={line.id} className="p-5 border-b border-surface-100 last:border-0">
                 <div className="flex gap-4">
                   <div className="w-16 h-16 rounded-xl bg-surface-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {line.productImage ? <img src={line.productImage} alt="" className="w-[80%] h-[80%] object-contain" /> : <Gift size={20} className="text-gray-300" />}
+                    {line.productImage ? <img src={line.productImage} alt={line.productName || "Producto"} className="w-[80%] h-[80%] object-contain" /> : <Gift size={20} className="text-gray-300" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
