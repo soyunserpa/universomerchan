@@ -3,8 +3,11 @@ import { getPublishedPosts } from "@/lib/cms-content";
 import { Clock, ArrowRight } from "lucide-react";
 
 export const metadata = {
-  title: "Blog & Novedades | Universo Merchan",
+  title: "Blog & Novedades de Merchandising | Universo Merchan",
   description: "Descubre las últimas tendencias en merchandising corporativo, regalos originales y técnicas de marcaje para impulsar tu marca.",
+  alternates: {
+    canonical: '/blog'
+  }
 };
 
 export default async function BlogPage() {

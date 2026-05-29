@@ -12,12 +12,30 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return { title: 'Post no encontrado | Universo Merchan' };
   }
 
+  // Optimize Title (50-60 chars)
+  let optimizedTitle = `${post.metaTitle || post.title} | Universo Merchan`;
+  if (optimizedTitle.length > 65) {
+    optimizedTitle = post.metaTitle || post.title;
+  }
+
+  // Optimize Description (Target: 120-155 chars)
+  let optimizedDesc = post.metaDescription || post.excerpt || "";
+  // Strip HTML if any
+  optimizedDesc = optimizedDesc.replace(/<[^>]*>?/gm, '').trim();
+  
+  if (optimizedDesc.length > 155) {
+    optimizedDesc = optimizedDesc.substring(0, 152) + '...';
+  }
+
   return {
-    title: `${post.metaTitle || post.title} | Universo Merchan`,
-    description: post.metaDescription || post.excerpt,
+    title: optimizedTitle,
+    description: optimizedDesc,
+    alternates: {
+      canonical: `/blog/${post.slug}`
+    },
     openGraph: {
-      title: post.metaTitle || post.title,
-      description: post.metaDescription || post.excerpt,
+      title: optimizedTitle,
+      description: optimizedDesc,
       images: post.featuredImage ? [{ url: post.featuredImage }] : [],
       type: "article",
     },
