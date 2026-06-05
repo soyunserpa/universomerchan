@@ -28,7 +28,7 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [authHeaders, daysFilter]);
 
-  const posthogProjectUrl = "https://eu.posthog.com/project/current/replay";
+  const clarityUrl = "https://clarity.microsoft.com/";
   
   return (
     <div className="flex-1 overflow-y-auto">
@@ -37,15 +37,15 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-display font-extrabold flex items-center gap-2">
             <Video className="text-brand-red" size={28} /> Grabaciones de Sesión
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Analítica de comportamiento (Session Replay) mediante PostHog</p>
+          <p className="text-gray-500 text-sm mt-1">Analítica de comportamiento (Session Replay) mediante Microsoft Clarity</p>
         </div>
         <a 
-          href="https://eu.posthog.com"
+          href="https://clarity.microsoft.com/"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
         >
-          <Settings size={16} /> Dashboard PostHog <ExternalLink size={14} />
+          <Settings size={16} /> Dashboard Clarity <ExternalLink size={14} />
         </a>
       </div>
 
@@ -144,20 +144,26 @@ export default function AnalyticsPage() {
                 onChange={(e) => setEmailQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && emailQuery) {
-                    window.open(`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID || 'current'}/person/${emailQuery}#recordings`, "_blank");
+                    navigator.clipboard.writeText(emailQuery);
+                    window.open("https://clarity.microsoft.com/", "_blank");
+                    alert("Email copiado al portapapeles. Pégalo en el buscador superior derecho de Clarity.");
                   }
                 }}
               />
             </div>
             <button 
               disabled={!emailQuery}
-              onClick={() => window.open(`https://eu.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID || 'current'}/person/${emailQuery}#recordings`, "_blank")}
+              onClick={() => {
+                navigator.clipboard.writeText(emailQuery);
+                window.open("https://clarity.microsoft.com/", "_blank");
+                alert("Email copiado al portapapeles. Pégalo en el buscador superior derecho de Clarity.");
+              }}
               className="bg-brand-red text-white font-bold px-6 py-3 rounded-xl hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              <PlayCircle size={20} /> Ver Vídeos
+              <PlayCircle size={20} /> Ir a Clarity
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-3">Al buscar un correo registrado, saltarás directamente a su historial de grabaciones de vídeo.</p>
+          <p className="text-xs text-gray-400 mt-3">Al buscar un correo registrado, se copiará el email y te llevaremos a Clarity para que lo busques y veas el vídeo.</p>
         </div>
 
         {/* Info Grid */}
@@ -165,14 +171,14 @@ export default function AnalyticsPage() {
           <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 text-white text-left relative overflow-hidden">
             <Video className="absolute -right-6 -bottom-6 w-40 h-40 text-white/5" />
             <h3 className="font-display font-bold text-xl mb-2 flex items-center gap-2">
-               ¿Qué es PostHog Session Replay?
+               ¿Qué es Microsoft Clarity?
             </h3>
             <p className="text-gray-300 text-sm mb-4 leading-relaxed">
               El motor ya está capturando en silencio todos los movimientos de ratón, clics y navegación de los usuarios a lo largo de Universo Merchan.
               Las contraseñas y tarjetas están censuradas automáticamente por privacidad.
             </p>
             <a 
-              href={posthogProjectUrl} 
+              href={clarityUrl} 
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 bg-brand-red px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-red-500 transition-colors"
@@ -197,7 +203,7 @@ export default function AnalyticsPage() {
                 <div className="w-8 h-8 rounded-full bg-brand-red/10 text-brand-red flex items-center justify-center shrink-0 font-bold">2</div>
                 <div>
                   <h4 className="font-bold text-sm">Auditoría Visual</h4>
-                  <p className="text-sm text-gray-500 mt-1">Observa la matriz general en PostHog para ver qué botones atraen más o dónde la gente se marcha (Drop-off Rate).</p>
+                  <p className="text-sm text-gray-500 mt-1">Observa la matriz general en Clarity para ver qué botones atraen más o dónde la gente se marcha (Mapas de Calor y Grabaciones).</p>
                 </div>
               </li>
             </ul>
