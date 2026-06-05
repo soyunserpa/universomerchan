@@ -97,11 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       
       try {
-        if (typeof window !== "undefined" && window.posthog) {
-          window.posthog.identify(data.user.email, {
-            name: data.user.firstName + ' ' + data.user.lastName,
-            email: data.user.email
-          });
+        if (typeof window !== "undefined" && (window as any).clarity) {
+          (window as any).clarity("identify", data.user.email, null, null, data.user.firstName + ' ' + data.user.lastName);
         }
       } catch {}
 
@@ -124,11 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       
       try {
-        if (typeof window !== "undefined" && window.posthog) {
-          window.posthog.identify(data.user.email, {
-            name: data.user.firstName + ' ' + data.user.lastName,
-            email: data.user.email
-          });
+        if (typeof window !== "undefined" && (window as any).clarity) {
+          (window as any).clarity("identify", data.user.email, null, null, data.user.firstName + ' ' + data.user.lastName);
         }
       } catch {}
 
@@ -143,12 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    
-    try {
-      if (typeof window !== "undefined" && window.posthog) {
-        window.posthog.reset();
-      }
-    } catch {}
+
   }, []);
 
   const updateUser = useCallback((data: Partial<User>) => {

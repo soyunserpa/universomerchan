@@ -25,6 +25,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.52",
     "@ai-sdk/react": "^3.0.159",
+    "@google-analytics/data": "^6.1.0",
     "@neondatabase/serverless": "^0.9.0",
     "@next/third-parties": "^16.2.1",
     "@react-pdf/renderer": "^3.4.0",
@@ -48,7 +49,6 @@
     "openai": "^6.33.0",
     "pdfkit": "^0.18.0",
     "postgres": "^3.4.0",
-    "posthog-js": "^1.371.4",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-markdown": "^10.1.0",

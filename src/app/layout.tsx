@@ -19,7 +19,7 @@ import { CookieBanner } from "@/components/layout/CookieBanner";
 import { ChatbotBubble } from "@/components/chatbot/ChatbotBubble";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
-import { PostHogProvider } from "@/components/providers/PostHogProvider";
+
 import { UtmProvider } from "@/components/providers/UtmProvider";
 import { TrafficTracker } from "@/components/providers/TrafficTracker";
 import { ClientErrorTracker } from "@/components/ClientErrorTracker";
@@ -85,7 +85,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </Script>
       <body className={`bg-surface-50 text-gray-900 min-h-screen font-sans antialiased ${poppins.variable}`}>
         <ClientErrorTracker />
-        <PostHogProvider>
           <UtmProvider />
           <TrafficTracker />
           {/* JSON-LD: Organization + LocalBusiness structured data for Google */}
@@ -172,7 +171,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </CartProvider>
             </FavoritesProvider>
           </AuthProvider>
-        </PostHogProvider>
       </body>
     </html>
   );

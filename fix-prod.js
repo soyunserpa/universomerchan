@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
-    conn.exec('cd /var/www/universomerchan && git reset --hard && git pull origin main && NODE_OPTIONS="--max-old-space-size=6144" npm run build && pm2 restart universo-tienda', (err, stream) => {
+    conn.exec('cd /var/www/universomerchan && git reset --hard && git pull origin main && npm install && NODE_OPTIONS="--max-old-space-size=6144" npm run build && pm2 restart universo-tienda', (err, stream) => {
         if (err) throw err;
         stream.on('close', (code, signal) => {
             console.log('Stream :: close :: code: ' + code + ', signal: ' + signal);

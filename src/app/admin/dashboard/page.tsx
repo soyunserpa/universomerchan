@@ -5,7 +5,7 @@ import { useAdminAuth } from "@/components/admin/AdminLayout";
 import Link from "next/link";
 import {
   TrendingUp, Package, ShoppingCart, Users, Eye, AlertTriangle,
-  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Zap,
+  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Zap, Globe, MousePointer, Activity
 } from "lucide-react";
 
 interface KPIs {
@@ -24,6 +24,7 @@ export default function AdminDashboardPage() {
   const [kpis, setKpis] = useState<KPIs | null>(null);
   const [chart, setChart] = useState<ChartPoint[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [gaData, setGaData] = useState<{ users: number, pageViews: number, sessions: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,12 +33,14 @@ export default function AdminDashboardPage() {
       fetch("/api/admin/dashboard/kpis", { headers: h }).then(r => r.json()),
       fetch("/api/admin/dashboard/chart?months=6", { headers: h }).then(r => r.json()),
       fetch("/api/admin/dashboard/top-products", { headers: h }).then(r => r.json()),
-    ]).then(([k, c, t]) => {
+      fetch("/api/admin/dashboard/analytics", { headers: h }).then(r => r.json().catch(() => ({}))),
+    ]).then(([k, c, t, g]) => {
       if (k.error || c.error || t.error) {
         logout();
         return;
       }
       setKpis(k); setChart(c); setTopProducts(t);
+      if (g.success) setGaData(g.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [authHeaders, logout]);
@@ -174,6 +177,42 @@ export default function AdminDashboardPage() {
               <p className="font-display font-extrabold text-xl">{s.value}</p>
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* Google Analytics Panel */}
+      {gaData && (
+        <div className="mt-6 bg-white rounded-xl border border-surface-200 p-5">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="font-display font-bold text-sm flex items-center gap-2">
+              <Globe size={16} className="text-blue-500" />
+              Tráfico Web (Últimos 7 días)
+            </h2>
+            <span className="text-xs text-gray-400">Google Analytics 4</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+              <div className="flex items-center gap-2 text-blue-600 mb-2">
+                <Users size={16} />
+                <span className="text-xs font-semibold uppercase tracking-wider">Usuarios Activos</span>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-gray-900">{gaData.users.toLocaleString()}</p>
+            </div>
+            <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+              <div className="flex items-center gap-2 text-indigo-600 mb-2">
+                <MousePointer size={16} />
+                <span className="text-xs font-semibold uppercase tracking-wider">Páginas Vistas</span>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-gray-900">{gaData.pageViews.toLocaleString()}</p>
+            </div>
+            <div className="p-4 bg-violet-50/50 rounded-xl border border-violet-100">
+              <div className="flex items-center gap-2 text-violet-600 mb-2">
+                <Activity size={16} />
+                <span className="text-xs font-semibold uppercase tracking-wider">Sesiones Totales</span>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-gray-900">{gaData.sessions.toLocaleString()}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
