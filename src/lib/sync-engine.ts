@@ -31,7 +31,29 @@ export async function syncProducts(): Promise<{ created: number; updated: number
 
   try {
     console.log("[Sync] Starting product sync...");
-    const products = await midocean.fetchAllProducts();
+    
+    // Fetch base catalog in Spanish
+    const products = await midocean.fetchAllProducts("es");
+
+    // Fetch translations
+    const langs = ['en', 'fr', 'de', 'it', 'pt', 'nl'];
+    const translationsMap: Record<string, any> = {};
+    
+    for (const lang of langs) {
+        try {
+            const langProducts = await midocean.fetchAllProducts(lang);
+            for (const p of langProducts) {
+                if (!translationsMap[p.master_code]) translationsMap[p.master_code] = {};
+                translationsMap[p.master_code][lang] = {
+                    productName: p.product_name || "",
+                    shortDescription: p.short_description || "",
+                    longDescription: p.long_description || ""
+                };
+            }
+        } catch (e) {
+            console.error(`[Sync] Warning: Failed to fetch translations for ${lang}`);
+        }
+    }
 
     for (const product of products) {
       // Ignore physical catalogs
@@ -42,7 +64,9 @@ export async function syncProducts(): Promise<{ created: number; updated: number
         name.startsWith("ST GIFTS") ||
         (name.toLowerCase().includes("spanish") && name.toLowerCase().includes("cat"));
         
-      if (isCatalog) continue;
+      const isSizingKit = code.startsWith("SOLS") || name.toLowerCase().includes("kit de tallas") || name.toLowerCase().includes("size kit");
+        
+      if (isCatalog || isSizingKit) continue;
 
       // Upsert product
       const existing = await db.query.products.findFirst({
@@ -68,6 +92,7 @@ export async function syncProducts(): Promise<{ created: number; updated: number
         isGreen: product.green === "yes" || (Array.isArray(product.digital_assets) && product.digital_assets.some((a: any) => a.subtype === "declaration_of_sustainability")),
         numberOfPrintPositions: parseInt(product.number_of_print_positions) || 0,
         digitalAssets: product.digital_assets,
+        translations: translationsMap[product.master_code] || {},
         lastSyncedAt: new Date(),
         rawApiData: product as any,
         updatedAt: new Date(),
@@ -413,7 +438,7 @@ export async function syncPrintData(): Promise<{ updated: number }> {
       await db.delete(schema.printPositions)
         .where(eq(schema.printPositions.masterCode, product.master_code));
 
-      for (const position of product.printing_positions || []) {
+      for (const position of product.print_positions || []) {
         // Canvas V2: Extract points and blank images from Midocean data
         const points = (position as any).points || [];
         const images = (position as any).images || [];

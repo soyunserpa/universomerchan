@@ -17,7 +17,7 @@ export function AboutSection() {
                             src="/images/about-us-hero-v2.jpg"
                             alt="Regalos corporativos premium Universo Merchan"
                             fill
-                            sizes="(max-width: 768px) 100vw, 50vw"
+                            sizes="(max-width: 768px) 450px, (max-width: 1200px) 50vw, 600px"
                             className="object-cover transform hover:scale-105 transition-transform duration-700"
                         />
                     </div>

@@ -1,0 +1,44 @@
+{
+  "emails": {
+    "order_confirmation_subject": "Ordine confermato: {orderNumber}",
+    "order_confirmation_title": "Ordine confermato!",
+    "order_confirmation_hello": "Ciao {firstName}, abbiamo ricevuto il tuo ordine.",
+    "order_confirmation_proof": "<strong>⏳ Prossimo passo:</strong> Il tuo ordine include una personalizzazione. Nelle prossime 24-48 ore lavorative riceverai una nuova email con la <strong>bozza finale</strong> che dovrai approvare nel tuo pannello prima che passi in produzione.",
+    "order_number": "Numero d'ordine",
+    "product": "Prodotto",
+    "qty": "Qtà",
+    "detail": "Dettaglio",
+    "total": "Totale",
+    "delivery_estimated": "Consegna stimata: {estimatedDelivery}",
+    "view_my_order": "Vedi il mio ordine"
+  },
+  "Header": {
+    "home": "Home",
+    "catalog": "Catalogo",
+    "brands": "Marche",
+    "services": "Servizi",
+    "blog": "Blog",
+    "contact": "Contatto",
+    "search": "Cerca prodotti...",
+    "login": "Accedi",
+    "register": "Registrati",
+    "profile": "Il mio profilo",
+    "logout": "Esci"
+  },
+  "Footer": {
+    "about": "Chi siamo",
+    "terms": "Termini e Condizioni",
+    "privacy": "Politica sulla Privacy",
+    "cookies": "Politica sui Cookie",
+    "faq": "Domande Frequenti",
+    "custom_product": "Crea il tuo prodotto",
+    "contact": "Contatto",
+    "follow_us": "Seguici",
+    "all_rights": "Tutti i diritti riservati."
+  },
+  "Common": {
+    "cart": "Carrello",
+    "view_all": "Vedi tutti",
+    "checkout": "Procedi all'acquisto"
+  }
+}

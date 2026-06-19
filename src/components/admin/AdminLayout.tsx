@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
+import { useRouter, usePathname } from "@/i18n/routing";;
+import { Link } from "@/i18n/routing";
 import { 
   BarChart3, Users, Settings, LogOut, Package, Image as ImageIcon, Briefcase, RefreshCw,
   ShoppingCart, Tag, BookOpen, AlertCircle, Search, Menu, X, Gift, Percent, Database, FileText, FolderOpen, Mail, AlertTriangle, Eye, Filter, Crosshair

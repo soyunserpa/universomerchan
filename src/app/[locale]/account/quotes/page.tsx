@@ -1,0 +1,137 @@
+"use client";
+
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "@/i18n/routing";;
+import { Link } from "@/i18n/routing";
+import {
+    FileText, Package, User, LogOut, ExternalLink, RefreshCw, Eye, Truck, FileQuestion
+, Heart } from "lucide-react";
+import { useEffect, useState } from "react";
+
+export default function AccountQuotesPage() {
+    const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+    const router = useRouter();
+    const [stats, setStats] = useState<any>(null);
+    const [quotes, setQuotes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) { router.push("/auth/login"); return; }
+        if (!token) return;
+
+        const headers = { Authorization: `Bearer ${token}` };
+        Promise.all([
+            fetch("/api/account/quotes", { headers }).then(r => r.json()),
+            fetch("/api/account/stats", { headers }).then(r => r.json()),
+        ]).then(([quotesData, statsData]) => {
+            if (quotesData.error || statsData.error) {
+                logout();
+                return;
+            }
+            setQuotes(quotesData.quotes || []);
+            setStats(statsData);
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, [token, isAuthenticated, isLoading, router]);
+
+    if (isLoading || (!isAuthenticated && !isLoading)) return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-8">
+
+                {/* Sidebar */}
+                <aside className="space-y-2">
+                    <div className="bg-white rounded-2xl border border-surface-200 p-5 mb-4">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-full bg-brand-red flex items-center justify-center text-white font-bold text-sm">
+                                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                            </div>
+                            <div>
+                                <p className="font-semibold text-sm">{user?.firstName} {user?.lastName}</p>
+                                <p className="text-xs text-gray-400">{user?.email}</p>
+                            </div>
+                        </div>
+                        {user?.companyName && <p className="text-xs text-gray-400 bg-surface-50 px-2 py-1 rounded">{user.companyName}</p>}
+                    </div>
+
+                    {[
+                        { href: "/account/orders", icon: Package, label: "Mis pedidos", badge: stats?.pendingOrders },
+                        { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
+                        { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
+                        { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
+            { href: "/account/favorites", icon: Heart, label: "Favoritos" },
+                        { href: "/account/profile", icon: User, label: "Mi perfil" },
+                    ].map(item => (
+                        <Link key={item.href} href={item.href} className={`flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 transition-colors ${item.href === "/account/quotes" ? "bg-surface-50 text-brand-red font-bold" : "text-sm font-medium text-gray-600"}`}>
+                            <div className="flex items-center gap-2.5"><item.icon size={16} /> {item.label}</div>
+                            {item.badge ? <span className="bg-brand-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{item.badge}</span> : null}
+                        </Link>
+                    ))}
+                    <button onClick={() => { logout(); router.push("/"); }} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-red-500 transition-colors w-full mt-4">
+                        <LogOut size={16} /> Cerrar sesión
+                    </button>
+                </aside>
+
+                {/* Main Content */}
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h1 className="font-display font-extrabold text-2xl">Mis Presupuestos</h1>
+                    </div>
+
+                    {loading ? (
+                        <div className="text-center py-12"><RefreshCw className="animate-spin text-gray-300 mx-auto" /></div>
+                    ) : quotes.length === 0 ? (
+                        <div className="text-center py-20 bg-white rounded-2xl border border-surface-200">
+                            <FileQuestion size={40} className="text-gray-200 mx-auto mb-4" />
+                            <h3 className="font-display font-bold text-lg mb-1">Aún no tienes presupuestos activos</h3>
+                            <p className="text-gray-400 mb-6 max-w-sm mx-auto text-sm">Los presupuestos solicitados a medida aparecerán aquí para que puedas convertirlos en pedido comercial.</p>
+                            <Link href="/catalog" className="bg-brand-red text-white hover:bg-brand-red-dark px-6 py-2.5 rounded-full font-semibold text-sm transition-colors inline-block">
+                                Generar un Nuevo Presupuesto
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {quotes.map((q: any) => (
+                                <div key={q.quoteNumber} className="block bg-white rounded-2xl border border-surface-200 p-5 relative group">
+                                    <div className="flex items-start justify-between items-center sm:items-start flex-col sm:flex-row gap-4 sm:gap-0">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-display font-bold text-brand-red">{q.quoteNumber}</span>
+                                                {q.isConverted ? (
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Convertido a pedido</span>
+                                                ) : q.isExpired ? (
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Caducado</span>
+                                                ) : (
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Válido</span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-400 mb-2">
+                                                {new Date(q.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+                                                {" · "}{q.itemCount} producto{q.itemCount > 1 ? "s" : ""}
+                                                {q.expiresAt && !q.isConverted && !q.isExpired && ` · Válido hasta ${new Date(q.expiresAt).toLocaleDateString("es-ES")}`}
+                                            </p>
+                                            <p className="text-sm text-gray-600 max-w-md">{q.itemSummary}</p>
+                                        </div>
+                                        <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                                            <p className="font-display font-extrabold text-xl">{q.totalPrice.toFixed(2)}€</p>
+
+                                            <div className="flex items-center gap-2">
+                                                {!q.isConverted && !q.isExpired && q.buyUrl && (
+                                                    <a href={q.buyUrl} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-red text-white text-sm font-medium hover:bg-brand-red-dark transition-colors">
+                                                        <ExternalLink size={14} /> Restaurar Carrito
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+            </div>
+        </div>
+    );
+}

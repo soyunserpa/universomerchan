@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
+import Image from "next/image";
 
 import React, { useState, useEffect } from "react";
 
@@ -14,17 +14,12 @@ const companies = [
 
 function Logo({ name, src, customClass }: { name: string; src: string; customClass?: string }) {
   const [error, setError] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // We use purely typographic fallback if the image fails or before mounting prevents hydration match
-  if (!mounted || error) {
+  // We use purely typographic fallback if the image fails
+  if (error) {
     return (
       <div className="flex items-center justify-center h-16 sm:h-20 px-6 filter grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-1 transition-all duration-300">
-        <span className="font-display font-black text-xl sm:text-2xl text-gray-900 tracking-tight" suppressHydrationWarning>
+        <span className="font-display font-black text-xl sm:text-2xl text-gray-900 tracking-tight">
           {name}
         </span>
       </div>
@@ -34,9 +29,11 @@ function Logo({ name, src, customClass }: { name: string; src: string; customCla
   return (
     <div className="flex items-center justify-center h-16 sm:h-20 w-auto min-w-[130px] px-4 filter grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:-translate-y-1 transition-all duration-500 ease-out cursor-pointer relative group">
       <div className="absolute inset-0 bg-brand-red/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <img
+      <Image
         src={src}
         alt={`${name} logotipo`}
+        width={180}
+        height={80}
         className={`max-h-[90%] object-contain relative z-10 drop-shadow-sm ${customClass || 'max-w-[130px]'} ${src.includes('quierounserpa') ? 'invert hover:invert' : ''}`}
         onError={() => setError(true)}
         suppressHydrationWarning

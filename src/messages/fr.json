@@ -1,0 +1,44 @@
+{
+  "emails": {
+    "order_confirmation_subject": "Commande confirmée : {orderNumber}",
+    "order_confirmation_title": "Commande confirmée !",
+    "order_confirmation_hello": "Bonjour {firstName}, nous avons bien reçu votre commande.",
+    "order_confirmation_proof": "<strong>⏳ Prochaine étape :</strong> Votre commande inclut une personnalisation. Dans les prochaines 24 à 48 heures ouvrables, vous recevrez un nouvel e-mail contenant le <strong>bon à tirer final</strong>, que vous devrez valider depuis votre espace client avant le lancement en production.",
+    "order_number": "Numéro de commande",
+    "product": "Produit",
+    "qty": "Qté",
+    "detail": "Détail",
+    "total": "Total",
+    "delivery_estimated": "Livraison estimée : {estimatedDelivery}",
+    "view_my_order": "Voir ma commande"
+  },
+  "Header": {
+    "home": "Accueil",
+    "catalog": "Catalogue",
+    "brands": "Marques",
+    "services": "Services",
+    "blog": "Blog",
+    "contact": "Contact",
+    "search": "Rechercher des produits...",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "profile": "Mon Profil",
+    "logout": "Se déconnecter"
+  },
+  "Footer": {
+    "about": "À propos",
+    "terms": "Conditions Générales",
+    "privacy": "Politique de confidentialité",
+    "cookies": "Politique des cookies",
+    "faq": "FAQ",
+    "custom_product": "Créez votre produit",
+    "contact": "Contact",
+    "follow_us": "Suivez-nous",
+    "all_rights": "Tous droits réservés."
+  },
+  "Common": {
+    "cart": "Panier",
+    "view_all": "Voir tout",
+    "checkout": "Passer la commande"
+  }
+}

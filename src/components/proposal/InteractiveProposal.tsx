@@ -1,7 +1,7 @@
 "use client";
 
 import { Package, ExternalLink, MessageCircle, Mail } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useEffect } from "react";
 
 export default function InteractiveProposal({ productDataMap }: { productDataMap: any }) {

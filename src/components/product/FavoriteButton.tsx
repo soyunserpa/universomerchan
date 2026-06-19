@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { useFavorites } from "@/lib/favorites-store";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/routing";;
 
 export function FavoriteButton({ productId, variant = "icon" }: { productId: number, variant?: "icon" | "button" }) {
   const { isFavorite, toggleFavorite } = useFavorites();

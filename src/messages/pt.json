@@ -1,0 +1,44 @@
+{
+  "emails": {
+    "order_confirmation_subject": "Pedido confirmado: {orderNumber}",
+    "order_confirmation_title": "Pedido confirmado!",
+    "order_confirmation_hello": "Olá {firstName}, recebemos o seu pedido.",
+    "order_confirmation_proof": "<strong>⏳ Próximo passo:</strong> O seu pedido inclui personalização. Nas próximas 24-48 horas úteis, você receberá um novo email com a <strong>prova final</strong>, que deverá aprovar no seu painel antes de passar para a produção.",
+    "order_number": "Número do pedido",
+    "product": "Produto",
+    "qty": "Qtd",
+    "detail": "Detalhe",
+    "total": "Total",
+    "delivery_estimated": "Entrega estimada: {estimatedDelivery}",
+    "view_my_order": "Ver meu pedido"
+  },
+  "Header": {
+    "home": "Início",
+    "catalog": "Catálogo",
+    "brands": "Marcas",
+    "services": "Serviços",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "search": "Pesquisar produtos...",
+    "login": "Iniciar sessão",
+    "register": "Registar",
+    "profile": "O meu perfil",
+    "logout": "Terminar sessão"
+  },
+  "Footer": {
+    "about": "Sobre Nós",
+    "terms": "Termos e Condições",
+    "privacy": "Política de Privacidade",
+    "cookies": "Política de Cookies",
+    "faq": "Perguntas Frequentes",
+    "custom_product": "Crie o seu próprio produto",
+    "contact": "Contacto",
+    "follow_us": "Siga-nos",
+    "all_rights": "Todos os direitos reservados."
+  },
+  "Common": {
+    "cart": "Carrinho",
+    "view_all": "Ver todos",
+    "checkout": "Finalizar Compra"
+  }
+}

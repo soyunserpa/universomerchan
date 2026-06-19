@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { ArrowRight, ArrowLeft, Mail, CheckCircle2, Loader2, Sparkles, X } from "lucide-react";
 
 type Answer = { value: string; label: string };

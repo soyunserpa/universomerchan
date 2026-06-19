@@ -1,11 +1,13 @@
 "use client";
 
 import { useCart } from "@/lib/cart-store";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { X, Gift, ShoppingCart, ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function MiniCart() {
   const { state, removeItem, subtotal, itemCount, toggleCart } = useCart();
+  const tCommon = useTranslations("Common");
 
   if (!state.isOpen || state.items.length === 0) return null;
 
@@ -23,7 +25,7 @@ export function MiniCart() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-surface-200">
           <div className="flex items-center gap-2">
             <ShoppingCart size={18} className="text-brand-red" />
-            <span className="font-display font-bold text-base">Tu carrito ({itemCount})</span>
+            <span className="font-display font-bold text-base">{tCommon("cart")} ({itemCount})</span>
           </div>
           <button onClick={() => toggleCart(false)} className="text-gray-400 hover:text-gray-600 p-1" title="Cerrar carrito">
             <X size={18} />
@@ -93,7 +95,7 @@ export function MiniCart() {
               onClick={() => toggleCart(false)}
               className="w-full bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors"
             >
-              Finalizar pedido <ArrowRight size={16} />
+              {tCommon("checkout")} <ArrowRight size={16} />
             </Link>
             <button
               onClick={() => toggleCart(false)}

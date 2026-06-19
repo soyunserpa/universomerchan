@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";;
 import { Leaf, ArrowUpDown, Star } from "lucide-react";
 
 interface CatalogFiltersProps {

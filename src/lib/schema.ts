@@ -108,6 +108,8 @@ export const users = pgTable("users", {
   // Metadata
   emailVerified: boolean("email_verified").default(false),
   isActive: boolean("is_active").default(true),
+  locale: varchar("locale", { length: 5 }).default("es").notNull(),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
@@ -219,6 +221,16 @@ export const products = pgTable("products", {
   lastSyncedAt: timestamp("last_synced_at"),
   rawApiData: jsonb("raw_api_data"),                    // Full Midocean API response for this product
   
+  // European Translations
+  translations: jsonb("translations").$type<{
+    en?: { productName: string; shortDescription: string; longDescription: string };
+    fr?: { productName: string; shortDescription: string; longDescription: string };
+    de?: { productName: string; shortDescription: string; longDescription: string };
+    it?: { productName: string; shortDescription: string; longDescription: string };
+    pt?: { productName: string; shortDescription: string; longDescription: string };
+    nl?: { productName: string; shortDescription: string; longDescription: string };
+  }>(),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -417,6 +429,7 @@ export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   orderNumber: varchar("order_number", { length: 30 }).notNull().unique(), // UM-2026-XXXX
   userId: integer("user_id").notNull().references(() => users.id),
+  locale: varchar("locale", { length: 5 }).default("es").notNull(),
   
   // Status
   status: orderStatusEnum("status").default("draft").notNull(),
@@ -683,6 +696,7 @@ export const blogPosts = pgTable("blog_posts", {
   excerpt: text("excerpt"),               // Short description for cards
   body: text("body").notNull(),           // Full HTML/markdown content
   featuredImageUrl: text("featured_image_url"),  // Uploaded by admin
+  translations: jsonb("translations"),    // Multi-language JSON
   
   // SEO
   metaTitle: varchar("meta_title", { length: 200 }),
@@ -708,6 +722,7 @@ export const staticPages = pgTable("static_pages", {
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   title: varchar("title", { length: 200 }).notNull(),
   body: text("body").notNull(),           // HTML content
+  translations: jsonb("translations"),    // Multi-language JSON
   metaTitle: varchar("meta_title", { length: 200 }),
   metaDescription: varchar("meta_description", { length: 300 }),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

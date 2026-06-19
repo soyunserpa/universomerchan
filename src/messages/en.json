@@ -1,0 +1,44 @@
+{
+  "emails": {
+    "order_confirmation_subject": "Order confirmed: {orderNumber}",
+    "order_confirmation_title": "Order confirmed!",
+    "order_confirmation_hello": "Hello {firstName}, we have received your order.",
+    "order_confirmation_proof": "<strong>⏳ Next step:</strong> Your order includes customization. Within the next 24-48 business hours, you will receive a new email with the <strong>final proof</strong> which you must approve in your panel before it goes into production.",
+    "order_number": "Order number",
+    "product": "Product",
+    "qty": "Qty.",
+    "detail": "Detail",
+    "total": "Total",
+    "delivery_estimated": "Estimated delivery: {estimatedDelivery}",
+    "view_my_order": "View my order"
+  },
+  "Header": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "brands": "Brands",
+    "services": "Services",
+    "blog": "Blog",
+    "contact": "Contact",
+    "search": "Search products...",
+    "login": "Log In",
+    "register": "Sign Up",
+    "profile": "My Profile",
+    "logout": "Log Out"
+  },
+  "Footer": {
+    "about": "About Us",
+    "terms": "Terms and Conditions",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookies Policy",
+    "faq": "FAQ",
+    "custom_product": "Create your own product",
+    "contact": "Contact",
+    "follow_us": "Follow Us",
+    "all_rights": "All rights reserved."
+  },
+  "Common": {
+    "cart": "Cart",
+    "view_all": "View all",
+    "checkout": "Checkout"
+  }
+}

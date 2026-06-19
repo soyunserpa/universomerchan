@@ -58,6 +58,7 @@ export async function createOrderFromCart(params: {
   expressShipping?: boolean;
   customerNotes?: string;
   couponCode?: string;
+  locale?: string;
 }): Promise<{ orderId: number; orderNumber: string; finalShippingCost: number; totalPrice: number }> {
   const { userId, items, shippingAddress, expressShipping, customerNotes, couponCode } = params;
 
@@ -96,8 +97,19 @@ export async function createOrderFromCart(params: {
   const userDiscountPct = parseFloat(user?.discountPercent?.toString() || "0");
   
   let baseShippingCost = 0.00;
-  if (subtotal < 100) baseShippingCost = 16.00;
-  else if (subtotal < 300) baseShippingCost = 8.00;
+  
+  const country = params.shippingAddress.country || "ES";
+  if (country === "ES") {
+    if (subtotal < 100) baseShippingCost = 16.00;
+    else if (subtotal < 300) baseShippingCost = 8.00;
+  } else {
+    // Midocean European Export Matrix
+    const EUROPEAN_SHIPPING_RATES: Record<string, number> = {
+      "PT": 12.00,
+      "FR": 18.00, "DE": 18.00, "IT": 18.00, "NL": 18.00, "BE": 18.00, "AT": 18.00,
+    };
+    baseShippingCost = EUROPEAN_SHIPPING_RATES[country] || 25.00;
+  }
   
   let finalShippingCost = baseShippingCost;
 
@@ -150,6 +162,7 @@ export async function createOrderFromCart(params: {
     userId,
     status: "draft",
     orderType: orderType as any,
+    locale: params.locale || "es",
     subtotalProduct: String(subtotalProduct),
     subtotalPrint: String(subtotalPrint),
     marginProductApplied: String(marginProd),
@@ -214,8 +227,9 @@ export async function createCheckoutSession(params: {
   couponCode?: string;
   finalShippingCost: number;
   paymentMethod?: "card" | "transfer";
+  locale?: string;
 }): Promise<{ sessionUrl: string; sessionId: string }> {
-  const { orderId, orderNumber, customerName, customerEmail, shippingAddress, totalPrice, items, expressShipping, couponCode, finalShippingCost, paymentMethod } = params;
+  const { orderId, orderNumber, customerName, customerEmail, shippingAddress, totalPrice, items, expressShipping, couponCode, finalShippingCost, paymentMethod, locale } = params;
 
   // ── TAX RATES (IVA 21%) ────────────────────────────────────
   const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
@@ -333,11 +347,11 @@ export async function createCheckoutSession(params: {
       order_id: String(orderId),
       order_number: orderNumber,
     },
-    success_url: `${SITE_URL}/checkout/success?order=${orderNumber}`,
-    cancel_url: `${SITE_URL}/checkout/cancel?order=${orderNumber}`,
-    locale: "es",
+    success_url: `${SITE_URL}${locale && locale !== "es" ? `/${locale}` : ""}/checkout/success?order=${orderNumber}`,
+    cancel_url: `${SITE_URL}${locale && locale !== "es" ? `/${locale}` : ""}/checkout/cancel?order=${orderNumber}`,
+    locale: (locale === "en" ? "en" : locale === "fr" ? "fr" : locale === "de" ? "de" : locale === "it" ? "it" : locale === "pt" ? "pt" : locale === "nl" ? "nl" : "es") as Stripe.Checkout.SessionCreateParams.Locale,
 
-    payment_method_types: paymentMethod === "transfer" ? ["customer_balance"] : ["card"],
+    payment_method_types: paymentMethod === "transfer" ? ["customer_balance"] : ["card", "ideal", "bancontact", "eps", "cartes_bancaires", "blik", "p24"],
     
     payment_method_options: paymentMethod === "transfer" ? {
       customer_balance: {
@@ -518,7 +532,7 @@ async function finalizeOrder(orderId: number, isPaid: boolean, stripePaymentInte
 
   // Send confirmation email to customer
   if (user?.email) {
-    await emails.sendOrderConfirmationEmail(user.email, {
+    await emails.sendOrderConfirmationEmail(user.email, order.locale || "es", {
       firstName: user.firstName || "Cliente",
       orderNumber: order.orderNumber,
       items: orderLines.map(l => ({

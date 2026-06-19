@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/routing";;
 import { useFavorites } from "@/lib/favorites-store";
 import { useAuth } from "@/lib/auth-context";
 

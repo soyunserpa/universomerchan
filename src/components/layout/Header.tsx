@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/routing";
+import { usePathname } from "@/i18n/routing";;
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useGlobalLogo } from "@/lib/global-logo-store";
 import { Search, ShoppingCart, User, Menu, X, Loader2, Sparkles, Heart } from "lucide-react";
 import { useFavorites } from "@/lib/favorites-store";
+
+import { useTranslations } from "next-intl";
 
 export function Header() {
   const pathname = usePathname();
@@ -21,13 +23,15 @@ export function Header() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { globalLogo, globalLogoName, setGlobalLogo, clearGlobalLogo } = useGlobalLogo();
   const { favoriteIds } = useFavorites();
+  const t = useTranslations("Header");
+  const tCommon = useTranslations("Common");
 
   const navLinks = [
-    { href: "/catalog", label: "Catálogo" },
+    { href: "/catalog", label: t("catalog") },
     { href: "/#sobre-nosotros", label: "Sobre nosotros" },
     { href: "/#como-funciona", label: "Cómo funciona" },
-    { href: "/#contacto", label: "Contacto" },
-    { href: "/blog", label: "Blog" },
+    { href: "/#contacto", label: t("contact") },
+    { href: "/blog", label: t("blog") },
   ];
 
   // Debounced live search
@@ -101,7 +105,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" aria-label="Inicio Universo Merchan" className="flex items-center group">
-          <img src="/images/logo.svg" alt="Universo Merchan" className="h-10 transition-transform group-hover:scale-105" />
+          <img src="/images/logo.svg" alt="Universo Merchan" width={116} height={40} className="h-10 w-auto transition-transform group-hover:scale-105" />
         </Link>
 
         {/* Desktop Nav */}
@@ -152,7 +156,7 @@ export function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar..."
+                  placeholder={t("search")}
                   autoFocus
                   className="w-56 lg:w-72 px-4 py-2 text-sm border border-surface-200 rounded-full font-body shadow-sm focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
                 />
@@ -240,7 +244,7 @@ export function Header() {
                           onClick={(e) => handleSearch(e as any)}
                           className="w-full text-center text-xs font-bold text-brand-red py-2 hover:underline rounded transition-colors"
                         >
-                          Ver todos los resultados para "{searchQuery}"
+                          {tCommon("view_all")} "{searchQuery}"
                         </button>
                       </div>
                     )}
@@ -254,7 +258,7 @@ export function Header() {
                 className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red pt-1"
               >
                 <Search size={20} className="transition-transform group-hover:-translate-y-0.5" />
-                <span className="text-[10px] font-bold hidden md:block transition-colors">Buscar</span>
+                <span className="text-[10px] font-bold hidden md:block transition-colors">{tCommon("search") || "Buscar"}</span>
               </button>
             )}
           </div>
@@ -274,7 +278,7 @@ export function Header() {
           {/* User */}
           <Link aria-label="Mi Cuenta" href="/account/orders" className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red pt-1">
             <User size={20} className="transition-transform group-hover:-translate-y-0.5" />
-            <span className="text-[10px] font-bold hidden md:block transition-colors">Mi Cuenta</span>
+            <span className="text-[10px] font-bold hidden md:block transition-colors">{t("profile")}</span>
           </Link>
 
           {/* Cart */}
@@ -291,7 +295,7 @@ export function Header() {
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-bold hidden md:block transition-colors">Carrito</span>
+            <span className="text-[10px] font-bold hidden md:block transition-colors">{tCommon("cart")}</span>
           </button>
 
           {/* Mobile menu toggle */}
@@ -324,7 +328,7 @@ export function Header() {
               onClick={() => setMobileOpen(false)}
               className="block py-2.5 text-sm font-medium text-gray-600 hover:text-brand-red"
             >
-              Mi cuenta
+              {t("profile")}
             </Link>
           </div>
         </div>

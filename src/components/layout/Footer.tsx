@@ -1,8 +1,10 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Gift } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export function Footer() {
+  const t = useTranslations("Footer");
   return (
     <footer className="bg-gray-900 text-white mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-6">
@@ -40,9 +42,9 @@ export function Footer() {
             <h3 className="font-display font-bold text-sm text-white mb-4">Empresa</h3>
             {[
               { label: "Asistente IA", href: "/quiz" },
-              { label: "Sobre nosotros", href: "/#sobre-nosotros" },
+              { label: t("about"), href: "/#sobre-nosotros" },
               { label: "Cómo funciona", href: "/#como-funciona" },
-              { label: "Contacto", href: "/#contacto" },
+              { label: t("contact"), href: "/#contacto" },
             ].map((l) => (
               <Link key={l.label} href={l.href} className="block text-sm text-white hover:text-white mb-2 transition-colors">
                 {l.label}
@@ -54,10 +56,10 @@ export function Footer() {
           <div>
             <h3 className="font-display font-bold text-sm text-white mb-4">Legal</h3>
             {[
-              { label: "Política de Privacidad", href: "/legal/privacidad" },
-              { label: "Política de Cookies", href: "/legal/cookies" },
+              { label: t("privacy"), href: "/legal/privacidad" },
+              { label: t("cookies"), href: "/legal/cookies" },
               { label: "Aviso Legal", href: "/legal/aviso-legal" },
-              { label: "Términos y Condiciones", href: "/legal/terminos" },
+              { label: t("terms"), href: "/legal/terminos" },
             ].map((l) => (
               <Link key={l.label} href={l.href} className="block text-sm text-white hover:text-white mb-2 transition-colors">
                 {l.label}

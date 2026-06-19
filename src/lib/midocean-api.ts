@@ -199,10 +199,10 @@ export interface MidoceanProduct {
   }>;
 }
 
-export async function fetchAllProducts(): Promise<MidoceanProduct[]> {
-  console.log("[Midocean Sync] Fetching all products (language=es)...");
-  const data = await midoceanGet<MidoceanProduct[]>("/products/2.0?language=es");
-  console.log(`[Midocean Sync] Received ${data.length} products`);
+export async function fetchAllProducts(language: string = "es"): Promise<MidoceanProduct[]> {
+  console.log(`[Midocean Sync] Fetching all products (language=${language})...`);
+  const data = await midoceanGet<MidoceanProduct[]>(`/products/2.0?language=${language}`);
+  console.log(`[Midocean Sync] Received ${data.length} products for ${language}`);
   return data;
 }
 

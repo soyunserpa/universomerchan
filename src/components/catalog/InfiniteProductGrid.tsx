@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { loadMoreProducts } from "@/app/catalog/actions";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Search } from "lucide-react";
 import { Loader2 } from "lucide-react";
 

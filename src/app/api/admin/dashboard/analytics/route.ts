@@ -10,7 +10,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
     const token = authHeader.split(" ")[1];
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || "default_secret"));
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.AUTH_SECRET || "universo-merchan-default-secret-change-me"));
     if (payload.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }

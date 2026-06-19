@@ -1,0 +1,44 @@
+{
+  "emails": {
+    "order_confirmation_subject": "Bestelling bevestigd: {orderNumber}",
+    "order_confirmation_title": "Bestelling bevestigd!",
+    "order_confirmation_hello": "Hallo {firstName}, we hebben uw bestelling ontvangen.",
+    "order_confirmation_proof": "<strong>⏳ Volgende stap:</strong> Uw bestelling bevat een personalisatie. Binnen 24-48 werkuren ontvangt u een nieuwe e-mail met de <strong>definitieve proefdruk</strong>, die u in uw account moet goedkeuren voordat deze in productie gaat.",
+    "order_number": "Bestelnummer",
+    "product": "Product",
+    "qty": "Aant.",
+    "detail": "Detail",
+    "total": "Totaal",
+    "delivery_estimated": "Verwachte levering: {estimatedDelivery}",
+    "view_my_order": "Bekijk mijn bestelling"
+  },
+  "Header": {
+    "home": "Home",
+    "catalog": "Catalogus",
+    "brands": "Merken",
+    "services": "Diensten",
+    "blog": "Blog",
+    "contact": "Contact",
+    "search": "Producten zoeken...",
+    "login": "Inloggen",
+    "register": "Registreren",
+    "profile": "Mijn profiel",
+    "logout": "Uitloggen"
+  },
+  "Footer": {
+    "about": "Over ons",
+    "terms": "Algemene Voorwaarden",
+    "privacy": "Privacybeleid",
+    "cookies": "Cookiebeleid",
+    "faq": "Veelgestelde vragen",
+    "custom_product": "Maak uw eigen product",
+    "contact": "Contact",
+    "follow_us": "Volg ons",
+    "all_rights": "Alle rechten voorbehouden."
+  },
+  "Common": {
+    "cart": "Winkelwagen",
+    "view_all": "Bekijk alles",
+    "checkout": "Afrekenen"
+  }
+}

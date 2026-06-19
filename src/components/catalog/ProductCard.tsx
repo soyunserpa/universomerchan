@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { Leaf, Palette, Star, Heart } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { useAuth } from "@/lib/auth-context";
 import { useGlobalLogo } from "@/lib/global-logo-store";
 import { useFavorites } from "@/lib/favorites-store";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/routing";;
 
 export function ProductCard({ product, index, isTopVenta }: { product: CatalogProductResponse; index: number; isTopVenta?: boolean }) {
   const { user, isAuthenticated } = useAuth();

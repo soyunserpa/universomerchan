@@ -99,12 +99,29 @@ export async function sendWelcomeEmail(to: string, firstName: string) {
   return sendEmail({ emailType: "welcome", recipientType: "customer", to, subject: "¡Bienvenido/a a Universo Merchan!", html: T(`<h2 style="font-size:24px;font-weight:800">¡Hola ${firstName}!</h2><p style="color:#666;line-height:1.7">Bienvenido/a a Universo Merchan. Explora más de 2.000 productos personalizables.</p><p style="text-align:center"><a href="${SITE_URL}/catalog" class="btn">Explorar catálogo</a></p>`, "Ya puedes personalizar productos") });
 }
 
-export async function sendOrderConfirmationEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string; items: Array<{ name: string; quantity: number; color: string; technique?: string }>; totalPrice: string; estimatedDelivery: string; invoicePdfUrl?: string }) {
+import { translateEmail } from "./email-locales";
+
+export async function sendOrderConfirmationEmail(to: string, locale: string = "es", d: { orderId?: number; firstName: string; orderNumber: string; items: Array<{ name: string; quantity: number; color: string; technique?: string }>; totalPrice: string; estimatedDelivery: string; invoicePdfUrl?: string }) {
   const hasPrint = d.items.some(i => i.technique);
   const rows = d.items.map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px">${i.name}</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;text-align:center">${i.quantity} uds</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;text-align:right">${i.color}${i.technique ? ` · ${i.technique}` : ""}</td></tr>`).join("");
-  const proofNotice = hasPrint ? `<div class="ab" style="background:#FEF3C7;margin-bottom:16px"><p style="font-size:13px;color:#92400E;margin:0"><strong>⏳ Próximo paso:</strong> Tu pedido incluye personalización. En las próximas 24-48h hábiles recibirás un nuevo email con el <strong>boceto final</strong> que deberás aprobar en tu panel antes de que pase a producción.</p></div>` : "";
+  
+  const subjectText = translateEmail(locale, "order_confirmation_subject", `Pedido confirmado: ${d.orderNumber}`, { orderNumber: d.orderNumber });
+  const titleText = translateEmail(locale, "order_confirmation_title", "¡Pedido confirmado!");
+  const helloText = translateEmail(locale, "order_confirmation_hello", `Hola ${d.firstName}, hemos recibido tu pedido.`, { firstName: d.firstName });
+  const proofText = translateEmail(locale, "order_confirmation_proof", "<strong>⏳ Próximo paso:</strong> Tu pedido incluye personalización. En las próximas 24-48h hábiles recibirás un nuevo email con el <strong>boceto final</strong> que deberás aprobar en tu panel antes de que pase a producción.");
+  
+  const proofNotice = hasPrint ? `<div class="ab" style="background:#FEF3C7;margin-bottom:16px"><p style="font-size:13px;color:#92400E;margin:0">${proofText}</p></div>` : "";
   const invoiceBtn = d.invoicePdfUrl ? `<br><br><a href="${d.invoicePdfUrl}" class="btn btn-dark" style="margin-top:0">📄 Descargar Factura (PDF)</a>` : "";
-  return sendEmail({ emailType: "order_confirmation", recipientType: "customer", orderId: d.orderId, to, subject: `Pedido confirmado: ${d.orderNumber}`, html: T(`<h2 style="font-size:24px;font-weight:800">¡Pedido confirmado!</h2><p style="color:#666">Hola ${d.firstName}, hemos recibido tu pedido.</p>${proofNotice}<div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0"><p style="font-size:13px;color:#888;margin:0 0 4px">Número de pedido</p><p style="font-size:20px;font-weight:800;color:#DE0121;margin:0">${d.orderNumber}</p></div><table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #111"><th style="text-align:left;padding:8px 0;font-size:12px;color:#888">Producto</th><th style="text-align:center;padding:8px 0;font-size:12px;color:#888">Cant.</th><th style="text-align:right;padding:8px 0;font-size:12px;color:#888">Detalle</th></tr></thead><tbody>${rows}</tbody></table><div class="price-box"><p style="font-size:13px;color:#888;margin:0 0 4px">Total</p><p class="price-total" style="margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#888;margin:8px 0 0">Entrega estimada: ${d.estimatedDelivery}</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Ver mi pedido</a>${invoiceBtn}</p>`) });
+  
+  const orderNumberLabel = translateEmail(locale, "order_number", "Número de pedido");
+  const productLabel = translateEmail(locale, "product", "Producto");
+  const qtyLabel = translateEmail(locale, "qty", "Cant.");
+  const detailLabel = translateEmail(locale, "detail", "Detalle");
+  const totalLabel = translateEmail(locale, "total", "Total");
+  const deliveryLabel = translateEmail(locale, "delivery_estimated", `Entrega estimada: ${d.estimatedDelivery}`, { estimatedDelivery: d.estimatedDelivery });
+  const viewOrderBtn = translateEmail(locale, "view_my_order", "Ver mi pedido");
+
+  return sendEmail({ emailType: "order_confirmation", recipientType: "customer", orderId: d.orderId, to, subject: subjectText, html: T(`<h2 style="font-size:24px;font-weight:800">${titleText}</h2><p style="color:#666">${helloText}</p>${proofNotice}<div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0"><p style="font-size:13px;color:#888;margin:0 0 4px">${orderNumberLabel}</p><p style="font-size:20px;font-weight:800;color:#DE0121;margin:0">${d.orderNumber}</p></div><table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #111"><th style="text-align:left;padding:8px 0;font-size:12px;color:#888">${productLabel}</th><th style="text-align:center;padding:8px 0;font-size:12px;color:#888">${qtyLabel}</th><th style="text-align:right;padding:8px 0;font-size:12px;color:#888">${detailLabel}</th></tr></thead><tbody>${rows}</tbody></table><div class="price-box"><p style="font-size:13px;color:#888;margin:0 0 4px">${totalLabel}</p><p class="price-total" style="margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#888;margin:8px 0 0">${deliveryLabel}</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">${viewOrderBtn}</a>${invoiceBtn}</p>`) });
 }
 
 export async function sendProofReadyEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string; productName: string; proofUrl: string }) {

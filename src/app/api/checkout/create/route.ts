@@ -9,7 +9,7 @@ import type { CartItem } from "@/lib/configurator-engine";
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { items, shippingAddress, expressShipping, customerNotes, userId, couponCode, paymentMethod } = body as {
+        const { items, shippingAddress, expressShipping, customerNotes, userId, couponCode, paymentMethod, locale } = body as {
             items: CartItem[];
             shippingAddress: { name: string; company?: string; cif?: string; street: string; postalCode: string; city: string; country: string; email: string; phone: string; };
             expressShipping?: boolean;
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
             userId: number;
             couponCode?: string;
             paymentMethod?: "card" | "transfer";
+            locale?: string;
         };
 
         if (!items || items.length === 0) return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 });
@@ -29,14 +30,43 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        if (userId) {
+        let finalUserId = userId;
+
+        if (!finalUserId) {
+            // Ghost User Generator
+            const existingUser = await db.query.users.findFirst({ where: eq(schema.users.email, shippingAddress.email) });
+            if (existingUser) {
+                finalUserId = existingUser.id;
+            } else {
+                const crypto = require("crypto");
+                const [newUser] = await db.insert(schema.users).values({
+                    email: shippingAddress.email,
+                    passwordHash: crypto.randomBytes(16).toString("hex"),
+                    firstName: shippingAddress.name.split(" ")[0],
+                    lastName: shippingAddress.name.split(" ").slice(1).join(" ") || undefined,
+                    role: "user",
+                    companyName: shippingAddress.company || undefined,
+                    cif: shippingAddress.cif || undefined,
+                    phone: shippingAddress.phone || undefined,
+                    shippingStreet: shippingAddress.street || undefined,
+                    shippingCity: shippingAddress.city || undefined,
+                    shippingPostalCode: shippingAddress.postalCode || undefined,
+                    locale: locale || "es",
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }).returning();
+                finalUserId = newUser.id;
+            }
+        }
+
+        if (finalUserId) {
             try {
                 // Background profile update. Splitting full name back.
                 const nameParts = shippingAddress.name.split(" ");
                 const firstName = nameParts[0];
                 const lastName = nameParts.slice(1).join(" ");
 
-                await updateProfile(userId, {
+                await updateProfile(finalUserId, {
                     firstName: firstName || undefined,
                     lastName: lastName || undefined,
                     phone: shippingAddress.phone || undefined,
@@ -45,7 +75,8 @@ export async function POST(req: NextRequest) {
                     shippingStreet: shippingAddress.street || undefined,
                     shippingPostalCode: shippingAddress.postalCode || undefined,
                     shippingCity: shippingAddress.city || undefined,
-                    shippingCountry: shippingAddress.country || "ES"
+                    shippingCountry: shippingAddress.country || "ES",
+                    locale: locale || "es"
                 });
             } catch (pErr) {
                 console.error("[API] Checkout background profile update failed:", pErr);
@@ -53,11 +84,12 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        const { orderId, orderNumber, finalShippingCost, totalPrice } = await createOrderFromCart({ userId, items, shippingAddress, expressShipping, customerNotes, couponCode });
+        const { orderId, orderNumber, finalShippingCost, totalPrice } = await createOrderFromCart({ userId: finalUserId, items, shippingAddress, expressShipping, customerNotes, couponCode, locale });
         
         if (totalPrice <= 0) {
             await processFreeOrder(orderId);
-            return NextResponse.json({ success: true, orderNumber, checkoutUrl: `/checkout/success?order=${orderNumber}` });
+            const prefix = (locale && locale !== "es") ? `/${locale}` : "";
+            return NextResponse.json({ success: true, orderNumber, checkoutUrl: `${prefix}/checkout/success?order=${orderNumber}` });
         }
 
         const { sessionUrl, sessionId } = await createCheckoutSession({ 
@@ -71,7 +103,8 @@ export async function POST(req: NextRequest) {
             expressShipping: expressShipping || false, 
             couponCode, 
             finalShippingCost, 
-            paymentMethod 
+            paymentMethod,
+            locale
         });
 
         return NextResponse.json({ success: true, orderNumber, checkoutUrl: sessionUrl, sessionId });

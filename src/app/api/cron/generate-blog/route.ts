@@ -44,43 +44,43 @@ export async function POST(req: Request) {
       {
         type: "Guía de Compra",
         topics: [
-          "Cómo elegir el mejor regalo corporativo según tu presupuesto",
-          "Guía de botellas personalizadas: materiales y precios",
-          "Regalos para clientes VIP: ideas premium",
-          "Regalos empresa por menos de 3€ que no parecen baratos",
-          "Guía de tazas personalizadas para empresas"
+          "¿Cómo elegir el mejor regalo corporativo según tu presupuesto?",
+          "¿Qué materiales y precios tienen las botellas personalizadas?",
+          "¿Cuáles son los mejores regalos premium para clientes VIP?",
+          "¿Qué regalos de empresa por menos de 3€ no parecen baratos?",
+          "¿Cómo elegir tazas personalizadas para mi empresa?"
         ],
-        prompt: `Escribe una guía de compra de [TEMA] para empresas españolas que buscan merchandising personalizado. Estructura exacta: 1. Título H1 con keyword (máx 65 char), 2. Intro de 100 palabras: problema + para quién es esta guía, 3. H2: Qué mirar antes de comprar, 4. H2: Comparativa de opciones, 5. H2: Recomendación según tipo de empresa/evento, 6. H2: Preguntas frecuentes (3-4), 7. Conclusión persuasiva animando a comprar (usa un H2 natural, NUNCA escribas la palabra "CTA"). Tono profesional, directo, sin frases vacías y con precios orientativos reales.`
+        prompt: `Escribe una guía de compra sobre [TEMA] para empresas españolas que buscan merchandising personalizado. Estructura exacta: 1. Intro de 100 palabras: problema + para quién es esta guía, 2. H2: Qué mirar antes de comprar, 3. H2: Comparativa de opciones, 4. H2: Recomendación según tipo de empresa/evento, 5. H2: Preguntas frecuentes (3-4), 6. Conclusión persuasiva animando a comprar (usa un H2 natural, NUNCA escribas la palabra "CTA"). Tono profesional, directo, sin frases vacías y con precios orientativos reales.`
       },
       {
         type: "Comparativa Técnica",
         topics: [
-          "Serigrafía vs grabado láser vs DTF vs sublimación",
-          "Acero inoxidable vs vidrio vs bambú para botellas",
-          "Algodón orgánico vs RPET vs yute para bolsas",
-          "Cerámica vs vidrio vs acero para tazas"
+          "¿Qué técnica elegir: Serigrafía, grabado láser, DTF o sublimación?",
+          "¿Qué material es mejor para botellas: Acero inoxidable, vidrio o bambú?",
+          "¿Algodón orgánico, RPET o yute para bolsas?",
+          "¿Es mejor cerámica, vidrio o acero para tazas de empresa?"
         ],
-        prompt: `Escribe una comparativa técnica entre [TEMA] para merchandising corporativo en España. Estructura: 1. Título H1 formato '[A] vs [B]: guía', 2. Intro breve, 3. Tabla comparativa HTML con 5 criterios, 4. H2 detalle de cada opción, 5. H2 'Cuándo elegir cada una', 6. Conclusión persuasiva (NUNCA uses la palabra "CTA" en el subtítulo). Precios reales en euros, tono directo.`
+        prompt: `Escribe una comparativa técnica sobre [TEMA] para merchandising corporativo en España. Estructura: 1. Intro breve, 2. Tabla comparativa HTML con 5 criterios, 3. H2 detalle de cada opción, 4. H2 'Cuándo elegir cada una', 5. Conclusión persuasiva (NUNCA uses la palabra "CTA" en el subtítulo). Precios reales en euros, tono directo.`
       },
       {
         type: "Checklist / How-To",
         topics: [
-          "Checklist: cómo preparar el merchandising para una feria",
-          "Cómo hacer tu primer pedido de merchandising personalizado",
-          "Cómo calcular el coste real de un regalo corporativo",
-          "7 errores al pedir merchandising por primera vez"
+          "¿Cómo preparar correctamente el merchandising para una feria?",
+          "¿Cómo hacer tu primer pedido de merchandising personalizado?",
+          "¿Cómo calcular el coste real de un regalo corporativo?",
+          "¿Cuáles son los 7 errores al pedir merchandising por primera vez?"
         ],
-        prompt: `Escribe un artículo práctico tipo checklist sobre [TEMA] para responsables de RRHH o compras. Estructura: 1. Título práctico H1, 2. Intro del problema, 3. Checklist de 6-10 pasos numerados, 4. Sección de 3-5 errores comunes, 5. Párrafo de cierre animando a comprar (NUNCA escribas la palabra "CTA"). Tono directo, sin relleno, aportando valor práctico.`
+        prompt: `Escribe un artículo práctico tipo checklist sobre [TEMA] para responsables de RRHH o compras. Estructura: 1. Intro del problema, 2. H2: Checklist de 6-10 pasos numerados, 3. H2: Sección de 3-5 errores comunes, 4. Párrafo de cierre animando a comprar (NUNCA escribas la palabra "CTA"). Tono directo, sin relleno, aportando valor práctico.`
       },
       {
         type: "Caso de Uso por Sector",
         topics: [
-          "Merchandising para gimnasios y centros fitness",
-          "Regalos corporativos para empresas tech y startups",
-          "Merchandising para el sector educativo",
-          "Regalos empresa para el sector salud y farmacéutico"
+          "¿Cómo usar el merchandising en gimnasios y centros fitness?",
+          "¿Qué regalos corporativos funcionan en empresas tech y startups?",
+          "¿Qué merchandising elegir para el sector educativo?",
+          "¿Cuáles son los mejores regalos para el sector salud y farmacéutico?"
         ],
-        prompt: `Escribe un artículo sobre cómo el sector de [TEMA] puede usar merchandising. Estructura: 1. Título H1 'Merchandising para [sector]: X ideas', 2. Intro del contexto, 3. 4-5 ideas de productos concretos con link, 4. Ejemplo práctico realista (sin inventar marcas), 5. Cierre persuasivo hacia nuestra tienda (NUNCA escribas la palabra "CTA"). Sin emojis ni relleno.`
+        prompt: `Escribe un artículo sobre [TEMA]. Estructura: 1. Intro del contexto, 2. H2: 4-5 ideas de productos concretos con link, 3. H2: Ejemplo práctico realista (sin inventar marcas), 4. Cierre persuasivo hacia nuestra tienda (NUNCA escribas la palabra "CTA"). Sin emojis ni relleno.`
       },
       {
         type: "FAQ / Educativo corto",
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
           "¿Qué diferencia hay entre serigrafía y tampografía?",
           "¿Se puede personalizar con colores Pantone exactos?"
         ],
-        prompt: `Responde la pregunta «[TEMA]» para alguien que busca merchandising en España. Estructura: 1. H1: la pregunta exacta, 2. Respuesta directa en 2 frases, 3. Explicación detallada, 4. Ejemplo práctico, 5. Despedida y llamada a la acción (NUNCA escribas la palabra "CTA"). Al grano y muy útil.`
+        prompt: `Responde la pregunta «[TEMA]» para alguien que busca merchandising en España. Estructura: 1. Respuesta directa en 2 frases, 2. H2: Explicación detallada, 3. H2: Ejemplo práctico, 4. Despedida y llamada a la acción (NUNCA escribas la palabra "CTA"). Al grano y muy útil.`
       }
     ];
 
@@ -189,13 +189,13 @@ REGLAS DE ORO:
 
 Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
 {
-  "title": "Título con keyword (máx. 65 caracteres)",
-  "metaDescription": "Metadescripción con CTA (máx. 155 caracteres)",
+  "title": "Título EN FORMATO DE PREGUNTA que incluya la keyword (estrictamente entre 50 y 60 caracteres)",
+  "metaDescription": "Metadescripción atractiva (máx. 155 caracteres)",
   "excerpt": "Párrafo breve introductorio.",
   "linkedinPost": "Un micro-post B2B para LinkedIn: 1) Hook inicial sin emoji, 2) Cuerpo aportando valor real, 3) 3 hashtags del sector.",
   "linkedinComment": "Texto simple exacto: 'La guía completa la tienes aquí: [enlace]'.",
   "imagePrompt": "Un prompt en inglés descriptivo ultra-detallado para gpt-image-2 que genere la imagen corporativa fotorealista perfecta para el artículo. (Sin texto)",
-  "body": "El artículo en HTML semántico (<h2>, <p>, <ul>, <strong>). Siguiendo las instrucciones de estructura exactas pedidas por el usuario. Directamente los elementos interiores sin html ni body."
+  "body": "El artículo en HTML semántico (<h2>, <h3>, <p>, <ul>, <strong>). MUY IMPORTANTE: ESTÁ ESTRICTAMENTE PROHIBIDO USAR LA ETIQUETA <h1> DENTRO DEL BODY. El artículo debe empezar directamente con párrafos introductorios o <h2>. Siguiendo las instrucciones de estructura pedidas."
 }`
         },
         {

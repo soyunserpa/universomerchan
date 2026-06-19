@@ -1,0 +1,44 @@
+{
+  "emails": {
+    "order_confirmation_subject": "Bestellung bestätigt: {orderNumber}",
+    "order_confirmation_title": "Bestellung bestätigt!",
+    "order_confirmation_hello": "Hallo {firstName}, wir haben Ihre Bestellung erhalten.",
+    "order_confirmation_proof": "<strong>⏳ Nächster Schritt:</strong> Ihre Bestellung beinhaltet eine Personalisierung. In den nächsten 24-48 Werktagen erhalten Sie eine neue E-Mail mit dem <strong>endgültigen Entwurf</strong>, den Sie in Ihrem Konto genehmigen müssen, bevor er in die Produktion geht.",
+    "order_number": "Bestellnummer",
+    "product": "Produkt",
+    "qty": "Menge",
+    "detail": "Detail",
+    "total": "Gesamt",
+    "delivery_estimated": "Voraussichtliche Lieferung: {estimatedDelivery}",
+    "view_my_order": "Meine Bestellung ansehen"
+  },
+  "Header": {
+    "home": "Startseite",
+    "catalog": "Katalog",
+    "brands": "Marken",
+    "services": "Dienstleistungen",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "search": "Produkte suchen...",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "profile": "Mein Profil",
+    "logout": "Abmelden"
+  },
+  "Footer": {
+    "about": "Über uns",
+    "terms": "Allgemeine Geschäftsbedingungen",
+    "privacy": "Datenschutz",
+    "cookies": "Cookie-Richtlinie",
+    "faq": "Häufige Fragen",
+    "custom_product": "Eigenes Produkt erstellen",
+    "contact": "Kontakt",
+    "follow_us": "Folgen Sie uns",
+    "all_rights": "Alle Rechte vorbehalten."
+  },
+  "Common": {
+    "cart": "Warenkorb",
+    "view_all": "Alle ansehen",
+    "checkout": "Zur Kasse"
+  }
+}

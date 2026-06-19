@@ -130,6 +130,7 @@ export async function getPublishedPosts(params?: {
   page?: number;
   limit?: number;
   search?: string;
+  locale?: string;
 }): Promise<{ posts: any[]; total: number }> {
   const page = params?.page || 1;
   const limit = params?.limit || 12;
@@ -156,21 +157,34 @@ export async function getPublishedPosts(params?: {
     .offset(offset);
 
   return {
-    posts: posts.map(p => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      excerpt: p.excerpt || (p.body ? p.body.replace(/<[^>]*>/g, "").substring(0, 160) + "..." : ""),
-      featuredImage: p.featuredImageUrl,
-      publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : null,
-      authorName: p.authorName || "Universo Merchan",
-    })),
+    posts: posts.map(p => {
+      let tTitle = p.title;
+      let tExcerpt = p.excerpt;
+      let tBody = p.body;
+      if (params?.locale && params.locale !== "es" && p.translations) {
+        const trans = (p.translations as any)[params.locale];
+        if (trans) {
+          if (trans.title) tTitle = trans.title;
+          if (trans.excerpt) tExcerpt = trans.excerpt;
+          if (trans.body) tBody = trans.body;
+        }
+      }
+      return {
+        id: p.id,
+        slug: p.slug,
+        title: tTitle,
+        excerpt: tExcerpt || (tBody ? tBody.replace(/<[^>]*>/g, "").substring(0, 160) + "..." : ""),
+        featuredImage: p.featuredImageUrl,
+        publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : null,
+        authorName: p.authorName || "Universo Merchan",
+      };
+    }),
     total: Number(countResult[0].count),
   };
 }
 
 // GET — Single post by slug (public)
-export async function getPostBySlug(slug: string): Promise<any | null> {
+export async function getPostBySlug(slug: string, locale?: string): Promise<any | null> {
   const post = await db.query.blogPosts?.findFirst?.({
     where: and(
       eq(blogPosts.slug, slug),
@@ -179,6 +193,17 @@ export async function getPostBySlug(slug: string): Promise<any | null> {
   }) || (await db.select().from(blogPosts).where(and(eq(blogPosts.slug, slug), eq(blogPosts.isPublished, true))).limit(1))[0];
 
   if (!post) return null;
+
+  if (locale && locale !== "es" && post.translations) {
+    const trans = (post.translations as any)[locale];
+    if (trans) {
+      if (trans.title) post.title = trans.title;
+      if (trans.excerpt) post.excerpt = trans.excerpt;
+      if (trans.body) post.body = trans.body;
+      if (trans.metaTitle) post.metaTitle = trans.metaTitle;
+      if (trans.metaDescription) post.metaDescription = trans.metaDescription;
+    }
+  }
 
   return {
     id: post.id,

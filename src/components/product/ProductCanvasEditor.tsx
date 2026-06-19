@@ -492,13 +492,13 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
             {/* Upload button */}
             {activeZoneData && (
               <div className="mt-3 flex justify-center">
-                <button
-                  onClick={() => document.getElementById(`logo-upload-${activeZone}`)?.click()}
-                  className="bg-white text-brand-red text-xs font-semibold px-4 py-2 rounded-full shadow-sm border border-brand-red/20 hover:bg-brand-red hover:text-white transition-colors flex items-center gap-2"
+                <label
+                  htmlFor={`logo-upload-${activeZone}`}
+                  className="cursor-pointer bg-white text-brand-red text-xs font-semibold px-4 py-2 rounded-full shadow-sm border border-brand-red/20 hover:bg-brand-red hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Upload size={14} />
                   {activeLogoData ? "Cambiar logo" : "Subir logo"}
-                </button>
+                </label>
               </div>
             )}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Instagram, Play, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useEffect, useState } from "react";
 
 export function InstagramSection() {
@@ -45,12 +45,14 @@ export function InstagramSection() {
           {manualLinks.map((url, index) => (
             <div key={index} className="w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-200">
                <iframe 
+                  title={`Publicación de Instagram ${index + 1}`}
                   src={url} 
                   width="100%" 
                   height="450" 
                   frameBorder="0" 
                   scrolling="no" 
                   allowTransparency={true}
+                  loading="lazy"
                   className="w-full"
                ></iframe>
             </div>
