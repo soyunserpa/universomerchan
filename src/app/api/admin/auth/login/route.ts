@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       user: result.user,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: "Error de autenticación" }, { status: 500 });
+    console.error("Login Error:", error); return NextResponse.json({ error: "Error de autenticación" }, { status: 500 });
   }
 }
 

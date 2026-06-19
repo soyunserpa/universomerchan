@@ -143,10 +143,10 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
     ));
 
   // Total customers
-  const customersResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.users)
-    .where(eq(schema.users.role, "customer"));
+  const customersResult = await db.select({ count: sql<number>`count(*)` }).from(schema.users).where(eq(schema.users.role, "customer"));
+  const totalCustomers = Number(customersResult[0].count);
+  const newCustomersResult = await db.select({ count: sql<number>`count(*)` }).from(schema.users).where(and(eq(schema.users.role, "customer"), gte(schema.users.createdAt, startOfMonth)));
+  const conversionRate = Number(newCustomersResult[0].count) > 0 ? (ordersThisMonth / Number(newCustomersResult[0].count)) * 100 : 0;
 
   // New customers this month
   const newCustomersResult = await db
