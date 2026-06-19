@@ -25,6 +25,8 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '*.midocean.com' },
       { protocol: 'https', hostname: 'images.midocean.com' },
+      { protocol: 'https', hostname: 'universomerchan.com' },
+      { protocol: 'https', hostname: 'www.universomerchan.com' },
     ],
   },
   typescript: {

@@ -148,6 +148,20 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
     .from(schema.users)
     .where(eq(schema.users.role, "customer"));
 
+  // New customers this month
+  const newCustomersResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.users)
+    .where(and(
+      eq(schema.users.role, "customer"),
+      gte(schema.users.createdAt, startOfMonth)
+    ));
+
+  // Conversion rate (orders this month / new customers this month * 100)
+  // Or maybe total customers. Let's use new customers.
+  const newCustomers = Number(newCustomersResult[0].count);
+  const conversionRate = newCustomers > 0 ? (ordersThisMonth / newCustomers) * 100 : 0;
+
   // --- B2B METRICS CALCULATION ---
 
   // 1. Profit (Margen Real)

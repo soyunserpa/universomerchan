@@ -15,6 +15,7 @@ import { useEffect, Suspense } from "react";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
 import { useGlobalLogo } from "@/lib/global-logo-store";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 // ============================================================
 // CONSTANTS
@@ -833,9 +834,13 @@ function ProductConfiguratorInner({ product }: Props) {
                 <FavoriteButton productId={product.id} variant="icon" />
               </div>
               {variant.images && variant.images.length > 0 ? (
-                <img src={variant.images[activeImageIndex]?.urlHiRes || variant.images[activeImageIndex]?.url} alt={product.name} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+                <div className="relative w-[85%] h-[85%] mix-blend-multiply">
+                  <Image src={variant.images[activeImageIndex]?.urlHiRes || variant.images[activeImageIndex]?.url} alt={product.name} fill sizes="(max-width: 768px) 100vw, 800px" className="object-contain" />
+                </div>
               ) : variant.mainImage ? (
-                <img src={variant.mainImage} alt={product.name} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+                <div className="relative w-[85%] h-[85%] mix-blend-multiply">
+                  <Image src={variant.mainImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 800px" className="object-contain" />
+                </div>
               ) : (
                 <Gift size={60} className="text-gray-200" />
               )}
@@ -851,7 +856,9 @@ function ProductConfiguratorInner({ product }: Props) {
                     className={`w-16 h-16 flex-shrink-0 rounded-xl bg-surface-50 border-2 flex items-center justify-center overflow-hidden transition-all ${activeImageIndex === i ? "border-brand-red ring-2 ring-brand-red/20 shadow-sm" : "border-surface-200 hover:border-gray-300"
                       }`}
                   >
-                    <img src={img.url} alt={`Vista ${i + 1}`} className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+                    <div className="relative w-[85%] h-[85%] mix-blend-multiply">
+                      <Image src={img.url} alt={`Vista ${i + 1}`} fill sizes="100px" className="object-contain" />
+                    </div>
                   </button>
                 ))}
               </div>
@@ -1066,7 +1073,11 @@ function ProductConfiguratorInner({ product }: Props) {
               />
             ) : (
               <div className="w-full aspect-square bg-surface-50 rounded-3xl relative flex items-center justify-center overflow-hidden">
-                {variant.mainImage && <img src={variant.mainImage} alt={product.name} className="w-[68%] h-[68%] object-contain" />}
+                {variant.mainImage && (
+                  <div className="relative w-[68%] h-[68%]">
+                    <Image src={variant.mainImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 600px" className="object-contain" />
+                  </div>
+                )}
                 <div className="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md">Sin zonas de impresión disponibles</div>
               </div>
             )}

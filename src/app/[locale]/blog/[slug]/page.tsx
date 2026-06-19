@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Clock, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Metadata } from "next";
+import Image from "next/image";
 import { ShareButton } from "@/components/blog/ShareButton";
 
 export async function generateMetadata({ params }: { params: { slug: string, locale: string } }): Promise<Metadata> {
@@ -115,11 +116,14 @@ export default async function BlogPostPage({ params }: { params: { slug: string,
       {/* Featured Image */}
       {post.featuredImage && (
         <div className="container-custom max-w-4xl mx-auto -mt-12 md:-mt-24 relative z-20 mb-16">
-          <div className="aspect-[21/9] w-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 border-4 border-white">
-            <img 
+          <div className="aspect-[21/9] w-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 border-4 border-white relative">
+            <Image 
               src={post.featuredImage} 
               alt={post.title} 
-              className="w-full h-full object-cover"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              className="object-cover"
             />
           </div>
         </div>
