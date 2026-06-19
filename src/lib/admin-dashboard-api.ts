@@ -49,9 +49,16 @@ export interface DashboardKPIs {
   pendingErrors: number;      // Unresolved errors
   lowStockAlerts: number;
 
-  // Users
-  totalCustomers: number;
-  newCustomersThisMonth: number;
+  // B2B & CRM Metrics
+  profitThisMonth: number;
+  profitChangePercent: number;
+  quoteConversionRate: number;
+  retentionRate: number;
+  leadsNewThisMonth: number;
+  leadsActive: number;
+  leadsWonThisMonth: number;
+  leadWinRate: number;
+  abandonedCartRate: number;
 }
 
 export async function getDashboardKPIs(): Promise<DashboardKPIs> {
@@ -141,17 +148,125 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
     .from(schema.users)
     .where(eq(schema.users.role, "customer"));
 
-  const newCustomersResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.users)
+  // --- B2B METRICS CALCULATION ---
+
+  // 1. Profit (Margen Real)
+  // Calculamos profit = Sum(unitPriceSell - unitPriceMidocean)*qty - Sum(printTotalCost)
+  // We approximate using the order lines for paid orders this month.
+  const linesThisMonth = await db
+    .select({
+      qty: schema.orderLines.quantity,
+      priceSell: schema.orderLines.unitPriceSell,
+      priceBuy: schema.orderLines.unitPriceMidocean,
+      printCost: schema.orderLines.printTotalCost
+    })
+    .from(schema.orderLines)
+    .innerJoin(schema.orders, eq(schema.orderLines.orderId, schema.orders.id))
     .where(and(
-      eq(schema.users.role, "customer"),
-      gte(schema.users.createdAt, startOfMonth)
+      gte(schema.orders.paidAt, startOfMonth),
+      sql`${schema.orders.status} NOT IN ('draft', 'cancelled', 'error')`
     ));
 
-  // Conversion rate approximation
-  const totalCustomers = Number(customersResult[0].count);
-  const conversionRate = totalCustomers > 0 ? (ordersThisMonth / totalCustomers) * 100 : 0;
+  let profitThisMonth = 0;
+  for (const line of linesThisMonth) {
+    const revenue = Number(line.priceSell || 0) * line.qty;
+    const cost = Number(line.priceBuy || 0) * line.qty;
+    const print = Number(line.printCost || 0);
+    profitThisMonth += (revenue - cost - print);
+  }
+
+  const linesLastMonth = await db
+    .select({
+      qty: schema.orderLines.quantity,
+      priceSell: schema.orderLines.unitPriceSell,
+      priceBuy: schema.orderLines.unitPriceMidocean,
+      printCost: schema.orderLines.printTotalCost
+    })
+    .from(schema.orderLines)
+    .innerJoin(schema.orders, eq(schema.orderLines.orderId, schema.orders.id))
+    .where(and(
+      gte(schema.orders.paidAt, startOfLastMonth),
+      lte(schema.orders.paidAt, endOfLastMonth),
+      sql`${schema.orders.status} NOT IN ('draft', 'cancelled', 'error')`
+    ));
+
+  let profitLastMonth = 0;
+  for (const line of linesLastMonth) {
+    const revenue = Number(line.priceSell || 0) * line.qty;
+    const cost = Number(line.priceBuy || 0) * line.qty;
+    const print = Number(line.printCost || 0);
+    profitLastMonth += (revenue - cost - print);
+  }
+
+  // 2. Quote Conversion Rate
+  const totalQuotes = await db.select({ count: sql<number>`count(*)` }).from(schema.quotes);
+  const convertedQuotes = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.quotes)
+    .where(sql`${schema.quotes.convertedToOrderId} IS NOT NULL`);
+  
+  const quoteConversionRate = Number(totalQuotes[0].count) > 0 
+    ? (Number(convertedQuotes[0].count) / Number(totalQuotes[0].count)) * 100 
+    : 0;
+
+  // 3. Retention Rate (Orders from users who have > 1 order)
+  const userOrderCounts = await db
+    .select({
+      userId: schema.orders.userId,
+      orderCount: count(schema.orders.id)
+    })
+    .from(schema.orders)
+    .where(and(
+      sql`${schema.orders.status} NOT IN ('draft', 'cancelled', 'error')`,
+      sql`${schema.orders.userId} IS NOT NULL`
+    ))
+    .groupBy(schema.orders.userId);
+
+  let returningUsersOrders = 0;
+  let totalValidOrders = 0;
+  for (const u of userOrderCounts) {
+    totalValidOrders += Number(u.orderCount);
+    if (Number(u.orderCount) > 1) {
+      returningUsersOrders += Number(u.orderCount);
+    }
+  }
+  const retentionRate = totalValidOrders > 0 ? (returningUsersOrders / totalValidOrders) * 100 : 0;
+
+  // 4. CRM Leads Metrics
+  const leadsNewResult = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.leads)
+    .where(and(
+      eq(schema.leads.status, "NEW"),
+      gte(schema.leads.createdAt, startOfMonth)
+    ));
+  
+  const leadsActiveResult = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.leads)
+    .where(sql`${schema.leads.status} IN ('CONTACTED', 'PROPOSAL_SENT')`);
+
+  const leadsWonResult = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.leads)
+    .where(and(
+      eq(schema.leads.status, "WON"),
+      gte(schema.leads.updatedAt, startOfMonth)
+    ));
+
+  const totalLeadsResult = await db.select({ count: sql<number>`count(*)` }).from(schema.leads);
+  const totalWonLeadsResult = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.leads).where(eq(schema.leads.status, "WON"));
+
+  const leadWinRate = Number(totalLeadsResult[0].count) > 0
+    ? (Number(totalWonLeadsResult[0].count) / Number(totalLeadsResult[0].count)) * 100
+    : 0;
+
+  // 5. Abandoned Cart Rate
+  const totalCarts = await db.select({ count: sql<number>`count(*)` }).from(schema.orders);
+  const abandonedCarts = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.orders)
+    .where(sql`${schema.orders.status} IN ('draft', 'pending_payment')`);
+  
+  const abandonedCartRate = Number(totalCarts[0].count) > 0
+    ? (Number(abandonedCarts[0].count) / Number(totalCarts[0].count)) * 100
+    : 0;
 
   const pctChange = (curr: number, prev: number) =>
     prev > 0 ? Math.round(((curr - prev) / prev) * 100) : curr > 0 ? 100 : 0;
@@ -174,6 +289,15 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
     lowStockAlerts: Number(lowStockResult[0].count),
     totalCustomers,
     newCustomersThisMonth: Number(newCustomersResult[0].count),
+    profitThisMonth: Math.round(profitThisMonth * 100) / 100,
+    profitChangePercent: pctChange(profitThisMonth, profitLastMonth),
+    quoteConversionRate: Math.round(quoteConversionRate * 10) / 10,
+    retentionRate: Math.round(retentionRate * 10) / 10,
+    leadsNewThisMonth: Number(leadsNewResult[0].count),
+    leadsActive: Number(leadsActiveResult[0].count),
+    leadsWonThisMonth: Number(leadsWonResult[0].count),
+    leadWinRate: Math.round(leadWinRate * 10) / 10,
+    abandonedCartRate: Math.round(abandonedCartRate * 10) / 10
   };
 }
 

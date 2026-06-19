@@ -5,7 +5,8 @@ import { useAdminAuth } from "@/components/admin/AdminLayout";
 import { Link } from "@/i18n/routing";
 import {
   TrendingUp, Package, ShoppingCart, Users, Eye, AlertTriangle,
-  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Zap, Globe, MousePointer, Activity
+  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Zap, Globe, MousePointer, Activity,
+  PiggyBank, FileText, Repeat, Target, MessageSquare, CheckCircle, Percent
 } from "lucide-react";
 
 interface KPIs {
@@ -15,6 +16,11 @@ interface KPIs {
   conversionRate: number; activeOrders: number;
   proofsAwaitingApproval: number; pendingErrors: number;
   lowStockAlerts: number; totalCustomers: number; newCustomersThisMonth: number;
+  profitThisMonth: number; profitChangePercent: number;
+  quoteConversionRate: number; retentionRate: number;
+  leadsNewThisMonth: number; leadsActive: number;
+  leadsWonThisMonth: number; leadWinRate: number;
+  abandonedCartRate: number;
 }
 interface ChartPoint { monthLabel: string; revenue: number; orders: number }
 interface TopProduct { productName: string; totalRevenue: number; percentOfTotal: number; orderCount: number }
@@ -70,9 +76,13 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {[
             { label: "Ventas este mes", value: `${kpis.revenueThisMonth.toFixed(0)}€`, change: kpis.revenueChangePercent, icon: TrendingUp },
+            { label: "Beneficio Neto", value: `${kpis.profitThisMonth.toFixed(0)}€`, change: kpis.profitChangePercent, icon: PiggyBank },
+            { label: "Ticket medio B2B", value: `${kpis.avgTicketThisMonth.toFixed(0)}€`, change: kpis.avgTicketChangePercent, icon: BarChart3 },
             { label: "Pedidos", value: kpis.ordersThisMonth, change: kpis.ordersChangePercent, icon: ShoppingCart },
-            { label: "Ticket medio", value: `${kpis.avgTicketThisMonth.toFixed(0)}€`, change: kpis.avgTicketChangePercent, icon: BarChart3 },
+            { label: "Tasa de Retención", value: `${kpis.retentionRate}%`, change: 0, icon: Repeat },
+            { label: "Conversión Presupuestos", value: `${kpis.quoteConversionRate}%`, change: 0, icon: FileText },
             { label: "Clientes nuevos", value: kpis.newCustomersThisMonth, change: 0, icon: Users },
+            { label: "Carritos Abandonados", value: `${kpis.abandonedCartRate}%`, change: 0, icon: AlertTriangle },
           ].map((k, i) => (
             <div key={i} className="bg-white rounded-xl p-5 border border-surface-200">
               <div className="flex justify-between items-start mb-2">
@@ -87,6 +97,64 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* CRM & Leads Funnel */}
+      {kpis && (
+        <div className="bg-white rounded-xl border border-surface-200 p-5 mb-6">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="font-display font-bold text-sm flex items-center gap-2">
+              <Target size={16} className="text-brand-red" />
+              Rendimiento Comercial (CRM Leads B2B)
+            </h2>
+            <span className="text-xs text-gray-400">Embudo de conversión histórico</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 relative">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Users size={16} />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Nuevos Leads</span>
+                </div>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-gray-900">{kpis.leadsNewThisMonth}</p>
+              <p className="text-[10px] text-gray-500 mt-1">Entrantes este mes</p>
+            </div>
+
+            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 relative">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2 text-amber-600">
+                  <MessageSquare size={16} />
+                  <span className="text-xs font-semibold uppercase tracking-wider">En Negociación</span>
+                </div>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-gray-900">{kpis.leadsActive}</p>
+              <p className="text-[10px] text-gray-500 mt-1">Propuestas enviadas o contactados</p>
+            </div>
+
+            <div className="p-4 bg-green-50/50 rounded-xl border border-green-100 relative">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle size={16} />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Ganados</span>
+                </div>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-gray-900">{kpis.leadsWonThisMonth}</p>
+              <p className="text-[10px] text-gray-500 mt-1">Cerrados con éxito este mes</p>
+            </div>
+
+            <div className="p-4 bg-brand-red/5 rounded-xl border border-brand-red/20 relative">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2 text-brand-red">
+                  <Percent size={16} />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Win Rate General</span>
+                </div>
+              </div>
+              <p className="font-display font-extrabold text-2xl text-brand-red">{kpis.leadWinRate}%</p>
+              <p className="text-[10px] text-gray-500 mt-1">Tasa histórica de conversión CRM</p>
+            </div>
+          </div>
         </div>
       )}
 
