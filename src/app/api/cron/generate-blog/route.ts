@@ -95,10 +95,11 @@ export async function POST(req: Request) {
     ];
 
     const randomStrategy = strategies[Math.floor(Math.random() * strategies.length)];
-    const randomTopic = randomStrategy.topics[Math.floor(Math.random() * randomStrategy.topics.length)];
-    const specificPrompt = randomStrategy.prompt.replace("[TEMA]", randomTopic);
+    // En lugar de forzar un tema exacto que choca con la regla de no repetir, le damos los temas como inspiración
+    const examplesText = randomStrategy.topics.join(" | ");
+    const specificPrompt = randomStrategy.prompt.replace("[TEMA]", `un tema NUEVO, ORIGINAL y ESPECÍFICO (inspirado en estos ejemplos: ${examplesText}) que NO se haya tratado recientemente`);
 
-    console.log(`[Blog Cron] Iniciando estrategia: ${randomStrategy.type} | Tema: ${randomTopic}`);
+    console.log(`[Blog Cron] Iniciando estrategia: ${randomStrategy.type}`);
 
     let productContext = "";
     try {
@@ -139,7 +140,7 @@ Menciónalos de forma natural en tu artículo usando EXACTAMENTE la 'url' propor
         limit: 10
       });
       if (recentPosts.length > 0) {
-        recentTitlesContext = `\n\nARTÍCULOS PUBLICADOS RECIENTEMENTE (PROHIBIDO REPETIR ESTOS TEMAS EXACTOS):\n${recentPosts.map(p => `- ${p.title}`).join('\n')}`;
+        recentTitlesContext = `\n\nARTÍCULOS PUBLICADOS RECIENTEMENTE (¡ESTRICTAMENTE PROHIBIDO REPETIR O PARAFRASEAR ESTOS TEMAS!):\n${recentPosts.map(p => `- ${p.title}`).join('\n')}`;
       }
     } catch (err) {
       console.error("[Blog Cron] No se pudieron cargar artículos recientes para el contexto", err);
@@ -184,6 +185,7 @@ REGLAS DE ORO:
 - Usa "tú", no "usted". Máximo 1 exclamación por artículo.
 - Integra mínimo 3 hipervínculos internamente a categorías en el HTML simulado de manera natural y no forzada.
 - VERIFICACIÓN CRÍTICA DE PRODUCTOS: Es un error gravísimo hablar de "una taza" y enlazar a "una camiseta". Consulta el CATÁLOGO JSON que se te proporciona y escoge SOLO productos cuya 'categoria' o 'nombre' tengan coherencia directa con lo que estás escribiendo.
+- REGLA ESTRICTA CONTRA CONTENIDO DUPLICADO: Revisa la lista de 'ARTÍCULOS PUBLICADOS RECIENTEMENTE'. Tienes PROHIBIDO generar un artículo que trate sobre el mismo tema, comparativa o producto principal que los recientes. Inventa un ángulo totalmente nuevo. Si ya se habló de "Bolsas de algodón vs RPET", elige otro producto como "Mochilas antirrobo", "Cuadernos ecológicos", etc.
 - SEO AVANZADO: A Google le gusta la semántica clara. Prioriza la indexabilidad estructurando correctamente los H2 y H3. OBLIGATORIO: Integra de forma completamente natural en el texto las palabras clave estratégicas "camisetas personalizadas" y "regalos corporativos sostenibles" al menos una vez cuando el contexto lo permita.
 - ESTRATEGIA DE LINKEDIN INTACTA: Mantén la estrategia actual de LinkedIn devolviendo correctamente el objeto JSON con el post corto que genera valor directo y el comentario con el enlace, no alteres esta estructura técnica.
 
