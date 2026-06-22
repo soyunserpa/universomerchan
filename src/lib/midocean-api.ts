@@ -312,6 +312,12 @@ export async function fetchAllPrintData(): Promise<MidoceanPrintData[]> {
     products = [];
   }
   for (const product of products) {
+    // La API printdata/1.0 de Midocean entrega las zonas en `printing_positions`.
+    // Aliasamos a `print_positions` para que el resto del código (syncPrintData,
+    // tipo MidoceanPrintData) las vea. SIN esto el sync borra las zonas y no reinserta.
+    if (!(product as any).print_positions && (product as any).printing_positions) {
+      (product as any).print_positions = (product as any).printing_positions;
+    }
     for (const pos of product.print_positions || []) {
       if (!pos.techniques && (pos as any).printing_techniques) {
         pos.techniques = (pos as any).printing_techniques.map((t: any) => ({

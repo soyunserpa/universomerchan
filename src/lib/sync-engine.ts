@@ -472,11 +472,16 @@ export async function syncPrintData(): Promise<{ updated: number }> {
     const printData = await midocean.fetchAllPrintData();
 
     for (const product of printData) {
-      // Delete existing positions for this product and re-insert
-      await db.delete(schema.printPositions)
-        .where(eq(schema.printPositions.masterCode, product.master_code));
+      // Midocean entrega las zonas en `printing_positions` (NO `print_positions`).
+      const positions = (product as any).printing_positions || (product as any).print_positions || [];
+      // Solo borramos + reinsertamos si la API devolvió zonas para este producto.
+      // Así nunca se borran datos buenos por una respuesta vacía/parcial (causa del wipe anterior).
+      if (positions.length > 0) {
+        await db.delete(schema.printPositions)
+          .where(eq(schema.printPositions.masterCode, product.master_code));
+      }
 
-      for (const position of product.print_positions || []) {
+      for (const position of positions) {
         // Canvas V2: Extract points and blank images from Midocean data
         const points = (position as any).points || [];
         const images = (position as any).images || [];
