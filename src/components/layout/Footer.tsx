@@ -15,23 +15,23 @@ export function Footer() {
               <Image src="/logos/universo-merchan-white.png" alt="Universo Merchan" width={200} height={40} className="h-10 w-auto" />
             </div>
             <p className="text-sm text-white leading-relaxed max-w-xs">
-              Consigue que tu marca se recuerde. Regalos corporativos que generan emociones y conexiones reales.
+              {t("brand_tagline")}
             </p>
             <p className="text-sm text-white mt-3">#GeneraEmociones</p>
           </div>
 
           {/* Catalog */}
           <div>
-            <h3 className="font-display font-bold text-sm text-white mb-4">Catálogo</h3>
+            <h3 className="font-display font-bold text-sm text-white mb-4">{t("catalog")}</h3>
             {[
-              { label: "Botellas y termos", search: "botella" },
-              { label: "Libretas y blocs", search: "libreta" },
-              { label: "Textil", search: "camiseta" },
-              { label: "Bolsas", search: "bolsa" },
-              { label: "Tazas y vasos", search: "taza" },
-              { label: "Escritura", search: "bolígrafo" }
+              { label: t("cat_bottles"), search: "botella" },
+              { label: t("cat_notebooks"), search: "libreta" },
+              { label: t("cat_textile"), search: "camiseta" },
+              { label: t("cat_bags"), search: "bolsa" },
+              { label: t("cat_mugs"), search: "taza" },
+              { label: t("cat_writing"), search: "bolígrafo" }
             ].map((c) => (
-              <Link key={c.label} href={`/catalog?search=${encodeURIComponent(c.search)}`} className="block text-sm text-white hover:text-white mb-2 transition-colors">
+              <Link key={c.search} href={`/catalog?search=${encodeURIComponent(c.search)}`} className="block text-sm text-white hover:text-white mb-2 transition-colors">
                 {c.label}
               </Link>
             ))}
@@ -39,14 +39,14 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="font-display font-bold text-sm text-white mb-4">Empresa</h3>
+            <h3 className="font-display font-bold text-sm text-white mb-4">{t("company")}</h3>
             {[
-              { label: "Asistente IA", href: "/quiz" },
+              { label: t("ai_assistant"), href: "/quiz" },
               { label: t("about"), href: "/#sobre-nosotros" },
-              { label: "Cómo funciona", href: "/#como-funciona" },
+              { label: t("how_it_works"), href: "/#como-funciona" },
               { label: t("contact"), href: "/#contacto" },
             ].map((l) => (
-              <Link key={l.label} href={l.href} className="block text-sm text-white hover:text-white mb-2 transition-colors">
+              <Link key={l.href} href={l.href} className="block text-sm text-white hover:text-white mb-2 transition-colors">
                 {l.label}
               </Link>
             ))}
@@ -54,14 +54,14 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-display font-bold text-sm text-white mb-4">Legal</h3>
+            <h3 className="font-display font-bold text-sm text-white mb-4">{t("legal")}</h3>
             {[
               { label: t("privacy"), href: "/legal/privacidad" },
               { label: t("cookies"), href: "/legal/cookies" },
-              { label: "Aviso Legal", href: "/legal/aviso-legal" },
+              { label: t("legal_notice"), href: "/legal/aviso-legal" },
               { label: t("terms"), href: "/legal/terminos" },
             ].map((l) => (
-              <Link key={l.label} href={l.href} className="block text-sm text-white hover:text-white mb-2 transition-colors">
+              <Link key={l.href} href={l.href} className="block text-sm text-white hover:text-white mb-2 transition-colors">
                 {l.label}
               </Link>
             ))}
@@ -69,15 +69,15 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-display font-bold text-sm text-white mb-4">Contacto</h3>
+            <h3 className="font-display font-bold text-sm text-white mb-4">{t("contact_heading")}</h3>
             <p className="text-sm text-white mb-2">pedidos@universomerchan.com</p>
-            <p className="text-sm text-white mb-2">Madrid, España</p>
+            <p className="text-sm text-white mb-2">{t("location")}</p>
           </div>
         </div>
 
         <div className="border-t border-gray-800 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span className="text-sm text-white">© {new Date().getFullYear()} Universo Merchan. Todos los derechos reservados.</span>
-          <span className="text-sm text-white">Producción 80% europea · Entrega &lt;10 días</span>
+          <span className="text-sm text-white">© {new Date().getFullYear()} Universo Merchan. {t("all_rights")}</span>
+          <span className="text-sm text-white">{t("europe_note")}</span>
         </div>
       </div>
     </footer>
