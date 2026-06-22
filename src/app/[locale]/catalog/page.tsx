@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from "@/i18n/routing";
+import { getTranslations } from "next-intl/server";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { InfiniteProductGrid } from "@/components/catalog/InfiniteProductGrid";
@@ -21,6 +22,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const color = searchParams.color || "Todos";
   const budget = searchParams.budget || "";
   const limit = 24;
+  const t = await getTranslations("Catalog");
 
   const [result, categories, subcategories] = await Promise.all([
     getProductList({
@@ -41,8 +43,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-display font-extrabold text-3xl mb-2">Catálogo</h1>
-        {search && <p className="text-gray-900 text-sm">Resultados para &quot;{search}&quot;</p>}
+        <h1 className="font-display font-extrabold text-3xl mb-2">{t("title")}</h1>
+        {search && <p className="text-gray-900 text-sm">{t("results_for", { search })}</p>}
       </div>
 
       {/* Search bar */}
@@ -56,17 +58,17 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             type="text"
             name="search"
             defaultValue={search}
-            placeholder="Buscar productos, materiales, categorías..."
+            placeholder={t("search_placeholder")}
             className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-full text-sm font-body"
           />
         </form>
-        <span className="text-sm text-gray-900 hidden sm:block">{result.total} productos</span>
+        <span className="text-sm text-gray-900 hidden sm:block">{t("product_count", { count: result.total })}</span>
       </div>
 
       {/* Mini Asistente Wizard */}
       <form action="/catalog" method="GET" className="bg-white border border-surface-200 rounded-2xl p-5 sm:p-6 flex flex-col lg:flex-row items-center gap-5 shadow-sm mb-8 w-full">
         <span className="font-semibold text-gray-900 whitespace-nowrap text-sm lg:text-base text-center lg:text-left flex-shrink-0">
-          Encuentra merchandising rápido:
+          {t("wizard_label")}
         </span>
         <div className="flex w-full gap-3 flex-col sm:flex-row">
           <select 
@@ -76,13 +78,13 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             className="flex-1 bg-surface-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-red outline-none cursor-pointer text-gray-700"
             defaultValue={category === "Todos" ? "" : category}
           >
-            <option value="">¿Buscas algún tipo en concreto?</option>
-            <option value="Bolsos y viajes">🎒 Mochilas y Bolsas</option>
-            <option value="Oficina y escritura">🖊️ Oficina y Escritura</option>
-            <option value="Bebidas y comidas">☕ Tazas y Botellas</option>
-            <option value="Tecnología">💻 Tecnología y Accesorios</option>
-            <option value="Hogar y bienestar">🏡 Hogar y Bienestar</option>
-            <option value="Lanyards y eventos">🎟️ Lanyards y Eventos</option>
+            <option value="">{t("wizard_cat_placeholder")}</option>
+            <option value="Bolsos y viajes">{t("wizard_cat_backpacks")}</option>
+            <option value="Oficina y escritura">{t("wizard_cat_office")}</option>
+            <option value="Bebidas y comidas">{t("wizard_cat_drinkware")}</option>
+            <option value="Tecnología">{t("wizard_cat_tech")}</option>
+            <option value="Hogar y bienestar">{t("wizard_cat_home")}</option>
+            <option value="Lanyards y eventos">{t("wizard_cat_events")}</option>
           </select>
           <select 
             name="budget"
@@ -91,14 +93,14 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             className="flex-1 bg-surface-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-red outline-none cursor-pointer text-gray-700"
             defaultValue={budget || ""}
           >
-            <option value="">🤑 Cualquier Presupuesto</option>
-            <option value="under_1">Menos de 1€ / ud</option>
-            <option value="1_to_5">Entre 1€ y 5€ / ud</option>
-            <option value="5_to_20">Entre 5€ y 20€ / ud</option>
-            <option value="over_20">Más de 20€ / ud</option>
+            <option value="">{t("wizard_budget_any")}</option>
+            <option value="under_1">{t("wizard_budget_under1")}</option>
+            <option value="1_to_5">{t("wizard_budget_1to5")}</option>
+            <option value="5_to_20">{t("wizard_budget_5to20")}</option>
+            <option value="over_20">{t("wizard_budget_over20")}</option>
           </select>
           <button type="submit" className="bg-brand-red text-white font-bold px-8 py-3 rounded-xl hover:bg-red-700 transition-all hover:shadow-md text-center">
-            Ver sugerencias
+            {t("see_suggestions")}
           </button>
         </div>
       </form>
@@ -126,22 +128,22 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                 {
                   bgClass: "bg-gradient-to-br from-brand-red to-red-800 text-white",
                   labelClass: "text-black font-black bg-white px-3 py-1 rounded inline-block",
-                  title: "¿No encuentras lo que buscas?",
-                  desc: "Tenemos acceso a más de 10.000 referencias en catálogo. Cuéntanos qué necesitas y lo buscamos para ti a precio de fábrica.",
+                  title: t("banner1_title"),
+                  desc: t("banner1_desc"),
                   buttonClass: "bg-black text-white hover:bg-white hover:text-black shadow-black/20"
                 },
                 {
                   bgClass: "bg-gradient-to-br from-surface-50 to-surface-200 text-gray-900 border border-surface-200",
                   labelClass: "text-brand-red",
-                  title: "Preparamos tus campañas y eventos",
-                  desc: "Anticípate a tus ferias o welcome packs de empleados. Pide presupuesto por volumen y sorpréndete con nuestros descuentos.",
+                  title: t("banner2_title"),
+                  desc: t("banner2_desc"),
                   buttonClass: "bg-brand-red text-white hover:bg-black hover:text-white shadow-brand-red/20"
                 },
                 {
                   bgClass: "bg-gradient-to-br from-gray-900 to-black text-white",
                   labelClass: "text-brand-red",
-                  title: "¿Tienes un proyecto a medida?",
-                  desc: "Nuestro equipo de expertos te asesora de forma gratuita para encontrar los regalos perfectos para tu próxima campaña corporativa. ¡Sin compromiso!",
+                  title: t("banner3_title"),
+                  desc: t("banner3_desc"),
                   buttonClass: "bg-white text-gray-900 hover:bg-brand-red hover:text-white shadow-brand-red/20"
                 }
               ];
@@ -155,12 +157,12 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                   {i === 11 && (
                     <div className={`col-span-1 sm:col-span-2 lg:col-span-3 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between shadow-xl my-6 md:my-8 hover-lift ${activeBanner.bgClass}`}>
                       <div className="mb-6 md:mb-0 max-w-xl text-center md:text-left">
-                        <span className={`font-bold tracking-wider text-sm mb-3 block uppercase ${activeBanner.labelClass}`}>Atención personalizada</span>
+                        <span className={`font-bold tracking-wider text-sm mb-3 block uppercase ${activeBanner.labelClass}`}>{t("banner_label")}</span>
                         <h3 className="text-3xl md:text-4xl font-display font-extrabold mb-3">{activeBanner.title}</h3>
                         <p className="text-lg opacity-90">{activeBanner.desc}</p>
                       </div>
                       <a href="https://api.whatsapp.com/send/?phone=34614446640&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" className={`font-bold px-8 py-4 rounded-full transition-all shadow-lg transform hover:-translate-y-1 text-center ${activeBanner.buttonClass}`}>
-                        Hablar con un asesor
+                        {t("banner_button")}
                       </a>
                     </div>
                   )}
@@ -175,7 +177,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
               {/* Progress Text */}
               <div className="text-center mb-4 w-full">
                 <p className="text-gray-600 tracking-tight text-sm font-medium mb-3">
-                  Has visto {Math.min(page * limit, result.total)} de {result.total} productos
+                  {t("seen_count", { seen: Math.min(page * limit, result.total), total: result.total })}
                 </p>
                 {/* Progress Bar */}
                 <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
@@ -204,11 +206,11 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                     className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-semibold rounded-full hover:bg-gray-50 hover:border-gray-300 transition duration-200 flex items-center gap-2 group shadow-sm"
                     scroll={true}
                   >
-                    <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition" /> Anterior
+                    <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition" /> {t("previous")}
                   </Link>
                 ) : (
                   <div className="px-6 py-2.5 bg-gray-50 text-gray-400 border border-transparent font-semibold rounded-full flex items-center gap-2 cursor-not-allowed opacity-70">
-                    <ChevronLeft className="w-4 h-4" /> Anterior
+                    <ChevronLeft className="w-4 h-4" /> {t("previous")}
                   </div>
                 )}
                 
@@ -228,11 +230,11 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                     className="px-6 py-2.5 bg-gray-900 border border-gray-900 text-white font-semibold rounded-full hover:bg-black hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-2 group"
                     scroll={true}
                   >
-                    Siguiente <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition" />
+                    {t("next")} <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition" />
                   </Link>
                 ) : (
                   <div className="px-6 py-2.5 bg-gray-100 text-gray-400 font-semibold rounded-full flex items-center gap-2 cursor-not-allowed opacity-70">
-                    Siguiente <ChevronRight className="w-4 h-4" />
+                    {t("next")} <ChevronRight className="w-4 h-4" />
                   </div>
                 )}
               </div>
@@ -241,10 +243,10 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         </div>
       ) : (
         <div className="text-center py-20">
-          <p className="text-gray-900 text-lg mb-2">No se encontraron productos</p>
-          <p className="text-gray-900 text-sm mb-6">Prueba con otros filtros o términos de búsqueda</p>
+          <p className="text-gray-900 text-lg mb-2">{t("no_products")}</p>
+          <p className="text-gray-900 text-sm mb-6">{t("no_products_hint")}</p>
           <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-6 py-2.5 rounded-full">
-            Ver todos los productos
+            {t("see_all_products")}
           </Link>
         </div>
       )}

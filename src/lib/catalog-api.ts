@@ -15,6 +15,57 @@ import { eq, and, like, sql, desc, asc, ilike, or, exists, inArray } from "drizz
 import * as schema from "@/lib/schema";
 import { getStartingPrice, formatPriceShort } from "@/lib/price-calculator";
 import { type CategoryMargin, resolveMarginsForCategory } from "@/lib/admin-dashboard-api";
+import { getLocale } from "next-intl/server";
+
+// ── i18n: serve Midocean product content in the visitor's language ──────────
+// Midocean delivers translations and the sync stores them in products.translations
+// as { [lang]: { productName, shortDescription, longDescription } }. Spanish ("es")
+// is the base column. We never translate products by hand: this just picks the
+// right field per locale, so new/updated products are covered automatically.
+async function getCatalogLocale(): Promise<string> {
+  // getLocale() reads the request locale (set by next-intl middleware). Outside a
+  // request scope (cron jobs, /api routes, the pack generator) it throws → fall back
+  // to Spanish, the source language.
+  try {
+    return await getLocale();
+  } catch {
+    return "es";
+  }
+}
+
+// Pick a translated field if available for this locale, else the Spanish fallback.
+function localizedField(translations: any, locale: string, field: string, fallback: string): string {
+  if (locale && locale !== "es" && translations && typeof translations === "object") {
+    const t = translations[locale];
+    if (t && typeof t[field] === "string" && t[field].trim() !== "") return t[field];
+  }
+  return fallback;
+}
+
+// Category labels: the sync stores { [esCategoryName]: { [lang]: translatedName } } in
+// admin_settings (key "category_translations"). The ES name stays the canonical filter
+// value/URL param; only the displayed label is localized. Cached for 1h.
+let cachedCategoryTrans: Record<string, Record<string, string>> | null = null;
+let lastCatTransTime = 0;
+async function loadCategoryTranslations(): Promise<Record<string, Record<string, string>>> {
+  if (cachedCategoryTrans && Date.now() - lastCatTransTime < 3600000) return cachedCategoryTrans;
+  try {
+    const row = await db.query.adminSettings.findFirst({
+      where: eq(schema.adminSettings.key, "category_translations"),
+    });
+    cachedCategoryTrans = row?.value ? JSON.parse(row.value) : {};
+  } catch {
+    cachedCategoryTrans = {};
+  }
+  lastCatTransTime = Date.now();
+  return cachedCategoryTrans!;
+}
+
+// Localized category label for display; falls back to the (Spanish) canonical name.
+function localizeCategory(esName: string, locale: string, map: Record<string, Record<string, string>>): string {
+  if (locale && locale !== "es" && esName && map[esName] && map[esName][locale]) return map[esName][locale];
+  return esName;
+}
 
 // Helper: safely parse JSONB that may be double-encoded
 function safeParseJsonArray(val: any): any[] {
@@ -86,6 +137,7 @@ export interface CatalogProductResponse {
   material: string;
   dimensions: string;
   category: string;
+  categoryDisplay: string;
   categoryLevel2: string;
   isGreen: boolean;
   printable: boolean;
@@ -327,6 +379,8 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
   const margins = await loadMargins();
 
   // Enrich with variants, stock, and prices (BATCHED FOR N+1 PERFORMANCE)
+  const locale = await getCatalogLocale();
+  const catMap = await loadCategoryTranslations();
   const enriched: CatalogProductResponse[] = [];
 
   const productIds = products.map((p) => p.id);
@@ -464,11 +518,12 @@ export async function getProductList(options: GetProductListOptions = {}): Promi
     enriched.push({
       id: product.id,
       masterCode: product.masterCode,
-      name: product.productName,
-      shortDescription: product.shortDescription || "",
+      name: localizedField(product.translations, locale, "productName", product.productName),
+      shortDescription: localizedField(product.translations, locale, "shortDescription", product.shortDescription || ""),
       material: product.material || "",
       dimensions: product.dimensions || "",
       category: product.categoryLevel1 || "",
+      categoryDisplay: localizeCategory(product.categoryLevel1 || "", locale, catMap),
       categoryLevel2: product.categoryLevel2 || "",
       isGreen: product.isGreen || false,
       printable: product.printable || false,
@@ -738,9 +793,10 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
   // Detect if product has size variants (textile)
   const hasSize = base.variants.some(v => !!v.size);
 
+  const locale = await getCatalogLocale();
   return {
     ...base,
-    longDescription: product.longDescription || "",
+    longDescription: localizedField(product.translations, locale, "longDescription", product.longDescription || ""),
     brand: product.brand || "",
     countryOfOrigin: product.countryOfOrigin || "",
     documents,
@@ -758,40 +814,43 @@ export async function getProductDetail(masterCode: string): Promise<ProductDetai
 // ============================================================
 
 export interface CategoryResponse {
-  name: string;
+  name: string;          // canonical (Spanish) name — used as filter value / URL param
   slug: string;
   productCount: number;
+  displayName: string;   // localized label for display
 }
 
+type RawCategory = { name: string; slug: string; productCount: number };
 
-let cachedCategories: CategoryResponse[] | null = null;
+let cachedCategories: RawCategory[] | null = null;
 let lastCatCacheTime = 0;
 
 export async function getCategories(): Promise<CategoryResponse[]> {
-  if (cachedCategories && Date.now() - lastCatCacheTime < 3600000) {
-    return cachedCategories;
+  if (!cachedCategories || Date.now() - lastCatCacheTime >= 3600000) {
+    const result = await db
+      .select({
+        category: schema.products.categoryLevel1,
+        count: sql<number>`count(*)`,
+      })
+      .from(schema.products)
+      .where(eq(schema.products.isVisible, true))
+      .groupBy(schema.products.categoryLevel1)
+      .orderBy(desc(sql`count(*)`));
+
+    cachedCategories = result
+      .filter(r => r.category)
+      .map(r => ({
+        name: r.category!,
+        slug: slugify(r.category!),
+        productCount: Number(r.count),
+      }));
+    lastCatCacheTime = Date.now();
   }
 
-  const result = await db
-    .select({
-      category: schema.products.categoryLevel1,
-      count: sql<number>`count(*)`,
-    })
-    .from(schema.products)
-    .where(eq(schema.products.isVisible, true))
-    .groupBy(schema.products.categoryLevel1)
-    .orderBy(desc(sql`count(*)`));
-
-  const mapped = result
-    .filter(r => r.category)
-    .map(r => ({
-      name: r.category!,
-      slug: slugify(r.category!),
-      productCount: Number(r.count),
-    }));
-  cachedCategories = mapped;
-  lastCatCacheTime = Date.now();
-  return mapped;
+  // Localize labels per request (cheap); cache stays language-independent.
+  const locale = await getCatalogLocale();
+  const map = await loadCategoryTranslations();
+  return cachedCategories.map(c => ({ ...c, displayName: localizeCategory(c.name, locale, map) }));
 }
 
 // ============================================================
@@ -800,12 +859,14 @@ export async function getCategories(): Promise<CategoryResponse[]> {
 // ============================================================
 
 
-const subcatCache = new Map<string, {data: CategoryResponse[], time: number}>();
+const subcatCache = new Map<string, {data: RawCategory[], time: number}>();
 
 export async function getSubcategories(category: string): Promise<CategoryResponse[]> {
   const cached = subcatCache.get(category);
   if (cached && Date.now() - cached.time < 3600000) {
-    return cached.data;
+    const locale = await getCatalogLocale();
+    const map = await loadCategoryTranslations();
+    return cached.data.map(c => ({ ...c, displayName: localizeCategory(c.name, locale, map) }));
   }
 
   const conditions = [
@@ -835,16 +896,19 @@ export async function getSubcategories(category: string): Promise<CategoryRespon
     .groupBy(subcatNameSql)
     .orderBy(desc(sql`count(*)`));
 
-  const mapped = result
+  const mapped: RawCategory[] = result
     .filter(r => r.category)
     .map(r => ({
       name: r.category!,
       slug: slugify(r.category!),
       productCount: Number(r.count),
     }));
-    
+
   subcatCache.set(category, { data: mapped, time: Date.now() });
-  return mapped;
+
+  const locale = await getCatalogLocale();
+  const map = await loadCategoryTranslations();
+  return mapped.map(c => ({ ...c, displayName: localizeCategory(c.name, locale, map) }));
 }
 
 // ============================================================

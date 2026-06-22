@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import {
   Package, Clock, CheckCircle, Truck, AlertTriangle, Eye, Gift,
   ShoppingCart, FileText, User, LogOut, ChevronRight, RefreshCw, Trash2,
@@ -24,6 +25,7 @@ interface Stats {
 export default function AccountOrdersPage() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const { restoreFromOrder } = useCart();
+  const t = useTranslations("Account");
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -39,14 +41,14 @@ export default function AccountOrdersPage() {
       await restoreFromOrder(orderNumber);
       router.push("/cart");
     } catch {
-      alert("Error al reactivar el carrito");
+      alert(t("restore_cart_error"));
       setRestoreLoading(null);
     }
   };
 
   const handleDeleteOrder = async (orderNumber: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se abra la vista de detalle
-    if (!window.confirm("¿Seguro que quieres eliminar este pedido? Esta acción no se puede deshacer.")) return;
+    if (!window.confirm(t("delete_order_confirm"))) return;
 
     setDeleteLoading(orderNumber);
     try {
@@ -61,10 +63,10 @@ export default function AccountOrdersPage() {
         const statsRes = await fetch("/api/account/stats", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
         setStats(statsRes);
       } else {
-        alert(data.error || "No se ha podido eliminar el pedido.");
+        alert(data.error || t("delete_order_error"));
       }
     } catch {
-      alert("Error de conexión al eliminar.");
+      alert(t("delete_order_connection_error"));
     }
     setDeleteLoading(null);
   };
@@ -91,11 +93,11 @@ export default function AccountOrdersPage() {
   if (isLoading || (!isAuthenticated && !isLoading)) return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
 
   const statusFilters = [
-    { value: "all", label: "Todos" },
-    { value: "paid", label: "Pagados" },
-    { value: "proof_pending", label: "Boceto pendiente" },
-    { value: "shipped", label: "Enviados" },
-    { value: "completed", label: "Completados" },
+    { value: "all", label: t("filter_all") },
+    { value: "paid", label: t("filter_paid") },
+    { value: "proof_pending", label: t("filter_proof_pending") },
+    { value: "shipped", label: t("filter_shipped") },
+    { value: "completed", label: t("filter_completed") },
   ];
 
   const StatusIcon = ({ status }: { status: string }) => {
@@ -130,12 +132,12 @@ export default function AccountOrdersPage() {
           </div>
 
           {[
-            { href: "/account/orders", icon: Package, label: "Mis pedidos", badge: stats?.pendingOrders },
-            { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
-            { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
-            { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
-            { href: "/account/favorites", icon: Heart, label: "Favoritos" },
-            { href: "/account/profile", icon: User, label: "Mi perfil" },
+            { href: "/account/orders", icon: Package, label: t("nav_orders"), badge: stats?.pendingOrders },
+            { href: "/account/proofs", icon: Eye, label: t("nav_proofs"), badge: stats?.proofsToReview },
+            { href: "/account/shipping", icon: Truck, label: t("nav_shipping") },
+            { href: "/account/quotes", icon: FileText, label: t("nav_quotes"), badge: stats?.activeQuotes },
+            { href: "/account/favorites", icon: Heart, label: t("nav_favorites") },
+            { href: "/account/profile", icon: User, label: t("nav_profile") },
           ].map(item => (
             <Link key={item.href} href={item.href} className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 text-sm font-medium text-gray-600 transition-colors">
               <div className="flex items-center gap-2.5"><item.icon size={16} /> {item.label}</div>
@@ -143,7 +145,7 @@ export default function AccountOrdersPage() {
             </Link>
           ))}
           <button onClick={() => { logout(); router.push("/"); }} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-red-500 transition-colors w-full">
-            <LogOut size={16} /> Cerrar sesión
+            <LogOut size={16} /> {t("logout")}
           </button>
         </aside>
 
@@ -153,10 +155,10 @@ export default function AccountOrdersPage() {
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {[
-                { label: "Total pedidos", value: stats.totalOrders, icon: Package },
-                { label: "Total gastado", value: `${stats.totalSpent.toFixed(0)}€`, icon: ShoppingCart },
-                { label: "Pedidos activos", value: stats.pendingOrders, icon: Truck },
-                { label: "Bocetos pendientes", value: stats.proofsToReview, icon: Eye, highlight: stats.proofsToReview > 0 },
+                { label: t("stat_total_orders"), value: stats.totalOrders, icon: Package },
+                { label: t("stat_total_spent"), value: `${stats.totalSpent.toFixed(0)}€`, icon: ShoppingCart },
+                { label: t("stat_active_orders"), value: stats.pendingOrders, icon: Truck },
+                { label: t("stat_pending_proofs"), value: stats.proofsToReview, icon: Eye, highlight: stats.proofsToReview > 0 },
               ].map((s, i) => (
                 <div key={i} className={`rounded-xl p-4 border ${s.highlight ? "bg-amber-50 border-amber-200" : "bg-white border-surface-200"}`}>
                   <s.icon size={16} className={s.highlight ? "text-amber-500 mb-2" : "text-gray-400 mb-2"} />
@@ -182,8 +184,8 @@ export default function AccountOrdersPage() {
           ) : orders.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-surface-200">
               <Package size={40} className="text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 mb-1">No tienes pedidos {filter !== "all" ? "con este estado" : "todavía"}</p>
-              <Link href="/catalog" className="text-brand-red text-sm font-semibold hover:underline">Explorar catálogo</Link>
+              <p className="text-gray-400 mb-1">{filter !== "all" ? t("no_orders_with_status") : t("no_orders_yet")}</p>
+              <Link href="/catalog" className="text-brand-red text-sm font-semibold hover:underline">{t("explore_catalog")}</Link>
             </div>
           ) : (
             <div className="space-y-3">
@@ -202,13 +204,13 @@ export default function AccountOrdersPage() {
                         </span>
                         {order.hasProofPending && (
                           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 animate-pulse">
-                            Boceto pendiente
+                            {t("proof_pending_badge")}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-400">
                         {new Date(order.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
-                        {" · "}{order.itemCount} producto{order.itemCount > 1 ? "s" : ""}
+                        {" · "}{t("product_count", { count: order.itemCount })}
                       </p>
                     </div>
                     <div className="text-right flex flex-col items-end gap-2">
@@ -224,20 +226,20 @@ export default function AccountOrdersPage() {
                             onClick={(e) => handleRestoreCart(order.orderNumber, e)}
                             disabled={restoreLoading === order.orderNumber || deleteLoading === order.orderNumber}
                             className="bg-brand-red/5 text-brand-red border border-brand-red/20 hover:bg-brand-red/10 px-3 py-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 flex items-center gap-1.5"
-                            title="Deshacer y devolver al carrito"
+                            title={t("restore_cart_title")}
                           >
                             {restoreLoading === order.orderNumber ? <RefreshCw size={14} className="animate-spin" /> : <ShoppingCart size={14} />}
-                            <span className="text-xs font-semibold hidden sm:inline">Ver carrito</span>
+                            <span className="text-xs font-semibold hidden sm:inline">{t("view_cart")}</span>
                           </button>
 
                           <button
                             onClick={(e) => handleDeleteOrder(order.orderNumber, e)}
                             disabled={deleteLoading === order.orderNumber || restoreLoading === order.orderNumber}
                             className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 flex items-center gap-1"
-                            title="Eliminar pedido no pagado"
+                            title={t("delete_order_title")}
                           >
                             {deleteLoading === order.orderNumber ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                            <span className="text-xs font-medium pr-1 hidden sm:inline">Eliminar</span>
+                            <span className="text-xs font-medium pr-1 hidden sm:inline">{t("delete")}</span>
                           </button>
                         </div>
                       )}
@@ -248,7 +250,7 @@ export default function AccountOrdersPage() {
                   <div className="flex gap-2">
                     {order.lines.slice(0, 4).map((line, i) => (
                       <div key={i} className="w-12 h-12 rounded-lg bg-surface-50 flex items-center justify-center overflow-hidden border border-surface-200">
-                        {line.productImage ? <img src={line.productImage} alt={line.productName || "Producto"} className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
+                        {line.productImage ? <img src={line.productImage} alt={line.productName || t("product_alt")} className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
                       </div>
                     ))}
                     {order.lines.length > 4 && <div className="w-12 h-12 rounded-lg bg-surface-100 flex items-center justify-center text-xs text-gray-400 font-semibold">+{order.lines.length - 4}</div>}

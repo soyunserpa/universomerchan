@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { Mail, Send } from "lucide-react";
 
 export function ContactSection() {
+    const t = useTranslations("Contact");
     const [formData, setFormData] = useState({
         nombre: "",
         empresa: "",
@@ -37,7 +39,7 @@ export function ContactSection() {
             const data = await res.json();
             
             if (!res.ok || !data.success) {
-                throw new Error(data.error || "Ocurrió un error al enviar el mensaje.");
+                throw new Error(data.error || t("error_generic"));
             }
 
             // Exito
@@ -58,7 +60,7 @@ export function ContactSection() {
             }, 5000);
 
         } catch (error: any) {
-            setErrorMsg(error.message || "Ocurrió un error de red. Intenta nuevamente.");
+            setErrorMsg(error.message || t("error_network"));
         } finally {
             setIsSubmitting(false);
         }
@@ -96,16 +98,16 @@ export function ContactSection() {
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
 
                         <div className="relative z-10">
-                            <h2 className="font-display font-black text-4xl mb-6">Contacto</h2>
+                            <h2 className="font-display font-black text-4xl mb-6">{t("title")}</h2>
                             <div className="space-y-6 text-white text-lg leading-relaxed">
                                 <p>
-                                    En <span className="text-white font-bold">Universo Merchan</span> te ayudamos a encontrar regalos corporativos y packs personalizados que conecten de verdad con las personas.
+                                    {t.rich("intro1", { b: (chunks) => <span className="text-white font-bold">{chunks}</span> })}
                                 </p>
                                 <p>
-                                    Cuéntanos qué necesitas y te ayudaremos a crear una propuesta alineada con tu marca, tu campaña y la experiencia que quieres generar.
+                                    {t("intro2")}
                                 </p>
                                 <p className="pt-4 border-t border-gray-800">
-                                    Si buscas productos personalizados, packs para clientes, detalles para eventos, acciones de fidelización o una propuesta de merchandising con más intención y valor de marca, estamos aquí para ayudarte.
+                                    {t("intro3")}
                                 </p>
                             </div>
 
@@ -115,7 +117,7 @@ export function ContactSection() {
                                         <Mail size={24} className="text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-white font-medium">Email de contacto</p>
+                                        <p className="text-sm text-white font-medium">{t("email_label")}</p>
                                         <p className="text-xl font-bold text-white group-hover:text-brand-red transition-colors">pedidos@universomerchan.com</p>
                                     </div>
                                 </a>
@@ -126,21 +128,21 @@ export function ContactSection() {
                     {/* Right panel: Form */}
                     <div className="lg:col-span-3 p-10 sm:p-14 bg-surface-50">
                         <div className="max-w-xl">
-                            <h3 className="font-display font-bold text-2xl text-gray-900 mb-2">Cuéntanos tu idea</h3>
+                            <h3 className="font-display font-bold text-2xl text-gray-900 mb-2">{t("form_title")}</h3>
                             <p className="text-gray-900 mb-10">
-                                Nos pondremos en contacto contigo para ayudarte a crear una propuesta a medida para tu marca.
+                                {t("form_subtitle")}
                             </p>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label htmlFor="nombre" className="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label>
+                                        <label htmlFor="nombre" className="block text-sm font-semibold text-gray-700 mb-2">{t("field_name")} *</label>
                                         <input type="text" id="nombre" name="nombre" required value={formData.nombre} onChange={handleChange}
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-brand-red focus:border-brand-red outline-none transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="empresa" className="block text-sm font-semibold text-gray-700 mb-2">Empresa</label>
+                                        <label htmlFor="empresa" className="block text-sm font-semibold text-gray-700 mb-2">{t("field_company")}</label>
                                         <input type="text" id="empresa" name="empresa" value={formData.empresa} onChange={handleChange}
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-brand-red focus:border-brand-red outline-none transition-all"
                                         />
@@ -149,13 +151,13 @@ export function ContactSection() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico *</label>
+                                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">{t("field_email")} *</label>
                                         <input type="email" id="email" name="email" required value={formData.email} onChange={handleChange}
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-brand-red focus:border-brand-red outline-none transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="telefono" className="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label>
+                                        <label htmlFor="telefono" className="block text-sm font-semibold text-gray-700 mb-2">{t("field_phone")}</label>
                                         <input type="tel" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange}
                                             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-brand-red focus:border-brand-red outline-none transition-all"
                                         />
@@ -163,14 +165,14 @@ export function ContactSection() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="asunto" className="block text-sm font-semibold text-gray-700 mb-2">Asunto *</label>
+                                    <label htmlFor="asunto" className="block text-sm font-semibold text-gray-700 mb-2">{t("field_subject")} *</label>
                                     <input type="text" id="asunto" name="asunto" required value={formData.asunto} onChange={handleChange}
                                         className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-brand-red focus:border-brand-red outline-none transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label htmlFor="mensaje" className="block text-sm font-semibold text-gray-700 mb-2">Mensaje *</label>
+                                    <label htmlFor="mensaje" className="block text-sm font-semibold text-gray-700 mb-2">{t("field_message")} *</label>
                                     <textarea id="mensaje" name="mensaje" required rows={4} value={formData.mensaje} onChange={handleChange}
                                         className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:ring-2 focus:ring-brand-red focus:border-brand-red outline-none transition-all resize-none"
                                     ></textarea>
@@ -183,7 +185,7 @@ export function ContactSection() {
                                         />
                                     </div>
                                     <label htmlFor="consentimiento" className="text-sm text-gray-900 leading-snug cursor-pointer">
-                                        He leído y acepto la <Link href="/legal/privacidad" className="text-brand-red hover:underline" target="_blank">política de privacidad</Link>, y consiento el tratamiento de mis datos para gestionar mi consulta. *
+                                        {t.rich("consent", { link: (chunks) => <Link href="/legal/privacidad" className="text-brand-red hover:underline" target="_blank">{chunks}</Link> })} *
                                     </label>
                                 </div>
 
@@ -195,7 +197,7 @@ export function ContactSection() {
                                 
                                 {isSuccess && (
                                     <div className="bg-green-50 text-green-700 px-4 py-3 rounded-xl text-sm font-medium border border-green-200 shadow-sm transition-all">
-                                        🎉 ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo en breve.
+                                        {t("success")}
                                     </div>
                                 )}
 
@@ -204,7 +206,7 @@ export function ContactSection() {
                                         className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-brand-red text-white font-bold px-8 py-4 rounded-xl hover:bg-brand-red-dark transition-colors focus:outline-none focus:ring-4 focus:ring-brand-red/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <Send size={18} className={isSubmitting ? "animate-pulse" : ""} />
-                                        {isSubmitting ? "Enviando mensaje..." : "Enviar consulta"}
+                                        {isSubmitting ? t("submitting") : t("submit")}
                                     </button>
                                 </div>
                             </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { ArrowRight, ArrowLeft, Mail, CheckCircle2, ChevronRight, Gift, Loader2, Sparkles } from "lucide-react";
@@ -23,60 +24,60 @@ type Question = {
   placeholder?: string;
 };
 
-const QUIZ_STEPS: Question[] = [
+const buildQuizSteps = (t: (key: string) => string): Question[] => [
   {
     id: "q1",
     field: "industry",
-    title: "¿A qué sector pertenece tu empresa?",
-    subtitle: "Nos ayudará a entender vuestro estilo y valores.",
+    title: t("page.q1.title"),
+    subtitle: t("page.q1.subtitle"),
     type: "choice",
     choices: [
-      { value: "Tecnología", label: "💻 Tecnología & Software" },
-      { value: "hosteleria", label: "🏨 Hostelería & Turismo" },
-      { value: "salud", label: "⚕️ Salud & Bienestar" },
-      { value: "educacion", label: "🎓 Educación" },
-      { value: "construccion", label: "🏗️ Construcción & Inmob." },
-      { value: "belleza", label: "✨ Belleza & Cosmética" },
-      { value: "agencia", label: "🚀 Agencia & B2B" },
-      { value: "otro", label: "🌍 Otro sector" }
+      { value: "Tecnología", label: t("page.q1.choices.tech") },
+      { value: "hosteleria", label: t("page.q1.choices.hospitality") },
+      { value: "salud", label: t("page.q1.choices.health") },
+      { value: "educacion", label: t("page.q1.choices.education") },
+      { value: "construccion", label: t("page.q1.choices.construction") },
+      { value: "belleza", label: t("page.q1.choices.beauty") },
+      { value: "agencia", label: t("page.q1.choices.agency") },
+      { value: "otro", label: t("page.q1.choices.other") }
     ]
   },
   {
     id: "q2",
     field: "objective",
-    title: "¿Para qué ocasión buscas merchandising?",
+    title: t("page.q2.title"),
     type: "choice",
     choices: [
-      { value: "Regalos para Empleados", label: "🎁 Welcome Pack & Empleados" },
-      { value: "Ferias y Eventos", label: "🎪 Ferias & Eventos Masivos" },
-      { value: "Regalos VIP", label: "⭐ Clientes VIP & Cierre de Ventas" },
-      { value: "Campaña Promocional", label: "📣 Campaña Promocional Genérica" }
+      { value: "Regalos para Empleados", label: t("page.q2.choices.employees") },
+      { value: "Ferias y Eventos", label: t("page.q2.choices.events") },
+      { value: "Regalos VIP", label: t("page.q2.choices.vip") },
+      { value: "Campaña Promocional", label: t("page.q2.choices.promo") }
     ]
   },
   {
     id: "q3",
     field: "budget",
-    title: "¿Cuál es tu presupuesto aproximado por unidad?",
+    title: t("page.q3.title"),
     type: "choice",
     choices: [
-      { value: "Bajo (Menos de 2€)", label: "Bajo (< 2€ / unidad)" },
-      { value: "Medio (2€ - 10€)", label: "Intermedio (2€ - 10€ / unidad)" },
-      { value: "Alto (10€ - 30€)", label: "Premium (10€ - 30€ / unidad)" },
-      { value: "VIP (Más de 30€)", label: "VIP (+30€ / unidad)" }
+      { value: "Bajo (Menos de 2€)", label: t("page.q3.choices.low") },
+      { value: "Medio (2€ - 10€)", label: t("page.q3.choices.mid") },
+      { value: "Alto (10€ - 30€)", label: t("page.q3.choices.high") },
+      { value: "VIP (Más de 30€)", label: t("page.q3.choices.vip") }
     ]
   },
   {
     id: "q4",
     field: "companyName",
-    title: "¿Cómo se llama vuestra empresa?",
+    title: t("page.q4.title"),
     type: "text",
-    placeholder: "Ej. Acme Inc."
+    placeholder: t("page.q4.placeholder")
   },
   {
     id: "q_lead",
     field: "email",
-    title: "¡Ya tenemos tu propuesta lista!",
-    subtitle: "Déjanos tu email y número para enviarte una copia y contactarte con la propuesta final.",
+    title: t("page.qLead.title"),
+    subtitle: t("page.qLead.subtitle"),
     type: "lead_gate",
     placeholder: ""
   }
@@ -87,6 +88,8 @@ const QUIZ_STEPS: Question[] = [
 // ════════════════════════════════════════════════════════════════
 
 export default function QuizPage() {
+  const t = useTranslations("Quiz");
+  const QUIZ_STEPS = buildQuizSteps(t);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -177,7 +180,7 @@ export default function QuizPage() {
 
     } catch (err) {
       console.error(err);
-      alert("Hubo un error procesando tu solicitud. Por favor intenta de nuevo.");
+      alert(t("page.errorAlert"));
     } finally {
       setIsLoading(false);
     }
@@ -210,12 +213,12 @@ export default function QuizPage() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-1">{product.name}</h3>
                   <div className="flex items-center gap-3 text-sm text-gray-500 mb-4">
                     <span className="bg-gray-100 px-2.5 py-1 rounded-md">{product.masterCode}</span>
-                    {product.price && <span className="font-medium text-brand-red">Desde {product.price}€/ud</span>}
+                    {product.price && <span className="font-medium text-brand-red">{t("page.fromPrice", { price: product.price })}</span>}
                   </div>
                   <p className="text-gray-600 italic mb-6">"{product.justification}"</p>
                   <div className="mt-auto flex">
                     <Link href={product.url} className="inline-flex items-center gap-2 text-brand-red font-semibold hover:text-red-700 transition-colors">
-                      Ver detalle del producto <ArrowRight size={16} />
+                      {t("page.viewProductDetail")} <ArrowRight size={16} />
                     </Link>
                   </div>
                 </div>
@@ -224,11 +227,11 @@ export default function QuizPage() {
           </div>
 
           <div className="mt-12 bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-sm mb-20">
-             <h3 className="text-2xl font-bold text-gray-900 mb-4">¿Te ha gustado la selección?</h3>
+             <h3 className="text-2xl font-bold text-gray-900 mb-4">{t("page.likedSelection")}</h3>
              <p className="text-gray-600 mb-8 max-w-xl mx-auto">{recommendedPack.closing}</p>
              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                <Link href="/#contacto" className="inline-flex items-center justify-center px-8 py-4 bg-brand-red text-white rounded-xl font-bold hover:bg-red-700 hover:-translate-y-1 transition-all shadow-lg shadow-red-500/30">
-                 Solicitar Presupuesto Formal
+                 {t("page.requestFormalQuote")}
                </Link>
                <a href="https://wa.me/34600000000" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-8 py-4 bg-[#25D366] text-white rounded-xl font-bold hover:bg-[#1ebe57] hover:-translate-y-1 transition-all shadow-lg shadow-[#25D366]/30 gap-2">
                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
@@ -300,7 +303,7 @@ export default function QuizPage() {
                   disabled={!answers[currentStep.field]}
                   className="px-8 py-4 bg-brand-red text-white text-lg font-bold rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:hover:translate-y-0 transition-all active:scale-95 flex items-center gap-2"
                 >
-                  Continuar <ArrowRight size={20} />
+                  {t("page.continue")} <ArrowRight size={20} />
                 </button>
               </div>
             </form>
@@ -316,7 +319,7 @@ export default function QuizPage() {
                   autoFocus
                   value={answers.email || ""}
                   onChange={(e) => setAnswers(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="tu@email.com"
+                  placeholder={t("page.emailPlaceholder")}
                   className="w-full text-lg pl-14 pr-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-brand-red focus:outline-none bg-white font-medium transition-all focus:shadow-lg focus:shadow-brand-red/10"
                 />
               </div>
@@ -328,7 +331,7 @@ export default function QuizPage() {
                   required
                   value={answers.phone || ""}
                   onChange={(e) => setAnswers(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Teléfono (Opcional o Recomendado)"
+                  placeholder={t("page.phonePlaceholder")}
                   className="w-full text-lg pl-14 pr-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-brand-red focus:outline-none bg-white font-medium transition-all focus:shadow-lg focus:shadow-brand-red/10"
                 />
               </div>
@@ -342,19 +345,19 @@ export default function QuizPage() {
                   {isLoading ? (
                     <>
                       <Loader2 size={24} className="animate-spin" />
-                      Analizando respuestas...
+                      {t("page.analyzing")}
                     </>
                   ) : (
                     <>
                       <Sparkles size={22} className="text-yellow-400" />
-                      Ver mis resultados mágicos
+                      {t("page.seeResults")}
                     </>
                   )}
                   <div className="absolute inset-0 h-full w-0 bg-white/20 transition-all duration-[250ms] ease-out group-hover:w-full"></div>
                 </button>
               </div>
               <p className="text-center text-xs text-gray-400 mt-2">
-                Nunca enviamos SPAM. Prometido. Al continuar, aceptas nuestra política de privacidad.
+                {t("page.spamDisclaimer")}
               </p>
             </form>
           )}
@@ -370,7 +373,7 @@ export default function QuizPage() {
              disabled={isLoading}
              className="text-gray-400 hover:text-gray-800 flex items-center gap-2 font-medium transition-colors"
            >
-             <ArrowLeft size={16} /> Volver
+             <ArrowLeft size={16} /> {t("page.back")}
            </button>
         ) : <div />}
         <div className="text-sm font-semibold text-gray-300">

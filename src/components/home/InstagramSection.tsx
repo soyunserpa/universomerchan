@@ -2,9 +2,11 @@
 
 import { Instagram, Play, ExternalLink } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 export function InstagramSection() {
+  const t = useTranslations("Instagram");
   const manualLinks = [
     "https://www.instagram.com/p/DX_fzlJIxkE/embed",
     "https://www.instagram.com/p/DJ1tZsMIwmf/embed",
@@ -25,8 +27,8 @@ export function InstagramSection() {
               </div>
             </div>
             <div>
-              <h2 className="font-display font-extrabold text-2xl sm:text-3xl">Síguenos en Instagram</h2>
-              <p className="text-gray-500 text-sm mt-1">@universomerchan • Detrás de las cámaras y novedades</p>
+              <h2 className="font-display font-extrabold text-2xl sm:text-3xl">{t("title")}</h2>
+              <p className="text-gray-500 text-sm mt-1">{t("subtitle")}</p>
             </div>
           </div>
           
@@ -36,7 +38,7 @@ export function InstagramSection() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-white border-2 border-surface-200 text-gray-900 font-semibold text-sm px-6 py-2.5 rounded-full hover:border-gray-900 transition-colors whitespace-nowrap"
           >
-            Seguir página <ExternalLink size={16} />
+            {t("follow")} <ExternalLink size={16} />
           </Link>
         </div>
 
@@ -45,7 +47,7 @@ export function InstagramSection() {
           {manualLinks.map((url, index) => (
             <div key={index} className="w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-200">
                <iframe 
-                  title={`Publicación de Instagram ${index + 1}`}
+                  title={t("post_title", { n: index + 1 })}
                   src={url} 
                   width="100%" 
                   height="450" 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import {
     Package, CheckCircle, Truck, Eye, Gift,
     FileText, User, LogOut, ChevronRight, RefreshCw, MapPin
@@ -22,6 +23,7 @@ interface Stats {
 
 export default function AccountShippingPage() {
     const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+    const t = useTranslations("Account");
     const router = useRouter();
     const [orders, setOrders] = useState<Order[]>([]);
     const [stats, setStats] = useState<Stats | null>(null);
@@ -68,20 +70,20 @@ export default function AccountShippingPage() {
                     </div>
 
                     {[
-                        { href: "/account/orders", icon: Package, label: "Mis pedidos", badge: stats?.pendingOrders },
-                        { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
-                        { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
-                        { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
-            { href: "/account/favorites", icon: Heart, label: "Favoritos" },
-                        { href: "/account/profile", icon: User, label: "Mi perfil" },
+                        { href: "/account/orders", icon: Package, label: t("nav_orders"), badge: stats?.pendingOrders },
+                        { href: "/account/proofs", icon: Eye, label: t("nav_proofs"), badge: stats?.proofsToReview },
+                        { href: "/account/shipping", icon: Truck, label: t("nav_shipping") },
+                        { href: "/account/quotes", icon: FileText, label: t("nav_quotes"), badge: stats?.activeQuotes },
+            { href: "/account/favorites", icon: Heart, label: t("nav_favorites") },
+                        { href: "/account/profile", icon: User, label: t("nav_profile") },
                     ].map(item => (
-                        <Link key={item.href} href={item.href} className={`flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 text-sm font-medium transition-colors ${item.label === "Mis envíos" ? "bg-surface-100 text-brand-red font-bold" : "text-gray-600"}`}>
+                        <Link key={item.href} href={item.href} className={`flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 text-sm font-medium transition-colors ${item.href === "/account/shipping" ? "bg-surface-100 text-brand-red font-bold" : "text-gray-600"}`}>
                             <div className="flex items-center gap-2.5"><item.icon size={16} /> {item.label}</div>
                             {item.badge ? <span className="bg-brand-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{item.badge}</span> : null}
                         </Link>
                     ))}
                     <button onClick={() => { logout(); router.push("/"); }} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-red-500 transition-colors w-full">
-                        <LogOut size={16} /> Cerrar sesión
+                        <LogOut size={16} /> {t("logout")}
                     </button>
                 </aside>
 
@@ -90,9 +92,9 @@ export default function AccountShippingPage() {
                     <div className="mb-6">
                         <h1 className="text-2xl font-display font-bold text-gray-900 flex items-center gap-2">
                             <Truck className="text-brand-red" />
-                            Seguimiento de Envíos
+                            {t("shipping_title")}
                         </h1>
-                        <p className="text-gray-500 text-sm mt-1">Busca tu pedido y rastrea su ubicación al instante.</p>
+                        <p className="text-gray-500 text-sm mt-1">{t("shipping_subtitle")}</p>
                     </div>
 
                     {/* Orders list */}
@@ -101,8 +103,8 @@ export default function AccountShippingPage() {
                     ) : orders.length === 0 ? (
                         <div className="text-center py-16 bg-white rounded-2xl border border-surface-200">
                             <MapPin size={40} className="text-gray-200 mx-auto mb-3" />
-                            <p className="text-gray-400 mb-1">No tienes pedidos en tránsito o completados actualmente.</p>
-                            <Link href="/catalog" className="text-brand-red text-sm font-semibold hover:underline">Explorar catálogo</Link>
+                            <p className="text-gray-400 mb-1">{t("shipping_empty")}</p>
+                            <Link href="/catalog" className="text-brand-red text-sm font-semibold hover:underline">{t("explore_catalog")}</Link>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -127,19 +129,19 @@ export default function AccountShippingPage() {
                                         <div className="flex-shrink-0 w-full md:w-auto bg-surface-50 p-4 rounded-xl border border-surface-200 flex flex-col gap-2">
                                             <div className="flex items-center gap-2 text-sm text-gray-700">
                                                 <Truck size={16} className="text-gray-400" />
-                                                <span className="font-semibold">Transportista:</span>
-                                                {order.forwarder || "Operador Logístico"}
+                                                <span className="font-semibold">{t("carrier_label")}</span>
+                                                {order.forwarder || t("carrier_default")}
                                             </div>
                                             <div className="flex items-center gap-2 text-sm text-gray-700">
                                                 <Package size={16} className="text-gray-400" />
-                                                <span className="font-semibold">Nº Seguimiento:</span>
+                                                <span className="font-semibold">{t("tracking_number_label")}</span>
                                                 <span className="font-mono text-xs bg-white px-2 py-0.5 rounded border border-surface-200">
-                                                    {order.trackingNumber || "Pendiente de asignación"}
+                                                    {order.trackingNumber || t("tracking_pending")}
                                                 </span>
                                             </div>
                                             {order.trackingUrl && (
                                                 <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="mt-2 w-full text-center bg-brand-red text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-red-dark transition-colors">
-                                                    Rastrear Envío
+                                                    {t("track_shipment_button")}
                                                 </a>
                                             )}
                                         </div>
@@ -149,11 +151,11 @@ export default function AccountShippingPage() {
                                     <div className="flex gap-2 p-3 bg-surface-50 rounded-xl cursor-pointer hover:bg-surface-100 transition-colors" onClick={() => router.push(`/account/orders/${order.orderNumber}`)}>
                                         {order.lines.slice(0, 5).map((line, i) => (
                                             <div key={i} className="w-12 h-12 rounded-lg bg-white flex items-center justify-center overflow-hidden border border-surface-200">
-                                                {line.productImage ? <img src={line.productImage} alt={line.productName || "Producto"} className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
+                                                {line.productImage ? <img src={line.productImage} alt={line.productName || t("product_alt")} className="w-[80%] h-[80%] object-contain" /> : <Gift size={14} className="text-gray-300" />}
                                             </div>
                                         ))}
                                         {order.lines.length > 5 && <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-xs text-gray-400 font-semibold border border-surface-200">+{order.lines.length - 5}</div>}
-                                        <div className="flex-1 flex items-center justify-end text-sm text-gray-500 font-medium">Ver detalles de pedido <ChevronRight size={16} className="ml-1" /></div>
+                                        <div className="flex-1 flex items-center justify-end text-sm text-gray-500 font-medium">{t("view_order_details")} <ChevronRight size={16} className="ml-1" /></div>
                                     </div>
                                 </div>
                             ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, Leaf, FileText, Download, Truck, PaintBucket } from "lucide-react";
 
 interface ProductAccordionProps {
@@ -15,6 +16,7 @@ interface ProductAccordionProps {
 }
 
 export function ProductAccordion({ product }: ProductAccordionProps) {
+  const t = useTranslations("Product");
   const [openIndex, setOpenIndex] = useState<number>(0); // First tab open by default
 
   const toggleTab = (index: number) => {
@@ -28,25 +30,25 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
 
   const tabs = [
     {
-      title: "Detalles del producto",
+      title: t("accordion_details_title"),
       icon: <FileText size={18} className="text-gray-400" />,
       content: (
         <div className="text-sm text-gray-600 font-body space-y-4">
-          <p className="leading-relaxed">{product.longDescription || "No hay descripción ampliada disponible."}</p>
+          <p className="leading-relaxed">{product.longDescription || t("accordion_details_no_description")}</p>
           <ul className="space-y-2 text-sm">
             {product.material && (
               <li>
-                <span className="font-semibold text-gray-900">Material:</span> {product.material}
+                <span className="font-semibold text-gray-900">{t("accordion_details_material")}</span> {product.material}
               </li>
             )}
             {product.dimensions && (
               <li>
-                <span className="font-semibold text-gray-900">Dimensiones:</span> {product.dimensions}
+                <span className="font-semibold text-gray-900">{t("accordion_details_dimensions")}</span> {product.dimensions}
               </li>
             )}
             {product.countryOfOrigin && (
               <li>
-                <span className="font-semibold text-gray-900">País de origen:</span> {product.countryOfOrigin}
+                <span className="font-semibold text-gray-900">{t("accordion_details_origin")}</span> {product.countryOfOrigin}
               </li>
             )}
           </ul>
@@ -54,7 +56,7 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
       ),
     },
     {
-      title: "Sostenibilidad y Certificaciones",
+      title: t("accordion_sustainability_title"),
       icon: <Leaf size={18} className={product.isGreen ? "text-green-500" : "text-gray-400"} />,
       content: (
         <div className="text-sm text-gray-600 font-body space-y-4">
@@ -63,14 +65,13 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
               <div className="flex items-start gap-2">
                 <Leaf size={18} className="shrink-0 mt-0.5" />
                 <p>
-                  <strong>Este producto certifica estándares Sostenibles u Orgánicos.</strong> Forma parte de nuestra selección ECO que garantiza una 
-                  producción responsable, huella de carbono reducida o uso de materiales reciclados/orgánicos.
+                  {t.rich("accordion_sustainability_green", { strong: (c) => <strong>{c}</strong> })}
                 </p>
               </div>
             </div>
           ) : (
             <p className="leading-relaxed text-gray-500">
-              Todos nuestros artículos cumplen con las estrictas normativas europeas (RoHS, REACH) según la categoría del producto técnico o textil.
+              {t("accordion_sustainability_standard")}
             </p>
           )}
 
@@ -82,37 +83,36 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
               className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors mt-2 text-xs"
             >
               <Download size={15} className="text-gray-500" />
-              Descargar ficha de producto (PDF)
+              {t("accordion_sustainability_download")}
             </a>
           )}
         </div>
       ),
     },
     {
-      title: "Proceso de Personalización",
+      title: t("accordion_customization_title"),
       icon: <PaintBucket size={18} className="text-gray-400" />,
       content: (
         <div className="text-sm text-gray-600 font-body space-y-3">
-          <p>Tu marca en manos de profesionales.</p>
+          <p>{t("accordion_customization_intro")}</p>
           <p>
-            Una vez finalices tu pedido u obtengas tu presupuesto, nuestro equipo de diseño te enviará un <strong>fotomontaje virtual gratuito</strong> para que apruebes 
-            o modifiques la posición y tamaño del logotipo antes de pasar a maquinaria.
+            {t.rich("accordion_customization_body", { strong: (c) => <strong>{c}</strong> })}
           </p>
         </div>
       ),
     },
     {
-      title: "Envíos y Plazos",
+      title: t("accordion_shipping_title"),
       icon: <Truck size={18} className="text-gray-400" />,
       content: (
         <div className="text-sm text-gray-600 font-body space-y-3">
-          <p>Trabajamos siempre con la mayor celeridad logística:</p>
+          <p>{t("accordion_shipping_intro")}</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Sin personalizar:</strong> Entrega en 3 - 5 días hábiles.</li>
-            <li><strong>Personalizado:</strong> Entre 3 y 10 días hábiles tras la aprobación del fotomontaje.</li>
+            <li>{t.rich("accordion_shipping_unbranded", { strong: (c) => <strong>{c}</strong> })}</li>
+            <li>{t.rich("accordion_shipping_branded", { strong: (c) => <strong>{c}</strong> })}</li>
           </ul>
           <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
-            Todos los envíos dentro de Península son certificados. Posibilidad de solicitar muestras físicas sin marcaje según disponibilidad contactando por correo.
+            {t("accordion_shipping_note")}
           </p>
         </div>
       ),

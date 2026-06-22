@@ -5,6 +5,7 @@ import { blogPosts, products } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { uploadArtwork } from "@/lib/artwork-upload";
 import { notifyAdminSystemAlert } from "@/lib/email-service";
+import { translateAndStorePost } from "@/lib/blog-translate";
 import { revalidatePath } from "next/cache";
 
 function generateSlug(title: string): string {
@@ -18,7 +19,7 @@ function generateSlug(title: string): string {
 
 // Ensure the endpoint doesn't timeout if it executes a heavy GPT-4 + DallE task.
 // Next.js config allows increasing serverless timeout up to 60s/300s max usually (if properly set).
-export const maxDuration = 120; // 2 minutes should be plenty for GPT+DALL-E
+export const maxDuration = 300; // GPT + DALL-E + auto-translation into 6 languages
 
 export async function POST(req: Request) {
   try {
@@ -288,7 +289,18 @@ Estructura tu respuesta SÓLO como un archivo JSON puro, sin backticks:
     revalidatePath("/", "layout"); // Home (if recent posts shown)
 
     console.log(`[Blog Cron] Éxito. Post insertado ID: ${newPost.id}`);
-    
+
+    // Auto-translate the new post into the other 6 languages (Spanish stays base/fallback).
+    // Done after insert so a translation failure never blocks publishing.
+    await translateAndStorePost(newPost.id, {
+      title: articleData.title,
+      excerpt: articleData.excerpt,
+      body: articleData.body,
+      metaTitle: articleData.title,
+      metaDescription: articleData.metaDescription,
+    });
+    revalidatePath("/blog", "layout");
+
     // ======================================
     // 6. PUBLICAR EN LINKEDIN
     // ======================================

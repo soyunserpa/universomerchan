@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { Package, Eye, Truck, FileText, User, Heart, Loader2, LogOut } from "lucide-react";
 import { ProductCard } from "@/components/catalog/ProductCard";
 
 export default function AccountFavoritesPage() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+  const t = useTranslations("Account");
   const router = useRouter();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,19 +56,19 @@ export default function AccountFavoritesPage() {
 
           <div className="mt-4 flex flex-col gap-1">
             {[
-              { href: "/account/orders", icon: Package, label: "Mis pedidos" },
-              { href: "/account/proofs", icon: Eye, label: "Mis bocetos" },
-              { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
-              { href: "/account/quotes", icon: FileText, label: "Presupuestos" },
-              { href: "/account/favorites", icon: Heart, label: "Favoritos" },
-              { href: "/account/profile", icon: User, label: "Mi perfil" },
+              { href: "/account/orders", icon: Package, label: t("nav_orders") },
+              { href: "/account/proofs", icon: Eye, label: t("nav_proofs") },
+              { href: "/account/shipping", icon: Truck, label: t("nav_shipping") },
+              { href: "/account/quotes", icon: FileText, label: t("nav_quotes") },
+              { href: "/account/favorites", icon: Heart, label: t("nav_favorites") },
+              { href: "/account/profile", icon: User, label: t("nav_profile") },
             ].map(item => (
               <Link key={item.href} href={item.href} className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${item.href === "/account/favorites" ? "bg-brand-red text-white" : "text-gray-600 hover:bg-surface-50"}`}>
                 <item.icon size={16} /> {item.label}
               </Link>
             ))}
             <button onClick={() => { logout(); router.push("/"); }} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors mt-2 text-left">
-              <LogOut size={16} /> Cerrar sesión
+              <LogOut size={16} /> {t("logout")}
             </button>
           </div>
         </div>
@@ -75,9 +77,9 @@ export default function AccountFavoritesPage() {
         <div className="flex-1">
           <div className="mb-6">
             <h1 className="font-display font-extrabold text-2xl mb-1 flex items-center gap-2">
-              <Heart className="text-brand-red" fill="currentColor" size={24} /> Mis Favoritos
+              <Heart className="text-brand-red" fill="currentColor" size={24} /> {t("favorites_title")}
             </h1>
-            <p className="text-sm text-gray-500">Los productos que has guardado para más tarde.</p>
+            <p className="text-sm text-gray-500">{t("favorites_subtitle")}</p>
           </div>
 
           {loading ? (
@@ -87,10 +89,10 @@ export default function AccountFavoritesPage() {
               <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-brand-red mb-4">
                 <Heart size={32} />
               </div>
-              <h3 className="font-display font-bold text-lg mb-2">Aún no tienes favoritos</h3>
-              <p className="text-gray-500 text-sm mb-6 max-w-md">Guarda los productos que más te gusten haciendo clic en el corazón para tenerlos siempre a mano cuando quieras preparar un presupuesto o pedido.</p>
+              <h3 className="font-display font-bold text-lg mb-2">{t("favorites_empty_title")}</h3>
+              <p className="text-gray-500 text-sm mb-6 max-w-md">{t("favorites_empty_desc")}</p>
               <Link href="/catalog" className="bg-brand-red text-white px-6 py-2.5 rounded-full font-bold hover:bg-brand-red-dark transition-colors">
-                Ir al Catálogo
+                {t("go_to_catalog")}
               </Link>
             </div>
           ) : (

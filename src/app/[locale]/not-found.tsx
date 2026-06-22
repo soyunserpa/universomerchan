@@ -1,7 +1,9 @@
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { PackageX, ArrowRight, Home, Search } from 'lucide-react';
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getTranslations("Misc");
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 relative overflow-hidden bg-white">
       
@@ -25,11 +27,11 @@ export default function NotFound() {
           4<span className="text-brand-red">0</span>4
         </h1>
         <h2 className="font-display font-bold text-2xl md:text-3xl text-gray-800 mb-6">
-          Esta caja está vacía
+          {t("not_found_title")}
         </h2>
-        
+
         <p className="text-gray-500 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
-          La URL que buscas se ha esfumado del almacén. Puede que haya cambiado de nombre o que haya sido un error de tecleo. 
+          {t("not_found_description")}
         </p>
         
         {/* Action Buttons */}
@@ -39,7 +41,7 @@ export default function NotFound() {
             className="group flex items-center justify-center gap-2 bg-brand-red text-white font-semibold py-4 px-8 rounded-full shadow-lg shadow-brand-red/20 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
           >
             <Search className="w-5 h-5" />
-            Explorar catálogo
+            {t("not_found_explore_catalog")}
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           
@@ -48,7 +50,7 @@ export default function NotFound() {
             className="flex items-center justify-center gap-2 bg-white text-gray-700 border-2 border-gray-100 font-semibold py-4 px-8 rounded-full hover:border-gray-200 hover:bg-gray-50 active:scale-95 transition-all w-full sm:w-auto"
           >
             <Home className="w-5 h-5 text-gray-400" />
-            Volver a inicio
+            {t("back_to_home")}
           </Link>
         </div>
 

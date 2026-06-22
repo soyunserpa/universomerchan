@@ -1,0 +1,140 @@
+Auditoría 
+SEO 
+universomerchan.com 
+AUDITORÍA SEO 
+MA YO 2026 
+
+Análisis 
+
+3 Este es el listado de puntos recomendables a optimizar y a tener en cuenta, después de analizar las páginas rastreables con la herramienta 
+SERanking. 
+Recomendaciones optimizables 
+31. SEO On-Page Universo Merchan S.L. | Auditoría SEO 
+Errores 
+· 8 páginas con códigos de estado HTTP 4XX 
+· 20 páginas no canónicas en el sitemap XML 
+· 42 páginas sin enlaces entrantes 
+Advertencias 
+· 2 páginas con código de estado HTTP 3XX 
+· 7 páginas con velocidad de carga de la página lenta 
+· 1 página con enlaces internos a páginas de redireccionamiento 3XX 
+· 64 páginas con enlaces externos a 4XX 
+A visos 
+· 1 página bloqueada por robots.txt 
+· 990 páginas con JavaScript sin comprimir 
+· 494 páginas con un enlace interno entrante 
+Errores: problemas importantes que se tienen que resolver. 
+Advertencias: incidencias de importancia media. 
+A visos: optimizaciones recomendadas. 
+
+4 La meta información es la información que le indicamos en Google que debe tomar como título y como descripción de cada una de las páginas 
+de la web. La meta información, especialmente los títulos, influye directamente en el posicionamiento y contenido que se le muestra al usuario en 
+los resultados de búsqueda de Google.  En total se han escaneado 22639 páginas con ScreamingFrog. 
+Meta-Información 
+41. SEO On-Page 
+Meta- Títulos 
+Los títulos de la web no están optimizados al 100%. Según Google el tamaño perfecto 
+de un título es entre 30 y 60 caracteres y que ocupe entre 200 y 561 píxeles. 
+Podemos observar cómo hay 376 títulos duplicados, 37 de más de 60 caracteres, 
+2055 de menos de 30 caracteres y 37 de más de 561 píxeles. 
+ 
+Meta-Descripciones 
+Se recomienda redactar meta-descripciones, como mínimo por las páginas que se 
+quiera destacar y por las fichas de producto más importantes. Tienen que contener 
+máximo 155 caracteres, resultar atractivas e incitar a la acción que queremos: el clic. 
+Hay 710 meta-descripciones duplicadas, 2 de más de 155 caracteres, 2372 de 
+menos de 70 caracteres, 2 de más de 985 píxeles y 2372 de menos de 400 píxeles. 
+Universo Merchan S.L. | Auditoría SEO 
+
+5 Meta-Información 
+51. SEO On-Page 
+Analizando la “homeˮ podemos ver que: 
+· El título en versión móvil y web está bien 
+optimizado. Contiene el nombre de la 
+empresa, información de valor y palabras 
+clave. 
+· Por la descripción, actualmente se 
+recomienda que el número de caracteres sea 
+entre 70 que a 155. 
+Actualmente, existe una meta-descripción 
+definida, pero se podría optimizar con más 
+información de valor y usando palabras 
+clave. 
+Universo Merchan S.L. | Auditoría SEO 
+
+6 Títulos y subtítulos 
+61. SEO On-Page 
+Títulos de la página H1 
+Los H1 ayudan a Google a detectar el tema principal de la página. 
+Actualmente, hay 310 H1 duplicados, 7 de más de 70 
+caracteres y 21 aparecen múltiples. 
+Subtítulos de la página H2 
+Después del título H1, los H2 son los segundos elementos que 
+Google indexa. Nos encontramos con que hay 276 páginas que 
+no tienen H2, 2392 H2 duplicados, 2 de más de 70 caracteres y  
+44 aparecen múltiples. 
+Universo Merchan S.L. | Auditoría SEO 
+
+7 Jerarquización del web 
+71. SEO On-Page 
+Menú principal 
+Se recomienda tener entre 3 y 5 apartados en el menú 
+principal. Actualmente, hay 5 y, en este sentido, es correcto. Apartados 
+A tener en cuenta que, cuantas más palabras clave contengan los 
+nombres de los apartados, el posicionamiento será mejor. 
+Universo Merchan S.L. | Auditoría SEO 
+
+8 Imágenes 
+81. SEO On-Page 
+Hay imágenes de la web que no están bien optimizadas. 
+En lo que se refiere al peso, podemos ver que hay 2540 imágenes que superan los 100 kB .
+T odas las imágenes contienen Alt text (textos alternativos que acompañan y describen las imágenes para aportar más información a los 
+motores de búsqueda). Los Alt text no son visibles en la web, pero suponen una oportunidad más de introducir y trabajar palabras clave. 
+Universo Merchan S.L. | Auditoría SEO 
+
+9 Tiempo de carga 
+91. SEO On-Page 
+Universo Merchan S.L. | Auditoría SEO 
+
+Palabras clave 
+
+Palabras clave a trabajar 
+113. Paraules clau Espanya) 
+Leyenda 
+Relevancia: 
+1  KW relevante servicio principal 
++ localización cercana 
+2  KW sin ser uno de los servicios 
+que se ofrecen directamente + 
+localización amplia 
+3  KW demasiado genérica o 
+incluye competencia 
+Volumen:  Volumen de búsquedas 
+mensuales de la palabra o grupo 
+de palabras en Google. 
+Dificultad:  Número de resultados 
+que da Google al buscar esta 
+palabra clave. 
+Eficiencia:  Relación entre el 
+volumen de búsqueda y la 
+dificultad. 
+Universo Merchan S.L. | Auditoría SEO 
+
+Resultados 
+
+Resumen de errores detectados y técnicas de optimización para resolverlos 
+135. Penalizaciones y optimizaciones 
+- Se deben revisar los errores, advertencias y avisos. 
+- Meta-información: Es necesario revisar el tamaño de los meta-títulos y meta-descripciones para que entren dentro del mínimo y máximo 
+de caracteres y píxeles que recomienda Google. 
+- La meta-información que aparece en la versión web y móvil debería optimizarse con más información de valor del negocio y añadiendo 
+palabras clave. 
+- Deben corregirse los H1 y H2 que aparezcan duplicados, los H1 múltiples y redactarse H2 para las páginas que no tengan dicho 
+elemento. 
+- Hay que sustituir algunas de las imágenes actuales por una versión inferior a los 100 kB. 
+- Aplicar palabras clave. 
+Universo Merchan S.L. | Auditoría SEO 
+
+Pol. Pont-xetmar, carrer B, 1 · 17844 Cornellà del T erri Girona · 34 972 11 06 68 
+www.hooba.com 
+

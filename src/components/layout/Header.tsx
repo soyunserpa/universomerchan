@@ -28,8 +28,8 @@ export function Header() {
 
   const navLinks = [
     { href: "/catalog", label: t("catalog") },
-    { href: "/#sobre-nosotros", label: "Sobre nosotros" },
-    { href: "/#como-funciona", label: "Cómo funciona" },
+    { href: "/#sobre-nosotros", label: t("about") },
+    { href: "/#como-funciona", label: t("how_it_works") },
     { href: "/#contacto", label: t("contact") },
     { href: "/blog", label: t("blog") },
   ];
@@ -258,7 +258,7 @@ export function Header() {
                 className="group flex flex-col items-center gap-1 text-gray-900 hover:text-brand-red pt-1"
               >
                 <Search size={20} className="transition-transform group-hover:-translate-y-0.5" />
-                <span className="text-[10px] font-bold hidden md:block transition-colors">{tCommon("search") || "Buscar"}</span>
+                <span className="text-[10px] font-bold hidden md:block transition-colors">{tCommon("search")}</span>
               </button>
             )}
           </div>

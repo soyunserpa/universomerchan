@@ -13,6 +13,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { FavoritesProvider } from "@/lib/favorites-store";
 import { AutoFavoriteHandler } from "@/components/providers/AutoFavoriteHandler";
 import { Header } from "@/components/layout/Header";
+import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
 import { CookieBanner } from "@/components/layout/CookieBanner";
@@ -78,13 +79,14 @@ export default async function RootLayout({ children, params: {locale} }: { child
           })(window,document,'script','dataLayer','GTM-K7XX7K68');
         `}
       </Script>
-      <Script id="ga-script" strategy="lazyOnload" src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || "G-XXXXXXXXXX"}`} />
-      <Script id="ga-init" strategy="lazyOnload">
+      {/* Google tag (gtag.js) — Universo Merchan GA4 */}
+      <Script id="ga-script" strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || "G-D24Y09H8SM"}`} />
+      <Script id="ga-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || "G-XXXXXXXXXX"}');
+          gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || "G-D24Y09H8SM"}');
         `}
       </Script>
       <Script id="meta-pixel" strategy="lazyOnload">
@@ -189,6 +191,7 @@ export default async function RootLayout({ children, params: {locale} }: { child
                 <AutoFavoriteHandler />
                 <CartProvider>
                   <div className="flex flex-col min-h-screen">
+                    <TopBar />
                     <Header />
                     <MiniCart />
                     <main className="flex-1 min-h-[60vh]">{children}</main>

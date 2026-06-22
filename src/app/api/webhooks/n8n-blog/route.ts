@@ -3,6 +3,7 @@ import { db } from "@/lib/database";
 import { blogPosts } from "@/lib/schema";
 import { revalidatePath } from "next/cache";
 import { uploadArtwork } from "@/lib/artwork-upload";
+import { translateAndStorePost } from "@/lib/blog-translate";
 
 // Replace this with a strong secret key in production .env -> process.env.N8N_WEBHOOK_SECRET
 const N8N_SECRET = process.env.N8N_WEBHOOK_SECRET || "***REMOVED***";
@@ -91,6 +92,9 @@ export async function POST(req: Request) {
       isPublished: true,
       publishedAt: new Date(),
     }).returning();
+
+    // 4b. Auto-translate into the other 6 languages (Spanish stays base/fallback).
+    await translateAndStorePost(newPost.id, { title, excerpt, body, metaTitle: metaTitle || title, metaDescription });
 
     // 5. Invalidate Public Cache
     revalidatePath("/blog", "layout");

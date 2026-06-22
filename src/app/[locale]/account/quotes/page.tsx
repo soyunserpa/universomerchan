@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import {
     FileText, Package, User, LogOut, ExternalLink, RefreshCw, Eye, Truck, FileQuestion
 , Heart } from "lucide-react";
@@ -10,6 +11,7 @@ import { useEffect, useState } from "react";
 
 export default function AccountQuotesPage() {
     const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+    const t = useTranslations("Account");
     const router = useRouter();
     const [stats, setStats] = useState<any>(null);
     const [quotes, setQuotes] = useState<any[]>([]);
@@ -56,12 +58,12 @@ export default function AccountQuotesPage() {
                     </div>
 
                     {[
-                        { href: "/account/orders", icon: Package, label: "Mis pedidos", badge: stats?.pendingOrders },
-                        { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
-                        { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
-                        { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
-            { href: "/account/favorites", icon: Heart, label: "Favoritos" },
-                        { href: "/account/profile", icon: User, label: "Mi perfil" },
+                        { href: "/account/orders", icon: Package, label: t("nav_orders"), badge: stats?.pendingOrders },
+                        { href: "/account/proofs", icon: Eye, label: t("nav_proofs"), badge: stats?.proofsToReview },
+                        { href: "/account/shipping", icon: Truck, label: t("nav_shipping") },
+                        { href: "/account/quotes", icon: FileText, label: t("nav_quotes"), badge: stats?.activeQuotes },
+            { href: "/account/favorites", icon: Heart, label: t("nav_favorites") },
+                        { href: "/account/profile", icon: User, label: t("nav_profile") },
                     ].map(item => (
                         <Link key={item.href} href={item.href} className={`flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 transition-colors ${item.href === "/account/quotes" ? "bg-surface-50 text-brand-red font-bold" : "text-sm font-medium text-gray-600"}`}>
                             <div className="flex items-center gap-2.5"><item.icon size={16} /> {item.label}</div>
@@ -69,14 +71,14 @@ export default function AccountQuotesPage() {
                         </Link>
                     ))}
                     <button onClick={() => { logout(); router.push("/"); }} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-red-500 transition-colors w-full mt-4">
-                        <LogOut size={16} /> Cerrar sesión
+                        <LogOut size={16} /> {t("logout")}
                     </button>
                 </aside>
 
                 {/* Main Content */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="font-display font-extrabold text-2xl">Mis Presupuestos</h1>
+                        <h1 className="font-display font-extrabold text-2xl">{t("quotes_title")}</h1>
                     </div>
 
                     {loading ? (
@@ -84,10 +86,10 @@ export default function AccountQuotesPage() {
                     ) : quotes.length === 0 ? (
                         <div className="text-center py-20 bg-white rounded-2xl border border-surface-200">
                             <FileQuestion size={40} className="text-gray-200 mx-auto mb-4" />
-                            <h3 className="font-display font-bold text-lg mb-1">Aún no tienes presupuestos activos</h3>
-                            <p className="text-gray-400 mb-6 max-w-sm mx-auto text-sm">Los presupuestos solicitados a medida aparecerán aquí para que puedas convertirlos en pedido comercial.</p>
+                            <h3 className="font-display font-bold text-lg mb-1">{t("quotes_empty_title")}</h3>
+                            <p className="text-gray-400 mb-6 max-w-sm mx-auto text-sm">{t("quotes_empty_desc")}</p>
                             <Link href="/catalog" className="bg-brand-red text-white hover:bg-brand-red-dark px-6 py-2.5 rounded-full font-semibold text-sm transition-colors inline-block">
-                                Generar un Nuevo Presupuesto
+                                {t("quotes_generate_new")}
                             </Link>
                         </div>
                     ) : (
@@ -99,17 +101,17 @@ export default function AccountQuotesPage() {
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="font-display font-bold text-brand-red">{q.quoteNumber}</span>
                                                 {q.isConverted ? (
-                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Convertido a pedido</span>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">{t("quote_converted")}</span>
                                                 ) : q.isExpired ? (
-                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Caducado</span>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">{t("quote_expired")}</span>
                                                 ) : (
-                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Válido</span>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{t("quote_valid")}</span>
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-400 mb-2">
                                                 {new Date(q.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
-                                                {" · "}{q.itemCount} producto{q.itemCount > 1 ? "s" : ""}
-                                                {q.expiresAt && !q.isConverted && !q.isExpired && ` · Válido hasta ${new Date(q.expiresAt).toLocaleDateString("es-ES")}`}
+                                                {" · "}{t("product_count", { count: q.itemCount })}
+                                                {q.expiresAt && !q.isConverted && !q.isExpired && ` · ${t("valid_until", { date: new Date(q.expiresAt).toLocaleDateString("es-ES") })}`}
                                             </p>
                                             <p className="text-sm text-gray-600 max-w-md">{q.itemSummary}</p>
                                         </div>
@@ -119,7 +121,7 @@ export default function AccountQuotesPage() {
                                             <div className="flex items-center gap-2">
                                                 {!q.isConverted && !q.isExpired && q.buyUrl && (
                                                     <a href={q.buyUrl} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-red text-white text-sm font-medium hover:bg-brand-red-dark transition-colors">
-                                                        <ExternalLink size={14} /> Restaurar Carrito
+                                                        <ExternalLink size={14} /> {t("restore_cart")}
                                                     </a>
                                                 )}
                                             </div>

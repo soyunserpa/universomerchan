@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Leaf, Palette, Star, Heart } from "lucide-react";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { useAuth } from "@/lib/auth-context";
@@ -10,6 +11,7 @@ import { useFavorites } from "@/lib/favorites-store";
 import { useRouter, usePathname } from "@/i18n/routing";;
 
 export function ProductCard({ product, index, isTopVenta }: { product: CatalogProductResponse; index: number; isTopVenta?: boolean }) {
+  const t = useTranslations("Catalog");
   const { user, isAuthenticated } = useAuth();
   const { globalLogo } = useGlobalLogo();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -54,7 +56,7 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
             await toggleFavorite(product.id);
           }}
           className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 hover:bg-white text-gray-400 hover:text-brand-red transition-all shadow-sm group/fav"
-          aria-label={isFavorite(product.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+          aria-label={isFavorite(product.id) ? t("card_remove_favorite") : t("card_add_favorite")}
         >
           <Heart 
             size={18} 
@@ -88,24 +90,24 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
           {isTopVenta && (
             <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-              🔥 TOP VENTAS
+              {t("card_top_sales")}
             </span>
           )}
           {product.isGreen && (
             <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-sm font-semibold px-2 py-0.5 rounded-full">
-              <Leaf size={12} /> Eco
+              <Leaf size={12} /> {t("card_eco")}
             </span>
           )}
         </div>
         <span className="absolute top-2.5 right-2.5 bg-surface-100 text-gray-900 text-sm font-semibold px-2 py-0.5 rounded-full">
-          {product.totalStock.toLocaleString("es-ES")} uds
+          {t("card_units", { count: product.totalStock.toLocaleString("es-ES") })}
         </span>
       </div>
 
       {/* Info */}
       <div className="p-4">
         <p className="text-sm text-gray-900 font-semibold uppercase tracking-wider mb-1">
-          {product.category}
+          {product.categoryDisplay || product.category}
         </p>
         <h3 className="font-display font-bold text-base mb-1 truncate">{product.name}</h3>
         <p className="text-sm text-gray-900 line-clamp-2 mb-3 leading-relaxed">
@@ -115,15 +117,15 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
           <div className="flex flex-col">
             {hasB2BDiscount ? (
               <>
-                <span className="text-xs text-gray-400 line-through mb-0.5">Base: {product.startingPriceRaw.toFixed(2)}€</span>
+                <span className="text-xs text-gray-400 line-through mb-0.5">{t("card_base_price", { price: product.startingPriceRaw.toFixed(2) })}</span>
                 <span className="font-bold text-base text-brand-red flex items-center gap-1">
-                  Desde {discountedPriceRaw.toFixed(2)}€ <Star size={12} className="fill-brand-red text-brand-red" />
+                  {t("card_from_price", { price: discountedPriceRaw.toFixed(2) })} <Star size={12} className="fill-brand-red text-brand-red" />
                 </span>
-                <span className="text-[10px] text-brand-red font-bold uppercase tracking-wider mt-0.5">TARIFA VIP</span>
+                <span className="text-[10px] text-brand-red font-bold uppercase tracking-wider mt-0.5">{t("card_vip_rate")}</span>
               </>
             ) : (
               <span className="font-bold text-base text-brand-red">
-                Desde {product.startingPriceRaw.toFixed(2)}€
+                {t("card_from_price", { price: product.startingPriceRaw.toFixed(2) })}
               </span>
             )}
           </div>

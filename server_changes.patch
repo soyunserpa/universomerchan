@@ -1,0 +1,60 @@
+diff --git a/src/app/api/admin/auth/login/route.ts b/src/app/api/admin/auth/login/route.ts
+index 5c33cac..f1aad29 100644
+--- a/src/app/api/admin/auth/login/route.ts
++++ b/src/app/api/admin/auth/login/route.ts
+@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
+       user: result.user,
+     });
+   } catch (error: any) {
+-    return NextResponse.json({ error: "Error de autenticación" }, { status: 500 });
++    console.error("Login Error:", error); return NextResponse.json({ error: "Error de autenticación" }, { status: 500 });
+   }
+ }
+ 
+diff --git a/src/i18n.ts b/src/i18n.ts
+index 12baf5a..27233f0 100644
+--- a/src/i18n.ts
++++ b/src/i18n.ts
+@@ -1,13 +1,17 @@
+-import {getRequestConfig} from 'next-intl/server';
+-import {notFound} from 'next/navigation';
++import {getRequestConfig} from "next-intl/server";
++import {notFound} from "next/navigation";
+ 
+-export const locales = ['es', 'en', 'fr', 'de', 'it', 'pt', 'nl'];
++export const locales = ["es", "en", "fr", "de", "it", "pt", "nl"];
+ 
+-export default getRequestConfig(async ({locale}) => {
+-  // Validate that the incoming `locale` parameter is valid
+-  if (!locales.includes(locale as any)) notFound();
++export default getRequestConfig(async (params) => {
++  let locale = (params as any).locale || await (params as any).requestLocale;
++  
++  if (!locale || !locales.includes(locale as any)) {
++    locale = "es";
++  }
+ 
+   return {
++    locale,
+     messages: (await import(`./messages/${locale}.json`)).default
+   };
+ });
+diff --git a/src/lib/admin-dashboard-api.ts b/src/lib/admin-dashboard-api.ts
+index dec0836..8844aef 100644
+--- a/src/lib/admin-dashboard-api.ts
++++ b/src/lib/admin-dashboard-api.ts
+@@ -143,10 +143,10 @@ export async function getDashboardKPIs(): Promise<DashboardKPIs> {
+     ));
+ 
+   // Total customers
+-  const customersResult = await db
+-    .select({ count: sql<number>`count(*)` })
+-    .from(schema.users)
+-    .where(eq(schema.users.role, "customer"));
++  const customersResult = await db.select({ count: sql<number>`count(*)` }).from(schema.users).where(eq(schema.users.role, "customer"));
++  const totalCustomers = Number(customersResult[0].count);
++  const newCustomersResult = await db.select({ count: sql<number>`count(*)` }).from(schema.users).where(and(eq(schema.users.role, "customer"), gte(schema.users.createdAt, startOfMonth)));
++  const conversionRate = Number(newCustomersResult[0].count) > 0 ? (ordersThisMonth / Number(newCustomersResult[0].count)) * 100 : 0;
+ 
+   // --- B2B METRICS CALCULATION ---
+ 

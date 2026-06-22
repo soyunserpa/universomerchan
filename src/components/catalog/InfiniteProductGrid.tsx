@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/catalog/ProductCard";
 import type { CatalogProductResponse } from "@/lib/catalog-api";
 import { loadMoreProducts } from "@/app/catalog/actions";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
@@ -19,6 +20,7 @@ export function InfiniteProductGrid({
   totalPages,
   searchParams,
 }: InfiniteProductGridProps) {
+  const t = useTranslations("Catalog");
   const [products, setProducts] = useState<CatalogProductResponse[]>(initialProducts);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,10 +52,10 @@ export function InfiniteProductGrid({
   if (products.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-900 text-lg mb-2">No se encontraron productos</p>
-        <p className="text-gray-900 text-sm mb-6">Prueba con otros filtros o términos de búsqueda</p>
+        <p className="text-gray-900 text-lg mb-2">{t("no_products")}</p>
+        <p className="text-gray-900 text-sm mb-6">{t("no_products_hint")}</p>
         <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-6 py-2.5 rounded-full">
-          Ver todos los productos
+          {t("see_all_products")}
         </Link>
       </div>
     );
@@ -77,7 +79,7 @@ export function InfiniteProductGrid({
           {isLoading ? (
             <div className="flex items-center gap-3 text-gray-500">
               <Loader2 className="animate-spin" size={24} />
-              <span className="font-medium text-sm">Cargando productos...</span>
+              <span className="font-medium text-sm">{t("loading_products")}</span>
             </div>
           ) : (
             <a
@@ -88,7 +90,7 @@ export function InfiniteProductGrid({
               }}
               className="px-8 py-3.5 bg-brand-red text-white font-bold rounded-full shadow hover:bg-red-700 transition"
             >
-              Cargar más productos
+              {t("load_more")}
             </a>
           )}
         </div>

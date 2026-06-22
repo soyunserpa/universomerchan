@@ -38,7 +38,19 @@ export async function syncProducts(): Promise<{ created: number; updated: number
     // Fetch translations
     const langs = ['en', 'fr', 'de', 'it', 'pt', 'nl'];
     const translationsMap: Record<string, any> = {};
-    
+
+    // ES category names per master_code, to map each category to its translated name per lang
+    const esCatByMaster: Record<string, string[]> = {};
+    for (const p of products) {
+      esCatByMaster[p.master_code] = [
+        p.variants?.[0]?.category_level1 || "",
+        p.variants?.[0]?.category_level2 || "",
+        p.variants?.[0]?.category_level3 || "",
+      ];
+    }
+    // { [esCategoryName]: { [lang]: translatedName } } — persisted so the frontend can localize category labels
+    const categoryTranslations: Record<string, Record<string, string>> = {};
+
     for (const lang of langs) {
         try {
             const langProducts = await midocean.fetchAllProducts(lang);
@@ -49,10 +61,36 @@ export async function syncProducts(): Promise<{ created: number; updated: number
                     shortDescription: p.short_description || "",
                     longDescription: p.long_description || ""
                 };
+                // Map each ES category level to its translated name for this language
+                const esCats = esCatByMaster[p.master_code];
+                const langCats = [
+                    p.variants?.[0]?.category_level1 || "",
+                    p.variants?.[0]?.category_level2 || "",
+                    p.variants?.[0]?.category_level3 || "",
+                ];
+                if (esCats) {
+                    for (let i = 0; i < 3; i++) {
+                        if (esCats[i] && langCats[i]) {
+                            if (!categoryTranslations[esCats[i]]) categoryTranslations[esCats[i]] = {};
+                            categoryTranslations[esCats[i]][lang] = langCats[i];
+                        }
+                    }
+                }
             }
         } catch (e) {
             console.error(`[Sync] Warning: Failed to fetch translations for ${lang}`);
         }
+    }
+
+    // Persist category translations (admin_settings) so catalog-api can localize category labels.
+    // The ES category name stays the canonical key/filter value; only the displayed label changes.
+    try {
+        await db.insert(schema.adminSettings)
+            .values({ key: "category_translations", value: JSON.stringify(categoryTranslations) })
+            .onConflictDoUpdate({ target: schema.adminSettings.key, set: { value: JSON.stringify(categoryTranslations), updatedAt: new Date() } });
+        console.log(`[Sync] Saved category translations for ${Object.keys(categoryTranslations).length} categories.`);
+    } catch (e) {
+        console.error("[Sync] Warning: Failed to save category translations", e);
     }
 
     for (const product of products) {

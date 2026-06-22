@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
 import { ArrowRight, Clock } from "lucide-react";
 
 export function RecentlyViewedCarousel() {
+  const t = useTranslations("Product");
   const { history } = useRecentlyViewed();
 
   if (!history || history.length === 0) {
@@ -17,10 +19,10 @@ export function RecentlyViewedCarousel() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h2 className="font-display font-extrabold text-2xl text-gray-900 flex items-center gap-2">
-            <Clock size={24} className="text-brand-red" /> 
-            Vistos Recientemente
+            <Clock size={24} className="text-brand-red" />
+            {t("recently_viewed_title")}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">Retoma tus presupuestos pendientes justo donde los dejaste.</p>
+          <p className="text-gray-500 text-sm mt-1">{t("recently_viewed_subtitle")}</p>
         </div>
       </div>
       

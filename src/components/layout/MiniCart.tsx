@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 export function MiniCart() {
   const { state, removeItem, subtotal, itemCount, toggleCart } = useCart();
   const tCommon = useTranslations("Common");
+  const t = useTranslations("MiniCart");
 
   if (!state.isOpen || state.items.length === 0) return null;
 
@@ -27,7 +28,7 @@ export function MiniCart() {
             <ShoppingCart size={18} className="text-brand-red" />
             <span className="font-display font-bold text-base">{tCommon("cart")} ({itemCount})</span>
           </div>
-          <button onClick={() => toggleCart(false)} className="text-gray-400 hover:text-gray-600 p-1" title="Cerrar carrito">
+          <button onClick={() => toggleCart(false)} className="text-gray-400 hover:text-gray-600 p-1" title={t("close_cart")}>
             <X size={18} />
           </button>
         </div>
@@ -46,18 +47,18 @@ export function MiniCart() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{item.productName}</p>
                 <div className="text-xs text-gray-400 mt-0.5">
-                  {item.quantity} uds · {item.color}
+                  {t("units", { quantity: item.quantity })} · {item.color}
                   {item.orderType === "NORMAL" ? (
                     <div className="mt-1 flex flex-col items-start gap-1">
                       <span className="inline-flex text-[10px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        Sin marcaje
+                        {t("no_marking")}
                       </span>
                       <Link 
                         href={`/product/${item.productMasterCode.toLowerCase()}`}
                         onClick={() => toggleCart(false)}
                         className="text-[11px] text-brand-red hover:underline flex items-center gap-1 font-medium"
                       >
-                        Añadir personalización
+                        {t("add_customization")}
                       </Link>
                     </div>
                   ) : item.customization ? (
@@ -68,7 +69,7 @@ export function MiniCart() {
               <div className="flex flex-col items-end justify-between">
                 <span className="text-sm font-bold text-brand-red">{item.totalPrice.toFixed(2)}€</span>
                 <button onClick={() => removeItem(i)} className="text-xs text-gray-400 hover:text-red-500">
-                  Eliminar
+                  {t("remove")}
                 </button>
               </div>
             </div>
@@ -78,15 +79,15 @@ export function MiniCart() {
         {/* Footer */}
         <div className="border-t-2 border-gray-900 px-5 py-4 bg-white">
           <div className="flex justify-between items-baseline mb-2 text-sm">
-            <span className="text-gray-400">Base Imponible</span>
+            <span className="text-gray-400">{t("taxable_base")}</span>
             <span className="font-semibold text-gray-700">{subtotal.toFixed(2)}€</span>
           </div>
           <div className="flex justify-between items-baseline mb-2 text-sm">
-            <span className="text-gray-400">IVA (21%)</span>
+            <span className="text-gray-400">{t("vat")}</span>
             <span className="font-semibold text-gray-700">{(subtotal * 0.21).toFixed(2)}€</span>
           </div>
           <div className="flex justify-between items-baseline mb-4 pt-2 border-t border-surface-200">
-            <span className="font-bold text-sm">Total</span>
+            <span className="font-bold text-sm">{t("total")}</span>
             <span className="font-display font-extrabold text-xl text-brand-red">{(subtotal * 1.21).toFixed(2)}€</span>
           </div>
           <div className="space-y-2">
@@ -101,7 +102,7 @@ export function MiniCart() {
               onClick={() => toggleCart(false)}
               className="w-full text-center text-sm text-gray-400 hover:text-gray-600 py-2"
             >
-              Seguir comprando
+              {t("continue_shopping")}
             </button>
           </div>
         </div>

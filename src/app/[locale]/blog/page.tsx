@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/routing";
 import { getPublishedPosts } from "@/lib/cms-content";
 import { Clock, ArrowRight } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Blog & Novedades de Merchandising | Universo Merchan",
@@ -12,6 +13,7 @@ export const metadata = {
 
 export default async function BlogPage({ params: { locale } }: { params: { locale: string } }) {
   const { posts } = await getPublishedPosts({ limit: 50, locale });
+  const t = await getTranslations("Blog");
 
   return (
     <div className="bg-surface-50 min-h-screen pb-24">
@@ -20,10 +22,12 @@ export default async function BlogPage({ params: { locale } }: { params: { local
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight">
-              Inspiración para tu <span className="text-brand-orange">Marca</span>
+              {t.rich("heroTitle", {
+                highlight: (chunks) => <span className="text-brand-orange">{chunks}</span>
+              })}
             </h1>
             <p className="text-lg md:text-xl text-white max-w-2xl mx-auto leading-relaxed">
-              Tendencias, guías y casos de éxito sobre merchandising corporativo, serigrafía y regalos originales que conectan con tu audiencia.
+              {t("heroSubtitle")}
             </p>
           </div>
         </div>
@@ -33,8 +37,8 @@ export default async function BlogPage({ params: { locale } }: { params: { local
       <section className="container-custom -mt-8 relative z-10">
         {posts.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center max-w-3xl mx-auto">
-            <h3 className="text-xl font-bold font-display text-gray-900 mb-2">Aún no hay artículos</h3>
-            <p className="text-gray-900">Estamos preparando contenido increíble para ti. ¡Vuelve pronto!</p>
+            <h3 className="text-xl font-bold font-display text-gray-900 mb-2">{t("emptyTitle")}</h3>
+            <p className="text-gray-900">{t("emptyDescription")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -75,7 +79,7 @@ export default async function BlogPage({ params: { locale } }: { params: { local
                   </p>
                   
                   <div className="flex items-center font-bold text-sm text-brand-red group-hover:text-brand-red-dark mt-auto">
-                    Leer artículo <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                    {t("readArticle")} <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>

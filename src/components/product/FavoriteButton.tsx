@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Heart } from "lucide-react";
 import { useFavorites } from "@/lib/favorites-store";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, usePathname } from "@/i18n/routing";;
 
 export function FavoriteButton({ productId, variant = "icon" }: { productId: number, variant?: "icon" | "button" }) {
+  const t = useTranslations("Product");
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -44,7 +46,7 @@ export function FavoriteButton({ productId, variant = "icon" }: { productId: num
         } ${pulse ? "animate-pulse ring-2 ring-brand-red/30 ring-offset-1" : ""}`}
       >
         <Heart size={18} className={`transition-transform ${active ? "fill-brand-red scale-110" : ""}`} />
-        {active ? "Guardado en Favoritos" : "Guardar para después"}
+        {active ? t("favorite_saved") : t("favorite_save")}
       </button>
     );
   }
@@ -53,7 +55,7 @@ export function FavoriteButton({ productId, variant = "icon" }: { productId: num
     <button
       onClick={handleClick}
       className={`p-2.5 rounded-full bg-white text-gray-400 hover:text-brand-red transition-all shadow-sm border border-surface-200 ${pulse ? "animate-pulse ring-2 ring-brand-red/30 ring-offset-1" : ""}`}
-      aria-label={active ? "Quitar de favoritos" : "Añadir a favoritos"}
+      aria-label={active ? t("favorite_aria_remove") : t("favorite_aria_add")}
     >
       <Heart 
         size={20} 

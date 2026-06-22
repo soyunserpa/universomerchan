@@ -2,6 +2,10 @@
 
 Documento maestro para mantener el contexto del proyecto, tecnologías implementadas y próximos pasos estratégicos.
 
+> ## 📌 REGLA DE MANTENIMIENTO (obligatoria)
+> **Tras cada deploy a producción o cambio importante, ANTES de cerrar la tarea, actualizar [`docs/BITACORA.md`](docs/BITACORA.md) con una entrada detallada** (qué pasaba, qué se cambió, deploy + verificación, y qué NO romper). Es el documento "testigo" que se pasa a la siguiente sesión. Léelo al empezar para entender el sistema y sus conexiones antes de tocar nada.
+> El deploy se hace SIEMPRE con `./deploy.sh <archivo...>` (servidor `/var/www/universomerchan`, proceso PM2 `universo-tienda`).
+
 ## Estructura Tecnológica
 - **Frontend & Backend:** Next.js 14 (App Router) + TypeScript + Tailwind CSS.
 - **Base de Datos:** PostgreSQL (Alojado) + Drizzle ORM.

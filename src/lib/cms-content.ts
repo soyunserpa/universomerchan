@@ -13,6 +13,7 @@
 import { db } from "./database";
 import { eq, desc, and, sql, ilike } from "drizzle-orm";
 import { blogPosts, staticPages } from "./schema";
+import { translateAndStorePost } from "./blog-translate";
 export { blogPosts, staticPages };
 
 // ============================================================
@@ -288,6 +289,15 @@ export async function createBlogPost(data: {
     createdAt: new Date(),
     updatedAt: new Date(),
   }).returning();
+
+  // Auto-translate the new post into the other 6 languages (Spanish stays base/fallback).
+  await translateAndStorePost(post.id, {
+    title: data.title,
+    excerpt: data.excerpt,
+    body: data.body,
+    metaTitle: data.metaTitle,
+    metaDescription: data.metaDescription,
+  });
 
   return { id: post.id, slug: post.slug };
 }

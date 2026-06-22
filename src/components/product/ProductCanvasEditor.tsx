@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useTranslations } from "next-intl";
 import {
   Upload, Layers, Trash2, RotateCcw, ZoomIn, ZoomOut, Move, Eye, Check
 } from "lucide-react";
@@ -76,6 +77,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
       initialLogos, initialLogoPos, onLogosChange, onLogoPosChange },
     ref
   ) {
+    const t = useTranslations("Canvas");
     const [internalActiveZone, setInternalActiveZone] = useState<string>("");
     const activeZone = activeZoneId ?? internalActiveZone;
     const [hasInteractedWithZone, setHasInteractedWithZone] = useState(false);
@@ -385,9 +387,9 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase flex items-center gap-2">
-              Zona de impresión
+              {t("print_zone")}
             </h3>
-            <p className="text-[13px] text-gray-500 font-medium leading-tight">Puedes personalizar desde una hasta <strong className="text-gray-700">todas las zonas</strong> que quieras</p>
+            <p className="text-[13px] text-gray-500 font-medium leading-tight">{t.rich("zones_hint", { strong: (chunks) => <strong className="text-gray-700">{chunks}</strong> })}</p>
           </div>
         </div>
         <div className="flex gap-2 flex-wrap mb-4">
@@ -425,12 +427,12 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
                 </span>
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">Logotipo</h3>
-                <p className="text-[13px] text-gray-500 font-medium leading-tight">Sube y previsualiza tu diseño final</p>
+                <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">{t("logo")}</h3>
+                <p className="text-[13px] text-gray-500 font-medium leading-tight">{t("logo_hint")}</p>
               </div>
             </div>
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide">
-              &Aacute;rea de impresi&oacute;n &middot; {activeZoneData?.maxWidthMm}&times;{activeZoneData?.maxHeightMm}mm
+              {t("print_area")} &middot; {activeZoneData?.maxWidthMm}&times;{activeZoneData?.maxHeightMm}mm
             </div>
             <div
               ref={canvasAreaRef}
@@ -450,12 +452,12 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
               {!activeZoneData ? (
                 <div className="text-center p-6 flex flex-col items-center gap-3 text-gray-400">
                   <Layers size={40} className="text-gray-300 opacity-50" />
-                  <p className="text-sm font-medium">Selecciona una zona de impresión arriba para comenzar</p>
+                  <p className="text-sm font-medium">{t("select_zone")}</p>
                 </div>
               ) : activeLogoData ? (
                 <img
                   src={getDisplayDataUrl(activeLogoData.dataUrl, activeLogoData.fileName)}
-                  alt="Logo"
+                  alt={t("logo_alt")}
                   className="cursor-move select-none"
                   style={{
                     position: "absolute",
@@ -482,7 +484,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
                     <div className="w-12 h-12 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Upload size={24} className="text-brand-red drop-shadow-sm" />
                     </div>
-                    <p className="text-sm sm:text-xs text-gray-800 font-bold mb-1">Toca para subir tu logo</p>
+                    <p className="text-sm sm:text-xs text-gray-800 font-bold mb-1">{t("tap_to_upload")}</p>
                     <p className="text-[10px] sm:text-[9px] text-gray-400 font-semibold uppercase tracking-wider">PNG, SVG, AI, EPS, PDF</p>
                   </div>
                 </div>
@@ -497,7 +499,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
                   className="cursor-pointer bg-white text-brand-red text-xs font-semibold px-4 py-2 rounded-full shadow-sm border border-brand-red/20 hover:bg-brand-red hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Upload size={14} />
-                  {activeLogoData ? "Cambiar logo" : "Subir logo"}
+                  {activeLogoData ? t("change_logo") : t("upload_logo")}
                 </label>
               </div>
             )}
@@ -512,7 +514,7 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
           {/* RIGHT: Product preview with logo overlay */}
           <div className="w-full lg:w-[280px] flex-shrink-0 flex flex-col items-center lg:items-stretch border-t lg:border-t-0 pt-6 lg:pt-0 mt-4 lg:mt-0 border-surface-200">
             <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wide flex items-center gap-1">
-              <Eye size={10} /> Vista previa
+              <Eye size={10} /> {t("preview")}
             </div>
             
             <div className="w-full flex items-center justify-center bg-surface-50 rounded-xl border border-surface-200 h-[435px] p-2">
@@ -534,23 +536,23 @@ export const ProductCanvasEditor = forwardRef<CanvasEditorRef, Props>(
         {activeLogoData && (
           <div className="flex flex-wrap items-center justify-between sm:justify-start gap-3 bg-surface-50 rounded-xl px-4 py-3 sm:py-2.5 border border-surface-200 mt-3">
             <span className="text-[11px] sm:text-xs text-gray-500 w-full sm:w-auto text-center sm:text-left font-medium">
-              <Move size={14} className="inline mr-1" /> Arrastra el logo por el recuadro
+              <Move size={14} className="inline mr-1" /> {t("drag_logo")}
             </span>
             <div className="hidden sm:block flex-1" />
             <div className="flex items-center justify-center gap-2 w-full sm:w-auto">
-              <button onClick={() => adjustScale(-0.1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title="Reducir"><ZoomOut size={16} className="sm:w-4 sm:h-4" /></button>
+              <button onClick={() => adjustScale(-0.1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title={t("zoom_out")}><ZoomOut size={16} className="sm:w-4 sm:h-4" /></button>
               <span className="text-xs sm:text-[11px] font-mono text-gray-600 w-12 sm:w-10 text-center font-bold">{Math.round(currentLogoPos.scale * 100)}%</span>
-              <button onClick={() => adjustScale(0.1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title="Ampliar"><ZoomIn size={16} className="sm:w-4 sm:h-4" /></button>
+              <button onClick={() => adjustScale(0.1)} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title={t("zoom_in")}><ZoomIn size={16} className="sm:w-4 sm:h-4" /></button>
               <div className="w-px h-6 bg-surface-200 mx-1" />
-              <button onClick={() => setLogoPos(prev => ({ ...prev, [activeZone]: { x: 0.5, y: 0.5, scale: 0.65 } }))} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title="Centrar"><RotateCcw size={16} className="sm:w-4 sm:h-4" /></button>
-              <button onClick={handleDeleteLogo} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-red-200 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 active:bg-red-100 shadow-sm" title="Eliminar logo"><Trash2 size={16} className="sm:w-4 sm:h-4" /></button>
+              <button onClick={() => setLogoPos(prev => ({ ...prev, [activeZone]: { x: 0.5, y: 0.5, scale: 0.65 } }))} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-surface-200 flex items-center justify-center text-gray-600 hover:text-gray-900 active:bg-gray-100 shadow-sm" title={t("center")}><RotateCcw size={16} className="sm:w-4 sm:h-4" /></button>
+              <button onClick={handleDeleteLogo} className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-white border border-red-200 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 active:bg-red-100 shadow-sm" title={t("delete_logo")}><Trash2 size={16} className="sm:w-4 sm:h-4" /></button>
             </div>
           </div>
         )}
 
         {/* Bottom info */}
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>{Object.keys(logos).length} de {printZones.length} posiciones con logo</span>
+          <span>{t("positions_with_logo", { count: Object.keys(logos).length, total: printZones.length })}</span>
           {activeLogoData && <span className="text-green-600 font-medium">&#10003; {activeLogoData.fileName}</span>}
         </div>
       </div>
@@ -569,6 +571,7 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
   activeZoneData: PrintZone | undefined;
   currentLogoPos: { x: number; y: number; scale: number };
 }) {
+  const t = useTranslations("Canvas");
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgNatural, setImgNatural] = useState<{ w: number; h: number } | null>(null);
 
@@ -609,7 +612,7 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
     return (
       <img
         src={displayDataUrl}
-        alt="Logo preview"
+        alt={t("logo_preview_alt")}
         className="pointer-events-none select-none"
         style={{
           position: "absolute",
@@ -643,7 +646,7 @@ export function PreviewWithLogo({ previewUrl, productName, activeLogoData, activ
           {logoOverlay}
         </>
       ) : (
-        <div className="flex items-center justify-center text-gray-300 text-xs w-full h-[200px]">Sin imagen</div>
+        <div className="flex items-center justify-center text-gray-300 text-xs w-full h-[200px]">{t("no_image")}</div>
       )}
     </div>
   );

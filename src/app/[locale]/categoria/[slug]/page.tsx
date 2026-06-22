@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
@@ -42,6 +43,7 @@ interface CategoryPageProps {
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  const t = await getTranslations("Misc");
   const categories = await getCategories();
   const currentCat = categories.find(c => c.slug === params.slug);
   
@@ -76,11 +78,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         <div className="relative z-10 max-w-3xl">
-          <h1 className="font-display font-extrabold text-4xl sm:text-5xl tracking-tight mb-4">{category} Personalizados</h1>
+          <h1 className="font-display font-extrabold text-4xl sm:text-5xl tracking-tight mb-4">{t("category_hero_title", { category })}</h1>
           <p className="text-white/90 text-lg leading-relaxed font-body font-medium">
-            Impulsa el branding de tu empresa con nuestro catálogo de {category.toLowerCase()}. 
-            Selecciona el modelo, sube tu logotipo y visualiza el resultado al instante. 
-            Precios B2B automatizados con descuentos por volumen.
+            {t("category_hero_description", { category: category.toLowerCase() })}
           </p>
         </div>
       </div>
@@ -94,12 +94,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <input
             type="text"
             name="search"
-            placeholder="Buscar en todo el catálogo (ej: libretas sostenibles)..."
+            placeholder={t("category_search_placeholder")}
             className="w-full pl-11 pr-4 py-3 border-2 border-surface-200 rounded-full text-sm font-body shadow-sm focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none transition-all"
           />
         </form>
         <span className="text-sm font-bold text-gray-900 hidden sm:block bg-surface-100 px-4 py-2 rounded-full">
-          {result.total} {result.total === 1 ? "modelo" : "modelos"} de {category.toLowerCase()}
+          {t("category_model_count", { count: result.total, category: category.toLowerCase() })}
         </span>
       </div>
 
@@ -124,10 +124,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         </div>
       ) : (
         <div className="text-center py-20 bg-surface-50 rounded-3xl mt-8">
-          <p className="text-gray-900 text-lg font-bold mb-2">No se encontraron productos</p>
-          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">Prueba rebajando los filtros seleccionados para ver más resultados dentro de esta categoría.</p>
+          <p className="text-gray-900 text-lg font-bold mb-2">{t("category_no_products_title")}</p>
+          <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">{t("category_no_products_description")}</p>
           <Link href={`/categoria/${params.slug}`} className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-6 py-2.5 rounded-full hover:bg-brand-red-dark transition-colors">
-            Limpiar filtros
+            {t("category_clear_filters")}
           </Link>
         </div>
       )}
@@ -161,12 +161,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
       {/* SEO Footer Text Block */}
       <div className="mt-16 pt-12 border-t border-surface-200 max-w-4xl mx-auto text-center px-4">
-        <h2 className="font-display font-bold text-2xl mb-4">¿Por qué elegir nuestros {category.toLowerCase()} para empresas?</h2>
+        <h2 className="font-display font-bold text-2xl mb-4">{t("category_seo_heading", { category: category.toLowerCase() })}</h2>
         <p className="text-gray-600 text-sm leading-relaxed mb-4">
-          La elección de material corporativo no debe tomarse a la ligera. En Universo Merchan nos especializamos en distribuir {category.toLowerCase()} diseñados para generar un impacto positivo en tus clientes, empleados y colaboradores. Nuestro compromiso con la calidad europea y la personalización B2B garantiza que el logotipo de tu marca lucirá impecable en cada objeto.
+          {t("category_seo_paragraph_1", { category: category.toLowerCase() })}
         </p>
         <p className="text-gray-600 text-sm leading-relaxed">
-          Ya sea que busques opciones ecológicas, materiales premium como el bambú o el corcho, o tecnología de serigrafía de alta duración, nuestra plataforma te permite visualizar tu diseño en 3D antes de comprar. <b>Genera tu presupuesto en PDF ahora mismo</b> y aprovecha nuestra red logística para recibir tu pedido en la península en un tiempo récord.
+          {t.rich("category_seo_paragraph_2", {
+            b: (chunks) => <b>{chunks}</b>,
+          })}
         </p>
       </div>
     </div>

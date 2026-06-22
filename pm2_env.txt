@@ -1,0 +1,26 @@
+namespace: default
+km_link: false
+vizion_running: false
+NODE_APP_INSTANCE: 0
+SHELL: /bin/bash
+PWD: /var/www/universomerchan
+LOGNAME: root
+XDG_SESSION_TYPE: tty
+HOME: /root
+LANG: C.UTF-8
+SSH_CONNECTION: 2.138.241.6 53787 212.227.90.110 22
+XDG_SESSION_CLASS: user
+USER: root
+SHLVL: 1
+XDG_SESSION_ID: 1152672
+XDG_RUNTIME_DIR: /run/user/0
+SSH_CLIENT: 2.138.241.6 53787 22
+PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/0/bus
+_: /usr/bin/pm2
+OLDPWD: /root
+PM2_USAGE: CLI
+PM2_HOME: /root/.pm2
+unique_id: 76a135c6-9363-42a6-8e69-2b24bf288123
+version: N/A
+node_version: 20.20.1

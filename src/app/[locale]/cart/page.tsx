@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { useTranslations } from "next-intl";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-context";
 import { useSearchParams } from "next/navigation";
@@ -14,6 +15,7 @@ import {
 import { RecentlyViewedCarousel } from "@/components/product/RecentlyViewedCarousel";
 
 function CartContent() {
+  const t = useTranslations("Cart");
   const { state, removeItem, updateQuantity, clearCart, subtotal, itemCount, totalItems, restoreFromOrder } = useCart();
   const { isAuthenticated, user, token } = useAuth();
   const router = useRouter();
@@ -83,12 +85,12 @@ function CartContent() {
         
         let validCoupon = true;
         if (data.coupon.discountType === "percentage" && data.coupon.discountValue <= userDiscountPct) {
-            setCouponError(`Tu tarifa VIP (-${userDiscountPct}%) es mejor que este cupón.`);
+            setCouponError(t("coupon_vip_better", { pct: userDiscountPct }));
             validCoupon = false;
         } else if (data.coupon.discountType === "fixed") {
             const vipDiscountEuros = originalSub - subtotal;
             if (data.coupon.discountValue <= vipDiscountEuros) {
-               setCouponError(`Tu descuento VIP te ahorra más cantidad que este cupón.`);
+               setCouponError(t("coupon_vip_saves_more"));
                validCoupon = false;
             }
         }
@@ -100,7 +102,7 @@ function CartContent() {
       } else {
         setCouponError(data.error);
       }
-    } catch { setCouponError("Error de conexión"); }
+    } catch { setCouponError(t("connection_error")); }
     setApplyingCoupon(false);
   };
 
@@ -136,10 +138,10 @@ function CartContent() {
           document.body.removeChild(a);
         }
       } else {
-        setQuoteMessage(data.error || "Error al generar presupuesto");
+        setQuoteMessage(data.error || t("quote_generate_error"));
       }
     } catch {
-      setQuoteMessage("Error de conexión");
+      setQuoteMessage(t("connection_error"));
     }
     setQuoteLoading(false);
   };
@@ -148,10 +150,10 @@ function CartContent() {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-20 text-center">
         <ShoppingCart size={56} className="text-gray-200 mx-auto mb-4" />
-        <h1 className="font-display font-extrabold text-3xl mb-3">Tu carrito está vacío</h1>
-        <p className="text-gray-900 mb-8">Explora nuestro catálogo y encuentra el producto perfecto para tu marca</p>
+        <h1 className="font-display font-extrabold text-3xl mb-3">{t("empty_cart")}</h1>
+        <p className="text-gray-900 mb-8">{t("empty_cart_subtitle")}</p>
         <Link href="/catalog" className="inline-flex items-center gap-2 bg-brand-red text-white font-semibold text-sm px-8 py-3 rounded-full hover:bg-brand-red-dark transition-colors">
-          Explorar catálogo <ArrowRight size={16} />
+          {t("explore_catalog")} <ArrowRight size={16} />
         </Link>
       </div>
     );
@@ -160,8 +162,8 @@ function CartContent() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display font-extrabold text-3xl">Tu carrito</h1>
-        <span className="text-sm text-gray-900">{itemCount} producto{itemCount > 1 ? "s" : ""} · {totalItems} unidades</span>
+        <h1 className="font-display font-extrabold text-3xl">{t("title")}</h1>
+        <span className="text-sm text-gray-900">{itemCount === 1 ? t("item_count_one", { count: itemCount }) : t("item_count_other", { count: itemCount })} · {t("units_count", { count: totalItems })}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
@@ -187,7 +189,7 @@ function CartContent() {
                         {item.productName}
                       </Link>
                       <p className="text-sm text-gray-900 mt-0.5">
-                        {item.color}{item.size ? ` · ${item.size}` : ""} · REF: {item.productMasterCode}
+                        {item.color}{item.size ? ` · ${item.size}` : ""} · {t("ref")}: {item.productMasterCode}
                       </p>
                     </div>
                     <button onClick={() => removeItem(i)} className="text-gray-300 hover:text-red-500 transition-colors p-1 -mr-1">
@@ -199,13 +201,13 @@ function CartContent() {
                   {item.orderType === "NORMAL" ? (
                     <div className="mt-3 flex flex-col items-start gap-1">
                       <span className="inline-flex text-[11px] bg-gray-100 text-gray-500 font-bold px-2 py-1 rounded uppercase tracking-wider">
-                        Sin marcaje
+                        {t("no_branding")}
                       </span>
-                      <Link 
+                      <Link
                         href={`/product/${item.productMasterCode.toLowerCase()}`}
                         className="text-xs text-brand-red hover:underline flex items-center gap-1 font-medium mt-0.5"
                       >
-                        Añadir personalización
+                        {t("add_customization")}
                       </Link>
                     </div>
                   ) : item.customization ? (
@@ -238,12 +240,12 @@ function CartContent() {
                       >
                         <Plus size={12} />
                       </button>
-                      <span className="text-sm text-gray-900 ml-1">uds</span>
+                      <span className="text-sm text-gray-900 ml-1">{t("units_abbr")}</span>
                     </div>
 
                     <div className="text-right">
                       <p className="font-display font-extrabold text-lg text-brand-red">{item.totalPrice.toFixed(2)}€</p>
-                      <p className="text-sm text-gray-900">{item.unitPriceTotal.toFixed(2)}€/ud</p>
+                      <p className="text-sm text-gray-900">{item.unitPriceTotal.toFixed(2)}€{t("per_unit_suffix")}</p>
                     </div>
                   </div>
                 </div>
@@ -254,10 +256,10 @@ function CartContent() {
           {/* Clear cart */}
           <div className="flex justify-between items-center pt-2">
             <Link href="/catalog" className="text-sm text-gray-900 hover:text-gray-700 flex items-center gap-1.5 transition-colors">
-              <ArrowLeft size={14} /> Seguir comprando
+              <ArrowLeft size={14} /> {t("continue_shopping")}
             </Link>
             <button onClick={clearCart} className="text-sm text-gray-900 hover:text-red-500 flex items-center gap-1.5 transition-colors">
-              <Trash2 size={14} /> Vaciar carrito
+              <Trash2 size={14} /> {t("clear_cart")}
             </button>
           </div>
         </div>
@@ -269,7 +271,10 @@ function CartContent() {
             <div className="mb-5 bg-surface-50 rounded-xl p-4 border border-surface-200">
               {remainingForFreeExpress > 0 ? (
                 <>
-                  <p className="text-sm font-semibold mb-2 text-gray-800">¡Añade <span className="text-brand-red font-bold">{remainingForFreeExpress.toFixed(2)}€</span> para envío Express GRATIS!</p>
+                  <p className="text-sm font-semibold mb-2 text-gray-800">{t.rich("free_express_prompt", {
+                    amount: remainingForFreeExpress.toFixed(2),
+                    strong: (chunks) => <span className="text-brand-red font-bold">{chunks}</span>,
+                  })}</p>
                   <div className="w-full bg-surface-200 h-2.5 rounded-full overflow-hidden">
                     <div className="bg-brand-red h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
                   </div>
@@ -279,12 +284,12 @@ function CartContent() {
                   <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
                     <Truck size={16} />
                   </div>
-                  <p className="text-sm font-black text-green-600">¡Envío Express GRATIS desbloqueado!</p>
+                  <p className="text-sm font-black text-green-600">{t("free_express_unlocked")}</p>
                 </div>
               )}
             </div>
 
-            <h2 className="font-display font-bold text-base mb-4">Resumen del pedido</h2>
+            <h2 className="font-display font-bold text-base mb-4">{t("order_summary")}</h2>
 
             {/* Line totals */}
             <div className="space-y-2 mb-4">
@@ -304,7 +309,7 @@ function CartContent() {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Código de descuento"
+                      placeholder={t("coupon_placeholder")}
                       className="w-full flex-1 px-3 py-2 border rounded-lg text-sm font-mono uppercase focus:ring-1 focus:ring-brand-red focus:border-brand-red outline-none disabled:bg-gray-50"
                       value={couponCode}
                       onChange={e => setCouponCode(e.target.value.toUpperCase())}
@@ -316,7 +321,7 @@ function CartContent() {
                       disabled={applyingCoupon || !couponCode.trim()}
                       className="bg-gray-900 text-white px-4 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors"
                     >
-                      {applyingCoupon ? "..." : "Aplicar"}
+                      {applyingCoupon ? "..." : t("apply")}
                     </button>
                   </div>
                 ) : (
@@ -324,7 +329,7 @@ function CartContent() {
                     <div className="flex items-center gap-2 text-green-700 text-sm">
                       <Tag size={16} />
                       <span className="font-bold font-mono">{appliedCoupon.code}</span>
-                      <span>(-{appliedCoupon.type === "percentage" ? `${appliedCoupon.value}%` : `${appliedCoupon.value}€`}{appliedCoupon.freeShipping ? " + Envío Gratis" : ""})</span>
+                      <span>(-{appliedCoupon.type === "percentage" ? `${appliedCoupon.value}%` : `${appliedCoupon.value}€`}{appliedCoupon.freeShipping ? ` + ${t("free_shipping")}` : ""})</span>
                     </div>
                     <button onClick={() => setAppliedCoupon(null)} className="text-gray-400 hover:text-red-500">
                       <Trash2 size={16} />
@@ -335,37 +340,37 @@ function CartContent() {
               </div>
 
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-900">Subtotal</span>
+                <span className="text-gray-900">{t("subtotal")}</span>
                 <span className="font-semibold text-gray-700">{subtotal.toFixed(2)}€</span>
               </div>
-              
+
               {appliedCoupon && (
                  <div className="flex justify-between text-sm mb-1 text-green-600 font-medium">
-                   <span>Descuento ({appliedCoupon.code})</span>
+                   <span>{t("discount")} ({appliedCoupon.code})</span>
                    <span>-{discountAmount.toFixed(2)}€</span>
                  </div>
               )}
 
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-900">Envío</span>
-                <span className="text-green-600 font-medium text-sm">{appliedCoupon?.freeShipping ? "Gratis" : "Se calcula en el checkout"}</span>
+                <span className="text-gray-900">{t("shipping")}</span>
+                <span className="text-green-600 font-medium text-sm">{appliedCoupon?.freeShipping ? t("free") : t("shipping_calculated_checkout")}</span>
               </div>
             </div>
 
             <div className="border-t-2 border-gray-900 pt-3 mb-5 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-900">Base Imponible</span>
+                <span className="text-gray-900">{t("taxable_base")}</span>
                 <span className="font-semibold">{baseTotal.toFixed(2)}€</span>
               </div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-900">IVA (21%)</span>
+                <span className="text-gray-900">{t("vat")}</span>
                 <span className="font-semibold">{taxAmount.toFixed(2)}€</span>
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t border-surface-200">
-                <span className="font-bold">Total estimado</span>
+                <span className="font-bold">{t("estimated_total")}</span>
                 <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
-              <p className="text-sm text-gray-900 text-right">IVA incluido en el total estimado</p>
+              <p className="text-sm text-gray-900 text-right">{t("vat_included")}</p>
             </div>
 
             {/* Checkout Form */}
@@ -374,7 +379,7 @@ function CartContent() {
                 onClick={handleCheckout}
                 className="w-full bg-brand-red text-white py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors shadow-md"
               >
-                <CreditCard size={16} /> {isAuthenticated ? "Continuar al pago" : "Iniciar sesión para comprar"}
+                <CreditCard size={16} /> {isAuthenticated ? t("checkout_button") : t("login_to_buy")}
               </button>
 
               <button
@@ -382,16 +387,16 @@ function CartContent() {
                 disabled={quoteLoading || applyingCoupon}
                 className="w-full bg-gray-900 text-white py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
-                {quoteLoading ? "Generando..." : <><Download size={16} /> Descargar Presupuesto PDF</>}
+                {quoteLoading ? t("generating") : <><Download size={16} /> {t("download_quote_pdf")}</>}
               </button>
             </div>
 
             {quotePayload && (
               <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl animate-fade-in shadow-sm">
-                <h4 className="text-sm font-bold text-emerald-800 mb-2.5">¡Listo para compartir!</h4>
+                <h4 className="text-sm font-bold text-emerald-800 mb-2.5">{t("ready_to_share")}</h4>
                 <div className="flex flex-col gap-2">
-                  <a href={`https://wa.me/?text=${encodeURIComponent(`Aquí te dejo el presupuesto de merchandising de Universo Merchan para revisar:\n${quotePayload.url}`)}`} target="_blank" rel="noreferrer" className="w-full bg-[#25D366] text-white py-2.5 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#128C7E] transition-colors shadow-md">
-                    Compartir por WhatsApp
+                  <a href={`https://wa.me/?text=${encodeURIComponent(t("whatsapp_share_text", { url: quotePayload.url }))}`} target="_blank" rel="noreferrer" className="w-full bg-[#25D366] text-white py-2.5 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#128C7E] transition-colors shadow-md">
+                    {t("share_whatsapp")}
                   </a>
                 </div>
               </div>
@@ -401,9 +406,9 @@ function CartContent() {
             {/* Trust badges */}
             <div className="mt-5 pt-4 border-t border-surface-100 space-y-2.5">
               {[
-                { icon: ShieldCheck, text: "Pago seguro con Stripe" },
-                { icon: Truck, text: "Entrega en menos de 10 días" },
-                { icon: Package, text: "Producción 80% europea" },
+                { icon: ShieldCheck, text: t("trust_secure_payment") },
+                { icon: Truck, text: t("trust_delivery") },
+                { icon: Package, text: t("trust_european_production") },
               ].map((badge, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-gray-900">
                   <badge.icon size={14} className="text-gray-900 flex-shrink-0" />

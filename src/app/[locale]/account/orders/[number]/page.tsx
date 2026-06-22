@@ -6,6 +6,7 @@ import { useCart } from "@/lib/cart-store";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft, Package, CheckCircle, Truck, Eye, X, ExternalLink,
   Gift, RefreshCw, Clock, AlertTriangle, FileText, ShoppingCart,
@@ -33,6 +34,7 @@ interface TimelineEvent {
 export default function OrderDetailPage() {
   const { token, isAuthenticated, isLoading, logout } = useAuth();
   const { restoreFromOrder } = useCart();
+  const t = useTranslations("Account");
   const router = useRouter();
   const params = useParams();
   const orderNumber = params.number as string;
@@ -65,7 +67,7 @@ export default function OrderDetailPage() {
 
   const handleProofAction = async (lineId: number, action: "approve" | "reject") => {
     if (action === "reject" && rejectReason.trim().length < 5) {
-      setActionMessage("Por favor, indica el motivo del rechazo (mínimo 5 caracteres)");
+      setActionMessage(t("reject_reason_required"));
       return;
     }
     setActionLoading(true);
@@ -84,7 +86,7 @@ export default function OrderDetailPage() {
         setOrder(updated.order);
         setTimeline(updated.timeline || []);
       }
-    } catch { setActionMessage("Error de conexión"); }
+    } catch { setActionMessage(t("connection_error")); }
     setActionLoading(false);
   };
 
@@ -99,11 +101,11 @@ export default function OrderDetailPage() {
       if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
-        alert(data.error || "No se ha podido iniciar el pago.");
+        alert(data.error || t("payment_init_error"));
         setActionLoading(false);
       }
     } catch {
-      alert("Error de red");
+      alert(t("network_error"));
       setActionLoading(false);
     }
   };
@@ -113,14 +115,14 @@ export default function OrderDetailPage() {
       await restoreFromOrder(orderNumber);
       router.push("/cart");
     } catch {
-      alert("Error al reactivar el carrito");
+      alert(t("restore_cart_error"));
       setActionLoading(false);
     }
   };
 
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><RefreshCw className="animate-spin text-gray-300" /></div>;
-  if (!order) return <div className="text-center py-20"><p className="text-gray-400">Pedido no encontrado</p></div>;
+  if (!order) return <div className="text-center py-20"><p className="text-gray-400">{t("order_not_found")}</p></div>;
 
   const IconForEvent = ({ icon }: { icon: string }) => {
     const map: Record<string, any> = { cart: ShoppingCart, check: CheckCircle, eye: Eye, truck: Truck, x: X, clock: Clock };
@@ -132,7 +134,7 @@ export default function OrderDetailPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       {/* Back */}
       <Link href="/account/orders" className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 mb-6 transition-colors">
-        <ArrowLeft size={16} /> Volver a mis pedidos
+        <ArrowLeft size={16} /> {t("back_to_orders")}
       </Link>
 
       {/* Header */}
@@ -159,25 +161,25 @@ export default function OrderDetailPage() {
           {(order.status === "draft" || order.status === "pending_payment") && (
             <div className="bg-brand-red/5 border border-brand-red/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h2 className="font-display font-bold text-brand-red text-lg">Finaliza tu pedido</h2>
-                <p className="text-sm text-brand-red/80">Este pedido está guardado pero pendiente de pago. Finaliza la compra para que empecemos a prepararlo.</p>
+                <h2 className="font-display font-bold text-brand-red text-lg">{t("finalize_order_title")}</h2>
+                <p className="text-sm text-brand-red/80">{t("finalize_order_desc")}</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleRestoreCart}
                   disabled={actionLoading}
                   className="whitespace-nowrap bg-white text-brand-red border border-brand-red px-6 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title="Devolver al carrito para modificarlo antes de pagar"
+                  title={t("restore_cart_modify_title")}
                 >
                   <ShoppingCart size={18} />
-                  Ver carrito
+                  {t("view_cart")}
                 </button>
                 <button
                   onClick={handlePayNow}
                   disabled={actionLoading}
                   className="whitespace-nowrap bg-brand-red text-white px-6 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50"
                 >
-                  {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : "Pagar Ahora con Stripe"}
+                  {actionLoading ? <RefreshCw size={18} className="animate-spin" /> : t("pay_now_stripe")}
                 </button>
               </div>
             </div>
@@ -189,13 +191,13 @@ export default function OrderDetailPage() {
               <div className="flex items-center gap-3">
                 <Truck size={20} className="text-green-600" />
                 <div>
-                  <p className="font-semibold text-sm text-green-800">Pedido enviado con {order.forwarder}</p>
-                  <p className="text-xs text-green-600">Tracking: {order.trackingNumber}</p>
+                  <p className="font-semibold text-sm text-green-800">{t("order_shipped_with", { forwarder: order.forwarder })}</p>
+                  <p className="text-xs text-green-600">{t("tracking_label", { number: order.trackingNumber })}</p>
                 </div>
               </div>
               {order.trackingUrl && (
                 <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 hover:bg-green-700 transition-colors">
-                  Seguir envío <ExternalLink size={14} />
+                  {t("track_shipment")} <ExternalLink size={14} />
                 </a>
               )}
             </div>
@@ -204,23 +206,23 @@ export default function OrderDetailPage() {
           {/* Order lines */}
           <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-surface-200">
-              <h2 className="font-display font-bold text-base">Productos ({order.lines.length})</h2>
+              <h2 className="font-display font-bold text-base">{t("products_heading", { count: order.lines.length })}</h2>
             </div>
 
             {order.lines.map(line => (
               <div key={line.id} className="p-5 border-b border-surface-100 last:border-0">
                 <div className="flex gap-4">
                   <div className="w-16 h-16 rounded-xl bg-surface-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {line.productImage ? <img src={line.productImage} alt={line.productName || "Producto"} className="w-[80%] h-[80%] object-contain" /> : <Gift size={20} className="text-gray-300" />}
+                    {line.productImage ? <img src={line.productImage} alt={line.productName || t("product_alt")} className="w-[80%] h-[80%] object-contain" /> : <Gift size={20} className="text-gray-300" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
                       <div>
                         <p className="font-semibold text-sm">{line.productName}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{line.color}{line.size ? ` · ${line.size}` : ""} · {line.quantity} uds</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{line.color}{line.size ? ` · ${line.size}` : ""} · {t("units", { count: line.quantity })}</p>
                         {!line.hasCustomization && (
                           <span className="inline-flex mt-1.5 text-[10px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
-                            Sin marcaje
+                            {t("no_customization")}
                           </span>
                         )}
                         {line.customizationSummary && <p className="text-xs text-purple-600 mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">{line.customizationSummary}</p>}
@@ -240,14 +242,14 @@ export default function OrderDetailPage() {
                             <div className="flex gap-2">
                               {line.proofUrl && (
                                 <a href={line.proofUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline">
-                                  <Eye size={12} /> Ver boceto
+                                  <Eye size={12} /> {t("view_proof")}
                                 </a>
                               )}
                               <button onClick={() => { setProofAction({ lineId: line.id, action: "approve" }); setActionMessage(""); }} className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 hover:bg-green-600">
-                                <ThumbsUp size={11} /> Aprobar
+                                <ThumbsUp size={11} /> {t("approve")}
                               </button>
                               <button onClick={() => { setProofAction({ lineId: line.id, action: "reject" }); setActionMessage(""); setRejectReason(""); }} className="bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 hover:bg-red-600">
-                                <ThumbsDown size={11} /> Rechazar
+                                <ThumbsDown size={11} /> {t("reject")}
                               </button>
                             </div>
                           )}
@@ -256,7 +258,7 @@ export default function OrderDetailPage() {
                         {line.proofRejectionReason && (
                           <p className="text-xs text-red-600 mt-2 flex items-start gap-1">
                             <MessageSquare size={11} className="mt-0.5 flex-shrink-0" />
-                            Motivo rechazo: {line.proofRejectionReason}
+                            {t("rejection_reason_label", { reason: line.proofRejectionReason })}
                           </p>
                         )}
                       </div>
@@ -271,14 +273,14 @@ export default function OrderDetailPage() {
           {proofAction && (
             <div className="bg-white rounded-2xl border-2 border-brand-red p-5 animate-slide-up">
               <h3 className="font-display font-bold text-base mb-3">
-                {proofAction.action === "approve" ? "¿Confirmas que apruebas el boceto?" : "¿Por qué rechazas el boceto?"}
+                {proofAction.action === "approve" ? t("proof_approve_question") : t("proof_reject_question")}
               </h3>
 
               {proofAction.action === "reject" && (
                 <textarea
                   value={rejectReason}
                   onChange={e => setRejectReason(e.target.value)}
-                  placeholder="Describe qué cambios necesitas (tamaño, posición, color...)"
+                  placeholder={t("proof_reject_placeholder")}
                   className="w-full p-3 border-2 border-surface-200 rounded-xl text-sm mb-3 min-h-[80px] resize-none"
                 />
               )}
@@ -290,13 +292,13 @@ export default function OrderDetailPage() {
               )}
 
               <div className="flex gap-3">
-                <button onClick={() => setProofAction(null)} className="px-5 py-2 rounded-full border-2 border-surface-200 text-sm font-medium">Cancelar</button>
+                <button onClick={() => setProofAction(null)} className="px-5 py-2 rounded-full border-2 border-surface-200 text-sm font-medium">{t("cancel")}</button>
                 <button
                   onClick={() => handleProofAction(proofAction.lineId, proofAction.action)}
                   disabled={actionLoading}
                   className={`px-6 py-2 rounded-full text-sm font-semibold text-white flex items-center gap-2 ${proofAction.action === "approve" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"} disabled:opacity-50`}
                 >
-                  {actionLoading ? "Procesando..." : proofAction.action === "approve" ? <>Confirmar aprobación <ThumbsUp size={14} /></> : <>Confirmar rechazo <ThumbsDown size={14} /></>}
+                  {actionLoading ? t("processing") : proofAction.action === "approve" ? <>{t("confirm_approval")} <ThumbsUp size={14} /></> : <>{t("confirm_rejection")} <ThumbsDown size={14} /></>}
                 </button>
               </div>
             </div>
@@ -306,7 +308,7 @@ export default function OrderDetailPage() {
         {/* Sidebar - Timeline */}
         <div>
           <div className="bg-white rounded-2xl border border-surface-200 p-5 sticky top-20">
-            <h3 className="font-display font-bold text-sm mb-4">Historial del pedido</h3>
+            <h3 className="font-display font-bold text-sm mb-4">{t("order_history")}</h3>
             <div className="space-y-4">
               {timeline.map((event, i) => (
                 <div key={i} className="flex gap-3">
@@ -331,7 +333,7 @@ export default function OrderDetailPage() {
             {/* Reorder button */}
             {(order.status === "completed" || order.status === "shipped") && (
               <button className="w-full mt-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center justify-center gap-2 text-gray-500 hover:border-brand-red hover:text-brand-red transition-colors">
-                <RefreshCw size={14} /> Repetir este pedido
+                <RefreshCw size={14} /> {t("reorder")}
               </button>
             )}
           </div>

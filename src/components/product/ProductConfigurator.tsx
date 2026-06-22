@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-context";
@@ -175,6 +176,7 @@ interface Props {
 }
 
 function ProductConfiguratorInner({ product }: Props) {
+  const t = useTranslations("Configurator");
   const { addItem } = useCart();
   const { user } = useAuth();
   const { addProduct } = useRecentlyViewed();
@@ -595,7 +597,7 @@ function ProductConfiguratorInner({ product }: Props) {
           }
         } catch (e) {
           console.error("Artwork upload error:", e);
-          alert("Lo sentimos, ha habido un problema de conexión al subir tu diseño. Prueba de nuevo o utiliza un formato más ligero.");
+          alert(t("artwork_upload_error"));
           return; // Cancel add to cart
         }
       }
@@ -765,7 +767,7 @@ function ProductConfiguratorInner({ product }: Props) {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("PDF generation error:", err);
-      alert("Error: " + (err?.message || "desconocido") + ". Revisa consola (F12).");
+      alert(t("pdf_generation_error", { message: err?.message || t("unknown_error") }));
     } finally {
       setPdfGenerating(false);
     }
@@ -796,9 +798,9 @@ function ProductConfiguratorInner({ product }: Props) {
       {/* ── STEPS INDICATOR ──────────────────────────────── */}
       <div className="mb-8 hidden sm:flex bg-surface-50 p-1.5 rounded-2xl border border-surface-200 shadow-sm relative z-10">
         {[
-          { n: 1, l: "Producto", icon: Package },
-          { n: 2, l: "Personalización", icon: Palette },
-          { n: 3, l: "Resumen y Compra", icon: ShoppingCart }
+          { n: 1, l: t("step_product"), icon: Package },
+          { n: 2, l: t("step_customization"), icon: Palette },
+          { n: 3, l: t("step_summary"), icon: ShoppingCart }
         ].map(s => {
           const isActive = step === s.n;
           const isCompleted = step > s.n;
@@ -857,7 +859,7 @@ function ProductConfiguratorInner({ product }: Props) {
                       }`}
                   >
                     <div className="relative w-[85%] h-[85%] mix-blend-multiply">
-                      <Image src={img.url} alt={`Vista ${i + 1}`} fill sizes="100px" className="object-contain" />
+                      <Image src={img.url} alt={t("view_number", { number: i + 1 })} fill sizes="100px" className="object-contain" />
                     </div>
                   </button>
                 ))}
@@ -868,8 +870,8 @@ function ProductConfiguratorInner({ product }: Props) {
           {/* Product info */}
           <div>
             <div className="flex gap-2 mb-3">
-              {product.isGreen && <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"><Leaf size={11} /> Sostenible</span>}
-              <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">REF: {product.masterCode}</span>
+              {product.isGreen && <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full"><Leaf size={11} /> {t("sustainable")}</span>}
+              <span className="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">{t("ref_label")}: {product.masterCode}</span>
             </div>
 
             <div className="flex items-center justify-between gap-4 mb-2">
@@ -885,7 +887,7 @@ function ProductConfiguratorInner({ product }: Props) {
             {/* Color selector */}
             <div className="mb-5">
               <label className="text-sm font-semibold mb-2 block">
-                Color: <span className="text-brand-red">{variant.color}</span>
+                {t("color_label")}: <span className="text-brand-red">{variant.color}</span>
               </label>
               <div className="flex gap-2 flex-wrap">
                 {uniqueColors.map((v) => {
@@ -907,8 +909,8 @@ function ProductConfiguratorInner({ product }: Props) {
             {hasSize && sizesForColor.length > 0 && (
               <div className="mb-5">
                 <div className="flex justify-between items-baseline mb-3">
-                  <label className="text-sm font-semibold block">Cantidades por talla</label>
-                  <span className="text-xs bg-surface-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Total: {qty} uds</span>
+                  <label className="text-sm font-semibold block">{t("quantities_by_size")}</label>
+                  <span className="text-xs bg-surface-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">{t("total_units", { qty })}</span>
                 </div>
                 <div className="flex flex-col gap-1 border border-surface-200 rounded-xl p-1 bg-white">
                   {sizesForColor.map((sv, idx) => {
@@ -922,12 +924,12 @@ function ProductConfiguratorInner({ product }: Props) {
                           <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md w-fit ${sizeStock > 1000 ? "bg-green-50 text-green-700" : sizeStock > 0 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${sizeStock > 1000 ? "bg-green-500" : sizeStock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
                             <span className="text-[10px] font-medium">
-                              {sizeStock > 0 ? `${sizeStock} disponibles` : "Agotado"}
+                              {sizeStock > 0 ? t("available_count", { count: sizeStock }) : t("sold_out")}
                             </span>
                           </div>
                         </div>
                         <input
-                          title={`Cantidad talla ${sv.size}`}
+                          title={t("size_quantity", { size: sv.size ?? "" })}
                           placeholder="0"
                           type="number"
                           disabled={outOfStock}
@@ -952,8 +954,8 @@ function ProductConfiguratorInner({ product }: Props) {
                 <div className={`w-2 h-2 rounded-full ${variant.stock > 1000 ? "bg-green-500" : variant.stock > 0 ? "bg-amber-500" : "bg-red-500"}`} />
                 <span className="text-sm font-medium">
                   {variant.stock > 0
-                    ? `${variant.stock.toLocaleString("es-ES")} unidades disponibles globales`
-                    : "Agotado globalmente"}
+                    ? t("global_units_available", { count: variant.stock.toLocaleString("es-ES") })
+                    : t("globally_sold_out")}
                 </span>
               </div>
             )}
@@ -962,15 +964,15 @@ function ProductConfiguratorInner({ product }: Props) {
             {!hasSize && (
               <div className="mb-5">
                 <label className="text-sm font-semibold mb-2 block">
-                  Cantidad <span className="text-xs text-gray-500 font-normal ml-1">(De 1 a {maxStock.toLocaleString("es-ES")} uds)</span>
+                  {t("quantity_label")} <span className="text-xs text-gray-500 font-normal ml-1">{t("quantity_range", { max: maxStock.toLocaleString("es-ES") })}</span>
                 </label>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <button onClick={() => setBaseQty(Math.max(1, baseQty - 10))} disabled={isOutOfStock} title="Restar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Minus size={14} /></button>
-                  <input type="number" max={maxStock} title="Unidades" placeholder="1" value={baseQty} onChange={(e) => setBaseQty(Math.max(1, Math.min(maxStock, parseInt(e.target.value) || 1)))} disabled={isOutOfStock} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body outline-none disabled:opacity-50" />
-                  <button onClick={() => setBaseQty(Math.min(maxStock, baseQty + 10))} disabled={isOutOfStock || baseQty >= maxStock} title="Sumar 10" className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Plus size={14} /></button>
+                  <button onClick={() => setBaseQty(Math.max(1, baseQty - 10))} disabled={isOutOfStock} title={t("subtract_10")} className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Minus size={14} /></button>
+                  <input type="number" max={maxStock} title={t("units")} placeholder="1" value={baseQty} onChange={(e) => setBaseQty(Math.max(1, Math.min(maxStock, parseInt(e.target.value) || 1)))} disabled={isOutOfStock} className="w-20 text-center py-2 border-2 border-surface-200 rounded-lg text-base font-bold font-body outline-none disabled:opacity-50" />
+                  <button onClick={() => setBaseQty(Math.min(maxStock, baseQty + 10))} disabled={isOutOfStock || baseQty >= maxStock} title={t("add_10")} className="w-9 h-9 rounded-lg border border-surface-200 flex items-center justify-center hover:bg-surface-50 disabled:opacity-50"><Plus size={14} /></button>
                   <div className="flex gap-1.5 ml-2 flex-wrap">
                     {[5, 15, 50, 100, 250, 500].map(q => (
-                      <button key={q} title={`Elegir ${q} unidades`} onClick={() => setBaseQty(q)} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${baseQty === q ? "bg-brand-red/10 text-brand-red border border-brand-red" : "bg-surface-100 text-gray-400 border border-transparent hover:bg-surface-200"}`}>{q}</button>
+                      <button key={q} title={t("choose_units", { q })} onClick={() => setBaseQty(q)} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${baseQty === q ? "bg-brand-red/10 text-brand-red border border-brand-red" : "bg-surface-100 text-gray-400 border border-transparent hover:bg-surface-200"}`}>{q}</button>
                     ))}
                   </div>
                 </div>
@@ -990,7 +992,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
               return displayScales.length > 1 ? (
                 <div className="mb-5">
-                  <label className="text-xs text-gray-400 mb-1.5 block">Precio por unidad según cantidad total</label>
+                  <label className="text-xs text-gray-400 mb-1.5 block">{t("price_per_unit_by_quantity")}</label>
                   <div className="flex gap-1.5 flex-wrap">
                     {displayScales.map((s: any, i: number) => {
                       const nextScale = displayScales[i + 1];
@@ -998,7 +1000,7 @@ function ProductConfiguratorInner({ product }: Props) {
                       const priceFormatted = s.pricePerUnit || (s.priceSell ? s.priceSell.toFixed(2) + "€" : "");
 
                       return (
-                        <button key={s.minQuantity} title={hasSize ? "Ingresa la cantidad en las tallas" : `Sumar ${s.minQuantity} uds`} onClick={() => !hasSize && setBaseQty(s.minQuantity)} disabled={hasSize} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
+                        <button key={s.minQuantity} title={hasSize ? t("enter_quantity_in_sizes") : t("add_units", { count: s.minQuantity })} onClick={() => !hasSize && setBaseQty(s.minQuantity)} disabled={hasSize} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
                           <div>≥{s.minQuantity}</div>
                           <div className="font-bold">{priceFormatted}</div>
                         </button>
@@ -1012,27 +1014,27 @@ function ProductConfiguratorInner({ product }: Props) {
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={step > 1 && zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
-              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> A mayor cantidad mayor descuento en imprenta.</span>
-              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> Para cantidades grandes contactarnos por WhatsApp o email para descuentos especiales.</span>
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("more_quantity_more_discount")}</span>
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("large_quantity_contact")}</span>
             </div>
 
             <div className="flex flex-col gap-2 mt-5">
               <button
                 onClick={() => { changeStep(2); }}
                 disabled={!canProceed}
-                title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
+                title={!canProceed ? t("no_stock_or_invalid_qty") : ""}
                 className="w-full bg-brand-red text-white py-3.5 rounded-full font-extrabold text-base flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
-                Personalizar el producto con tu logo <Palette size={18} />
+                {t("customize_with_logo")} <Palette size={18} />
               </button>
               <button
                 onClick={() => setShowBlankConfirm(true)}
                 disabled={isAddingToCart || !canProceed}
-                title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
+                title={!canProceed ? t("no_stock_or_invalid_qty") : ""}
                 className="w-full border-2 border-gray-300 text-gray-700 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
-                Añadir al carrito sin personalizar
+                {t("add_to_cart_unbranded")}
               </button>
               <div className="w-full flex justify-center mt-2">
                 <FavoriteButton productId={product.id} variant="button" />
@@ -1078,21 +1080,21 @@ function ProductConfiguratorInner({ product }: Props) {
                     <Image src={variant.mainImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 600px" className="object-contain" />
                   </div>
                 )}
-                <div className="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md">Sin zonas de impresión disponibles</div>
+                <div className="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md">{t("no_print_zones_available")}</div>
               </div>
             )}
           </div>
 
           <div>
-            <h2 className="font-display font-extrabold text-2xl mb-2">Personaliza tu {product.name}</h2>
-            <p className="text-sm text-gray-500 mb-4">Completa los pasos en el visor para preparar tu producto.</p>
+            <h2 className="font-display font-extrabold text-2xl mb-2">{t("customize_your_product", { name: product.name })}</h2>
+            <p className="text-sm text-gray-500 mb-4">{t("complete_steps_in_viewer")}</p>
 
             {globalLogo && printZones.length > 0 && (
               <div className="mb-5 bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm flex gap-3 text-purple-800 animate-fade-in shadow-sm">
                 <span className="text-xl">✨</span>
                 <div>
-                  <p className="font-bold mb-0.5">Hemos pre-cargado tu logo</p>
-                  <p className="text-xs opacity-90">Selecciona aquí abajo el método de impresión de la parte que más te guste y dale a Pagar. Evitaremos el resto de caras para no cobrarte de más.</p>
+                  <p className="font-bold mb-0.5">{t("logo_preloaded_title")}</p>
+                  <p className="text-xs opacity-90">{t("logo_preloaded_desc")}</p>
                 </div>
               </div>
             )}
@@ -1103,14 +1105,14 @@ function ProductConfiguratorInner({ product }: Props) {
                 <div className="flex items-center gap-2">
                   <Layers size={14} className="text-brand-red" />
                   <span className="text-sm font-semibold text-brand-red">{positionData.description}</span>
-                  <span className="text-xs text-gray-400 ml-auto">Máx {positionData.maxWidth}×{positionData.maxHeight}mm</span>
+                  <span className="text-xs text-gray-400 ml-auto">{t("max_dimensions", { width: positionData.maxWidth, height: positionData.maxHeight })}</span>
                 </div>
               </div>
             )}
 
             {!selectedPosition && (
               <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
-                ← Selecciona una zona de impresión en el editor visual
+                {t("select_print_zone")}
               </div>
             )}
 
@@ -1124,8 +1126,8 @@ function ProductConfiguratorInner({ product }: Props) {
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">Técnica y colores</h3>
-                    <p className="text-[13px] text-gray-500 font-medium leading-tight">Selecciona cómo lo imprimiremos</p>
+                    <h3 className="font-bold text-gray-900 text-[15px] tracking-wide mb-0.5 uppercase">{t("technique_and_colors")}</h3>
+                    <p className="text-[13px] text-gray-500 font-medium leading-tight">{t("select_how_we_print")}</p>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -1165,11 +1167,11 @@ function ProductConfiguratorInner({ product }: Props) {
                           <div className="text-xs text-gray-800 mt-0.5">{displaySubtitle}</div>
                           {indicative && (
                             <div className="text-[10px] text-gray-400 mt-1">
-                              Setup: {indicative.setup.toFixed(0)}€ · Desde {indicative.perUnit.toFixed(2)}€/ud
+                              {t("setup_from_price", { setup: indicative.setup.toFixed(0), perUnit: indicative.perUnit.toFixed(2) })}
                             </div>
                           )}
                           {!indicative && (
-                            <div className="text-[10px] text-gray-400 mt-1">Precio bajo consulta</div>
+                            <div className="text-[10px] text-gray-400 mt-1">{t("price_on_request")}</div>
                           )}
                         </div>
                         {isSelected && <Check size={18} className="text-brand-red flex-shrink-0" />}
@@ -1183,7 +1185,7 @@ function ProductConfiguratorInner({ product }: Props) {
             {/* 2. Colors — only for color-based techniques */}
             {currentSelectedTechnique && isColorBased && !isPositionBased && (
               <div className="mb-5 animate-slide-up">
-                <label className="text-sm font-semibold mb-2 block">2. Colores del logo</label>
+                <label className="text-sm font-semibold mb-2 block">{t("logo_colors")}</label>
                 <div className="flex gap-2">
                   {Array.from({ length: techniqueData?.maxColors || 5 }, (_, i) => i + 1)
                     .filter(n => {
@@ -1197,8 +1199,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 </div>
                 {techniqueData?.pricing?.nextColourCostIndicator && currentNumColors > 1 && (
                   <div className="mt-2 text-[10px] text-gray-400">
-                    1er color: {round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit * printMarginMultiplier) : 0).toFixed(2)}€/ud ·
-                    Colores adicionales a precio reducido
+                    {t("first_color_price", { price: round(printCosts.setupCost > 0 ? (calculateRealPrintCost({ pricing: techniqueData.pricing, pricingType, quantity: qty, numColors: 1, printAreaMm2 }).printCostPerUnit * printMarginMultiplier) : 0).toFixed(2) })}
                   </div>
                 )}
               </div>
@@ -1209,7 +1210,7 @@ function ProductConfiguratorInner({ product }: Props) {
               <div className="mb-5 animate-slide-up">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-700">
                   <Info size={13} className="inline mr-1" />
-                  {isAreaBased ? "Esta técnica es full color — el precio varía según el área de impresión" : "Precio por posición de impresión"}
+                  {isAreaBased ? t("full_color_area_info") : t("price_per_position")}
                 </div>
               </div>
             )}
@@ -1219,22 +1220,22 @@ function ProductConfiguratorInner({ product }: Props) {
               <div className="mb-5 animate-slide-up">
                 <label className="text-sm font-semibold mb-2 block flex items-center gap-2">
                   <Layers size={14} />
-                  {hasActiveLogos ? "Logo colocado para esta zona" : "Sube tu logo en el editor visual"}
+                  {hasActiveLogos ? t("logo_placed_for_zone") : t("upload_logo_in_editor")}
                 </label>
                 {hasActiveLogos ? (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                     <div className="flex items-center gap-2">
                       <Check size={16} className="text-green-600" />
-                      <span className="text-sm font-medium text-green-700">{activePlacements.length} logo{activePlacements.length > 1 ? "s" : ""} posicionado{activePlacements.length > 1 ? "s" : ""}</span>
+                      <span className="text-sm font-medium text-green-700">{t("logos_positioned", { count: activePlacements.length })}</span>
                     </div>
                     <ul className="mt-2 space-y-1">
                       {activePlacements.map(lp => (
-                        <li key={lp.positionId} className="text-xs text-green-600">• {lp.logoFileName} en {printZones.find(z => z.positionId === lp.positionId)?.positionName || lp.positionId}</li>
+                        <li key={lp.positionId} className="text-xs text-green-600">• {t("logo_in_zone", { file: lp.logoFileName, zone: printZones.find(z => z.positionId === lp.positionId)?.positionName || lp.positionId })}</li>
                       ))}
                     </ul>
                   </div>
                 ) : (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">← Usa el editor visual a la izquierda para arrastrar tu logo sobre el producto</div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">{t("use_editor_drag_logo")}</div>
                 )}
               </div>
             )}
@@ -1242,14 +1243,14 @@ function ProductConfiguratorInner({ product }: Props) {
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} compact MARGINS={MARGINS} />
 
             <div className="flex gap-3 mt-4">
-              <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> Volver</button>
+              <button onClick={() => changeStep(1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300 transition-colors"><ArrowLeft size={14} /> {t("back")}</button>
               {zonesCount > 0 && (
                 <button 
                   onClick={() => { setSelectedTechniques({}); setNumColorsMap({}); }} 
                   className="px-5 py-2.5 rounded-full border-2 border-red-200 text-red-600 bg-red-50 text-sm font-medium flex items-center gap-2 hover:bg-red-100 transition-colors"
-                  title="Borrar marcaje seleccionado"
+                  title={t("clear_selected_marking")}
                 >
-                  <Trash2 size={14} /> Quitar marcaje
+                  <Trash2 size={14} /> {t("remove_marking")}
                 </button>
               )}
               <button onClick={async () => {
@@ -1262,7 +1263,7 @@ function ProductConfiguratorInner({ product }: Props) {
                 }
                 changeStep(3);
               }} disabled={!hasLogos} className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                {hasLogos ? <>Revisar y Continuar <Eye size={16} /></> : "Sube tu logo primero"}
+                {hasLogos ? <>{t("review_and_continue")} <Eye size={16} /></> : t("upload_logo_first")}
               </button>
             </div>
           </div>
@@ -1317,31 +1318,31 @@ function ProductConfiguratorInner({ product }: Props) {
                 );
               })}
             </div>
-            <div className="text-center mt-2 text-[10px] text-gray-400 bg-black/5 rounded-lg py-1">Previsualización orientativa</div>
+            <div className="text-center mt-2 text-[10px] text-gray-400 bg-black/5 rounded-lg py-1">{t("indicative_preview")}</div>
           </div>
 
           <div>
-            <h2 className="font-display font-extrabold text-2xl mb-6">Resumen de tu pedido</h2>
+            <h2 className="font-display font-extrabold text-2xl mb-6">{t("order_summary")}</h2>
 
             <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden mb-5">
               {[
-                ["Producto", product.name],
-                ["Color", variant.color + (variant.size && !hasSize ? ` / ${variant.size}` : "")],
+                [t("summary_product"), product.name],
+                [t("summary_color"), variant.color + (variant.size && !hasSize ? ` / ${variant.size}` : "")],
                 ...(hasSize && Object.keys(sizeQuantities).length > 0 ? [
-                  ["Tallas configuradas", Object.entries(sizeQuantities).filter(([_, q]) => q > 0).map(([sku, q]) => {
+                  [t("summary_sizes_configured"), Object.entries(sizeQuantities).filter(([_, q]) => q > 0).map(([sku, q]) => {
                     const sz = product.variants.find(v => v.sku === sku)?.size || sku;
                     return `${q}× ${sz}`;
                   }).join(", ")]
                 ] : []),
-                ["Cantidad", `${qty} unidades`],
-                ["Precio/ud producto", `${unitProductPrice.toFixed(2)}€`],
+                [t("summary_quantity"), t("units_count", { qty })],
+                [t("summary_unit_price"), `${unitProductPrice.toFixed(2)}€`],
                 ...(zonesCount > 0 ? [
-                  ["Posiciones configuradas", String(zonesCount)],
-                  ["Manipulación", `${handlingInfo?.description || "Estándar"} (${round(handlingCostPerUnit * printMarginMultiplier).toFixed(2)}€/ud)`],
+                  [t("summary_positions_configured"), String(zonesCount)],
+                  [t("summary_handling"), `${handlingInfo?.description || t("standard")} (${round(handlingCostPerUnit * printMarginMultiplier).toFixed(2)}€/ud)`],
                   ...(hasActiveLogos ? activePlacements.map(lp => {
                     const techId = selectedTechniques[lp.positionId];
                     const tName = product.printPositions.find(p => p.positionId === lp.positionId)?.techniques.find(t => t.techniqueId === techId)?.name || techId;
-                    return [`Logo (${printZones.find(z => z.positionId === lp.positionId)?.positionName || ""})`, `${lp.logoFileName} - ${tName}`];
+                    return [t("summary_logo_position", { zone: printZones.find(z => z.positionId === lp.positionId)?.positionName || "" }), `${lp.logoFileName} - ${tName}`];
                   }) : []),
                 ] : []),
               ].map(([label, value], i) => (
@@ -1354,46 +1355,46 @@ function ProductConfiguratorInner({ product }: Props) {
 
             <div className="bg-gray-900 rounded-2xl p-5 mb-5 text-white">
               <div className="flex justify-between mb-1.5 text-sm">
-                <span className="opacity-60">Producto ({qty} × {unitProductPrice.toFixed(2)}€)</span>
+                <span className="opacity-60">{t("line_product", { qty, price: unitProductPrice.toFixed(2) })}</span>
                 <span>{basePrice.toFixed(2)}€</span>
               </div>
               {zonesCount > 0 && (
                 <>
                   <div className="flex justify-between mb-1.5 text-sm">
-                    <span className="opacity-60">Setup de máquinas (Coste fijo)</span><span>{setupCost.toFixed(2)}€</span>
+                    <span className="opacity-60">{t("line_setup")}</span><span>{setupCost.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between mb-1.5 text-sm">
-                    <span className="opacity-60">Impresión ({qty} × {printPerUnit.toFixed(2)}€)</span><span>{printTotal.toFixed(2)}€</span>
+                    <span className="opacity-60">{t("line_print", { qty, price: printPerUnit.toFixed(2) })}</span><span>{printTotal.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between mb-1.5 text-sm">
-                    <span className="opacity-60">Manipulación</span><span>{handlingTotal.toFixed(2)}€</span>
+                    <span className="opacity-60">{t("line_handling")}</span><span>{handlingTotal.toFixed(2)}€</span>
                   </div>
                 </>
               )}
               <div className="border-t border-white/20 pt-3 mt-2 flex justify-between items-baseline">
-                <span className="font-bold">Total</span>
+                <span className="font-bold">{t("total")}</span>
                 <div className="flex flex-col items-end gap-0.5">
                   {MARGINS.clientDiscountPct > 0 && (
                     <span className="text-xs text-brand-red font-bold uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <Star size={10} className="fill-brand-red" /> Tarifa VIP Aplicada
+                      <Star size={10} className="fill-brand-red" /> {t("vip_rate_applied")}
                     </span>
                   )}
                   <span className="font-display font-extrabold text-3xl text-brand-red">{total.toFixed(2)}€</span>
                 </div>
               </div>
-              <div className="text-right mt-1"><span className="text-sm font-bold text-gray-300">{perUnit.toFixed(2)}€ / unidad</span></div>
+              <div className="text-right mt-1"><span className="text-sm font-bold text-gray-300">{t("per_unit_price", { price: perUnit.toFixed(2) })}</span></div>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => changeStep(zonesCount > 0 ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> Editar</button>
+              <button onClick={() => changeStep(zonesCount > 0 ? 2 : 1)} className="px-5 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center gap-2 hover:border-gray-300"><ArrowLeft size={14} /> {t("edit")}</button>
               <button
                 onClick={() => handleAddToCart(false)}
                 disabled={isAddingToCart || !canProceed}
-                title={!canProceed ? "Color sin stock o cantidad inválida" : ""}
+                title={!canProceed ? t("no_stock_or_invalid_qty") : ""}
                 className="flex-1 bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
                 {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
-                Añadir al carrito
+                {t("add_to_cart")}
               </button>
             </div>
 
@@ -1402,8 +1403,8 @@ function ProductConfiguratorInner({ product }: Props) {
                 <Info size={16} className="text-blue-600" />
               </div>
               <div className="leading-snug">
-                <strong>¿No estás seguro de cómo quedará?</strong><br/>
-                No te preocupes. Te enviaremos un <strong>boceto final profesional</strong> a tu correo para que lo valides antes de pasar a producción. Podrás aprobarlo o solicitar cambios desde tu panel de cliente.
+                <strong>{t("not_sure_title")}</strong><br/>
+                {t.rich("not_sure_desc", { b: (c) => <strong>{c}</strong> })}
               </div>
             </div>
 
@@ -1414,8 +1415,8 @@ function ProductConfiguratorInner({ product }: Props) {
                   <span className="text-emerald-600 text-lg animate-pulse block">💡</span>
                 </div>
                 <div className="leading-snug">
-                  <strong className="text-emerald-900">¿Sabías que si pides 500 uds el precio por unidad se desploma?</strong><br/>
-                  El coste fijo de preparación de máquinas ({setupCost.toFixed(2)}€) penaliza pedidos pequeños. 
+                  <strong className="text-emerald-900">{t("bulk_savings_title")}</strong><br/>
+                  {t("bulk_savings_desc", { setup: setupCost.toFixed(2) })}
                   {(() => {
                     try {
                       // Calculate hypothetical 500 units
@@ -1480,7 +1481,12 @@ function ProductConfiguratorInner({ product }: Props) {
                       
                       return (
                         <span className="mt-1.5 block">
-                          Si pidieras 500 unidades, el precio total sería de <strong>{hypTotal.toFixed(2)}€</strong> y la unidad te saldría a tan solo <strong className="text-xl text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md">{hypPerUnit.toFixed(2)}€ / ud</strong> con impresión incluida.
+                          {t.rich("bulk_savings_result", {
+                            total: hypTotal.toFixed(2),
+                            perUnit: hypPerUnit.toFixed(2),
+                            b: (c) => <strong>{c}</strong>,
+                            highlight: (c) => <strong className="text-xl text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md">{c}</strong>,
+                          })}
                         </span>
                       );
                     } catch (e) {
@@ -1497,36 +1503,36 @@ function ProductConfiguratorInner({ product }: Props) {
                 <span className="text-orange-600 text-lg animate-pulse block">🔥</span>
               </div>
               <div className="leading-snug">
-                <strong className="text-orange-900">Alta demanda en empresas corporativas.</strong><br/>
-                {fomoData.type === "carts" 
-                  ? `${fomoData.count} empresas han añadido este artículo a sus presupuestos hoy.`
-                  : `${fomoData.count} usuarios están evaluando este producto ahora mismo.`}
+                <strong className="text-orange-900">{t("high_demand_title")}</strong><br/>
+                {fomoData.type === "carts"
+                  ? t("fomo_carts", { count: fomoData.count })
+                  : t("fomo_views", { count: fomoData.count })}
               </div>
             </div>
 
             <div className={`mt-4 mb-2 grid gap-3 ${product.isGreen ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
               <div className="flex items-center gap-2 text-xs text-gray-700 bg-surface-50 p-2.5 rounded-lg border border-surface-200">
                 <Package size={16} className="text-brand-red flex-shrink-0" />
-                <span className="font-medium leading-tight">Envío a península <br className="hidden sm:block" />en 3-10 días</span>
+                <span className="font-medium leading-tight">{t("shipping_peninsula_1")} <br className="hidden sm:block" />{t("shipping_peninsula_2")}</span>
               </div>
               {product.isGreen && (
                 <div className="flex items-center gap-2 text-xs text-gray-700 bg-green-50 p-2.5 rounded-lg border border-green-200">
                   <Leaf size={16} className="text-green-600 flex-shrink-0" />
-                  <span className="font-medium leading-tight text-green-800">Materiales <br className="hidden sm:block" />Sostenibles</span>
+                  <span className="font-medium leading-tight text-green-800">{t("sustainable_materials_1")} <br className="hidden sm:block" />{t("sustainable_materials_2")}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-xs text-gray-700 bg-surface-50 p-2.5 rounded-lg border border-surface-200">
                 <Handshake size={16} className="text-brand-red flex-shrink-0" />
-                <span className="font-medium leading-tight">Atención B2B <br className="hidden sm:block" />Personalizada</span>
+                <span className="font-medium leading-tight">{t("b2b_support_1")} <br className="hidden sm:block" />{t("b2b_support_2")}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-700 bg-surface-50 p-2.5 rounded-lg border border-surface-200">
                 <ShieldCheck size={16} className="text-brand-red flex-shrink-0" />
-                <span className="font-medium leading-tight">Pago 100% <br className="hidden sm:block" />Seguro</span>
+                <span className="font-medium leading-tight">{t("secure_payment_1")} <br className="hidden sm:block" />{t("secure_payment_2")}</span>
               </div>
             </div>
 
             <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full mt-3 py-2.5 rounded-full border-2 border-surface-200 text-sm font-medium flex items-center justify-center gap-2 text-gray-500 hover:border-gray-300 transition-colors disabled:opacity-50">
-              {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> Generando presupuesto...</> : <><Download size={14} /> Descargar presupuesto PDF</>}
+              {pdfGenerating ? <><Loader2 size={14} className="animate-spin" /> {t("generating_quote")}</> : <><Download size={14} /> {t("download_quote_pdf")}</>}
             </button>
           </div>
         </div>
@@ -1536,22 +1542,22 @@ function ProductConfiguratorInner({ product }: Props) {
       {showBlankConfirm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-in">
-            <h3 className="text-xl font-bold mb-2 font-display text-gray-900">¿Añadir producto liso?</h3>
+            <h3 className="text-xl font-bold mb-2 font-display text-gray-900">{t("add_blank_product_title")}</h3>
             <p className="text-gray-600 text-sm mb-6">
-              Estás a punto de añadir <strong>{product.name}</strong> liso, sin ningún logotipo ni personalización. ¿Estás seguro?
+              {t.rich("add_blank_product_desc", { name: product.name, b: (c) => <strong>{c}</strong> })}
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => { setShowBlankConfirm(false); changeStep(2); if (!selectedPosition && printZones.length > 0) setSelectedPosition(printZones[0].positionId); }}
                 className="w-full bg-brand-red text-white py-3 rounded-xl font-bold text-sm hover:bg-brand-red-dark transition-colors"
               >
-                Cancelar, quiero personalizarlo
+                {t("cancel_want_to_customize")}
               </button>
               <button
                 onClick={() => { setShowBlankConfirm(false); handleAddToCart(true); }}
                 className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors"
               >
-                Sí, añadir sin marcaje
+                {t("yes_add_without_marking")}
               </button>
             </div>
           </div>
@@ -1563,23 +1569,23 @@ function ProductConfiguratorInner({ product }: Props) {
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border-2 border-amber-400 animate-scale-in">
             <div className="flex items-center gap-3 mb-3 text-amber-600">
               <span className="text-3xl">⚠️</span>
-              <h3 className="text-xl font-bold font-display text-gray-900 leading-tight">Falta la técnica de impresión</h3>
+              <h3 className="text-xl font-bold font-display text-gray-900 leading-tight">{t("missing_technique_title")}</h3>
             </div>
             <p className="text-gray-600 text-sm mb-6">
-              Vemos que has subido o colocado un logotipo en el producto, pero <strong>no has seleccionado la técnica de impresión</strong>. Debes seleccionar una técnica para poder añadirlo personalizado.
+              {t.rich("missing_technique_desc", { b: (c) => <strong>{c}</strong> })}
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => { setShowMissingTechWarning(false); changeStep(2); }}
                 className="w-full bg-brand-red text-white py-3 rounded-xl font-bold text-sm hover:bg-brand-red-dark transition-colors"
               >
-                Elegir técnica de impresión
+                {t("choose_print_technique")}
               </button>
               <button
                 onClick={() => { setShowMissingTechWarning(false); handleAddToCart(true); }}
                 className="w-full bg-gray-100 text-gray-500 py-2 rounded-xl font-semibold text-xs hover:bg-gray-200 transition-colors"
               >
-                Ignorar logo y comprar liso
+                {t("ignore_logo_buy_blank")}
               </button>
             </div>
           </div>
@@ -1634,35 +1640,36 @@ function PriceBox({ basePrice, setupCost, printTotal, handlingTotal, total, perU
   total: number; perUnit: number; unitProductPrice: number; qty: number;
   hasPrint: boolean; printPerUnit: number; numColors: number; handlingPerUnit: number; compact?: boolean; MARGINS: any;
 }) {
+  const t = useTranslations("Configurator");
   return (
     <div className={`bg-surface-50 rounded-2xl border border-surface-200 ${compact ? "p-4" : "p-5"}`}>
       <div className="flex justify-between mb-1.5">
-        <span className="text-xs text-gray-400">Producto ({qty} × {unitProductPrice.toFixed(2)}€)</span>
+        <span className="text-xs text-gray-400">{t("line_product", { qty, price: unitProductPrice.toFixed(2) })}</span>
         <span className="text-xs font-semibold">{basePrice.toFixed(2)}€</span>
       </div>
       {hasPrint && (
         <>
           <div className="flex justify-between mb-1.5">
-            <span className="text-xs text-gray-400">Setup</span>
+            <span className="text-xs text-gray-400">{t("setup")}</span>
             <span className="text-xs font-semibold">{setupCost.toFixed(2)}€</span>
           </div>
           <div className="flex justify-between mb-1.5">
-            <span className="text-xs text-gray-400">Impresión ({qty} × {printPerUnit.toFixed(2)}€)</span>
+            <span className="text-xs text-gray-400">{t("line_print", { qty, price: printPerUnit.toFixed(2) })}</span>
             <span className="text-xs font-semibold">{printTotal.toFixed(2)}€</span>
           </div>
           <div className="flex justify-between mb-1.5">
-            <span className="text-xs text-gray-400">Manipulación ({qty} × {handlingPerUnit.toFixed(2)}€)</span>
+            <span className="text-xs text-gray-400">{t("line_handling_qty", { qty, price: handlingPerUnit.toFixed(2) })}</span>
             <span className="text-xs font-semibold">{handlingTotal.toFixed(2)}€</span>
           </div>
         </>
       )}
       <div className="border-t-2 border-gray-900 mt-2 pt-3 flex justify-between items-baseline">
         <div>
-          <span className="text-[11px] text-gray-400 block">Por unidad</span>
+          <span className="text-[11px] text-gray-400 block">{t("per_unit")}</span>
           <span className={`font-display font-extrabold text-brand-red ${compact ? "text-xl" : "text-2xl"}`}>{perUnit.toFixed(2)}€</span>
         </div>
         <div className="text-right">
-          <span className="text-[11px] text-gray-400 block">Total</span>
+          <span className="text-[11px] text-gray-400 block">{t("total")}</span>
           <span className={`font-display font-extrabold ${compact ? "text-xl" : "text-2xl"}`}>{total.toFixed(2)}€</span>
         </div>
       </div>

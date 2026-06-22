@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import { Metadata } from "next";
 import Image from "next/image";
 import { ShareButton } from "@/components/blog/ShareButton";
+import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({ params }: { params: { slug: string, locale: string } }): Promise<Metadata> {
   const post = await getPostBySlug(params.slug, params.locale);
@@ -50,6 +51,8 @@ export default async function BlogPostPage({ params }: { params: { slug: string,
     notFound();
   }
 
+  const t = await getTranslations("Blog");
+
   // Calculate estimated reading time assuming ~200 words per minute
   const wordCount = post.body ? post.body.replace(/<[^>]*>?/gm, '').split(/\s+/).length : 0;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -74,16 +77,16 @@ export default async function BlogPostPage({ params }: { params: { slug: string,
       <header className="relative bg-surface-50 pt-16 pb-20 md:pt-24 md:pb-32 border-b border-gray-100 overflow-hidden">
         <div className="container-custom relative z-10 max-w-4xl mx-auto">
           <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-brand-red transition-colors mb-8">
-            <ArrowLeft size={16} /> Volver al Blog
+            <ArrowLeft size={16} /> {t("backToBlog")}
           </Link>
           
           <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500 mb-6">
             <div className="flex items-center gap-1.5 uppercase tracking-wider text-brand-red bg-red-50 px-3 py-1 rounded-full">
-              Merchandising
+              {t("categoryLabel")}
             </div>
             <div className="flex items-center gap-1.5">
               <Clock size={14} />
-              <span>{readingTime} min de lectura</span>
+              <span>{t("readingTime", { minutes: readingTime })}</span>
             </div>
             <span>•</span>
             <time dateTime={post.publishedAt}>
@@ -107,7 +110,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string,
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">{post.authorName?.replace(/ AI/gi, "") || "Universo Merchan"}</p>
-              <p className="text-xs text-gray-500">Equipo Editorial</p>
+              <p className="text-xs text-gray-500">{t("editorialTeam")}</p>
             </div>
           </div>
         </div>
@@ -135,7 +138,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string,
         {/* Table of Contents */}
         {toc.length > 0 && (
           <div className="mb-10 bg-gray-50 p-6 rounded-xl border border-gray-100">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-4">Índice de contenidos</h3>
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-4">{t("tableOfContents")}</h3>
             <ul className="space-y-2">
               {toc.map((item, index) => (
                 <li key={index}>
@@ -159,16 +162,16 @@ export default async function BlogPostPage({ params }: { params: { slug: string,
             UM
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Escrito por Universo Merchan</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{t("authorBoxTitle")}</h3>
             <p className="text-gray-600 leading-relaxed text-sm">
-              Especialistas con más de 15 años de experiencia en la personalización y distribución de regalos corporativos y merchandising publicitario. Ayudamos a las empresas de España a potenciar su marca con estrategias de impacto visual.
+              {t("authorBoxDescription")}
             </p>
           </div>
         </div>
         
         {/* Footer / Share actions */}
         <div className="mt-16 pt-8 border-t border-gray-100 flex justify-between items-center text-gray-500">
-          <p className="text-sm font-semibold">¿Te ha resultado útil?</p>
+          <p className="text-sm font-semibold">{t("wasItHelpful")}</p>
           <ShareButton title={post.title} />
         </div>
       </div>

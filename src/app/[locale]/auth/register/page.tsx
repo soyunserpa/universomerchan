@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslations } from "next-intl";
 import { Gift, Mail, Lock, User, Building2, Phone, FileText, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
@@ -16,6 +17,7 @@ export default function RegisterPage() {
 }
 
 function RegisterContent() {
+  const t = useTranslations("Auth");
   const { register } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,8 +34,8 @@ function RegisterContent() {
     e.preventDefault();
     setError("");
 
-    if (form.password !== form.confirmPassword) { setError("Las contraseñas no coinciden"); return; }
-    if (form.password.length < 8) { setError("La contraseña debe tener al menos 8 caracteres"); return; }
+    if (form.password !== form.confirmPassword) { setError(t("passwordMismatch")); return; }
+    if (form.password.length < 8) { setError(t("passwordTooShort")); return; }
 
     setLoading(true);
     const result = await register({
@@ -44,7 +46,7 @@ function RegisterContent() {
     setLoading(false);
 
     if (result.success) { router.push(redirectParams); }
-    else { setError(result.error || "Error en el registro"); }
+    else { setError(result.error || t("errorRegister")); }
   };
 
   return (
@@ -52,8 +54,8 @@ function RegisterContent() {
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <Gift size={36} className="text-brand-red mx-auto mb-3" />
-          <h1 className="font-display font-extrabold text-3xl mb-2">Crear cuenta</h1>
-          <p className="text-gray-400 text-sm">Regístrate para personalizar y comprar productos</p>
+          <h1 className="font-display font-extrabold text-3xl mb-2">{t("registerTitle")}</h1>
+          <p className="text-gray-400 text-sm">{t("registerSubtitle")}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-surface-200 p-7">
@@ -68,30 +70,30 @@ function RegisterContent() {
             {/* Name */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-semibold mb-1.5 block">Nombre *</label>
+                <label className="text-sm font-semibold mb-1.5 block">{t("firstNameLabel")}</label>
                 <div className="relative">
                   <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="text" value={form.firstName} onChange={e => update("firstName", e.target.value)} required placeholder="Marina" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                  <input type="text" value={form.firstName} onChange={e => update("firstName", e.target.value)} required placeholder={t("firstNamePlaceholder")} className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-semibold mb-1.5 block">Apellido</label>
-                <input type="text" value={form.lastName} onChange={e => update("lastName", e.target.value)} placeholder="García" className="w-full px-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                <label className="text-sm font-semibold mb-1.5 block">{t("lastNameLabel")}</label>
+                <input type="text" value={form.lastName} onChange={e => update("lastName", e.target.value)} placeholder={t("lastNamePlaceholder")} className="w-full px-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="text-sm font-semibold mb-1.5 block">Email *</label>
+              <label className="text-sm font-semibold mb-1.5 block">{t("emailRequiredLabel")}</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="email" value={form.email} onChange={e => update("email", e.target.value)} required placeholder="tu@empresa.com" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                <input type="email" value={form.email} onChange={e => update("email", e.target.value)} required placeholder={t("emailPlaceholder")} className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
               </div>
             </div>
 
             {/* Phone */}
             <div>
-              <label className="text-sm font-semibold mb-1.5 block">Teléfono</label>
+              <label className="text-sm font-semibold mb-1.5 block">{t("phoneLabel")}</label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="tel" value={form.phone} onChange={e => update("phone", e.target.value)} placeholder="+34 600 000 000" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
@@ -101,39 +103,39 @@ function RegisterContent() {
             {/* Password */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-semibold mb-1.5 block">Contraseña *</label>
+                <label className="text-sm font-semibold mb-1.5 block">{t("passwordRequiredLabel")}</label>
                 <div className="relative">
                   <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} required placeholder="Mín. 8 caracteres" className="w-full pl-10 pr-10 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                  <input type={showPassword ? "text" : "password"} value={form.password} onChange={e => update("password", e.target.value)} required placeholder={t("passwordMinPlaceholder")} className="w-full pl-10 pr-10 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
               </div>
               <div>
-                <label className="text-sm font-semibold mb-1.5 block">Confirmar *</label>
-                <input type="password" value={form.confirmPassword} onChange={e => update("confirmPassword", e.target.value)} required placeholder="Repite contraseña" className="w-full px-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                <label className="text-sm font-semibold mb-1.5 block">{t("confirmPasswordLabel")}</label>
+                <input type="password" value={form.confirmPassword} onChange={e => update("confirmPassword", e.target.value)} required placeholder={t("confirmPasswordPlaceholder")} className="w-full px-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
               </div>
             </div>
 
             {/* Company toggle */}
             <button type="button" onClick={() => setShowCompany(!showCompany)} className="flex items-center gap-2 text-sm text-gray-400 hover:text-brand-red transition-colors">
               <Building2 size={14} />
-              {showCompany ? "Ocultar datos de empresa" : "¿Compras para una empresa? Añade datos de facturación"}
+              {showCompany ? t("hideCompanyData") : t("showCompanyData")}
             </button>
 
             {/* Company fields */}
             {showCompany && (
               <div className="grid grid-cols-2 gap-3 animate-slide-up">
                 <div>
-                  <label className="text-sm font-semibold mb-1.5 block">Empresa</label>
+                  <label className="text-sm font-semibold mb-1.5 block">{t("companyLabel")}</label>
                   <div className="relative">
                     <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="text" value={form.companyName} onChange={e => update("companyName", e.target.value)} placeholder="Nombre empresa" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
+                    <input type="text" value={form.companyName} onChange={e => update("companyName", e.target.value)} placeholder={t("companyPlaceholder")} className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold mb-1.5 block">CIF/NIF</label>
+                  <label className="text-sm font-semibold mb-1.5 block">{t("cifLabel")}</label>
                   <div className="relative">
                     <FileText size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text" value={form.cif} onChange={e => update("cif", e.target.value)} placeholder="B12345678" className="w-full pl-10 pr-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm" />
@@ -145,14 +147,17 @@ function RegisterContent() {
             {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
             <button type="submit" disabled={loading} className="w-full bg-brand-red text-white py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors disabled:opacity-50">
-              {loading ? "Creando cuenta..." : <>Crear cuenta <ArrowRight size={16} /></>}
+              {loading ? t("creatingAccount") : <>{t("registerButton")} <ArrowRight size={16} /></>}
             </button>
           </form>
         </div>
 
         <p className="text-center text-sm text-gray-400 mt-5">
-          ¿Ya tienes cuenta?{" "}
-          <Link href={`/auth/login${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect") as string)}` : ""}`} className="text-brand-red font-semibold hover:underline">Inicia sesión</Link>
+          {t.rich("alreadyHaveAccount", {
+            link: (chunks) => (
+              <Link href={`/auth/login${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect") as string)}` : ""}`} className="text-brand-red font-semibold hover:underline">{chunks}</Link>
+            ),
+          })}
         </p>
       </div>
     </div>

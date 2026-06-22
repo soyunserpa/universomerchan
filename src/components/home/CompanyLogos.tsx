@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import React, { useState, useEffect } from "react";
 
@@ -43,12 +44,13 @@ function Logo({ name, src, customClass }: { name: string; src: string; customCla
 }
 
 export function CompanyLogos() {
+  const t = useTranslations("CompanyLogos");
   return (
     <section className="border-t border-b border-gray-100 bg-white py-12 sm:py-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-10">
           <p className="text-sm font-bold text-gray-900 uppercase tracking-widest text-center">
-            Proyectos que confían en nosotros
+            {t("trusted")}
           </p>
         </div>
         

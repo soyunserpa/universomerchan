@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "@/i18n/routing";;
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import {
     Package, User, LogOut, FileText, RefreshCw, Mail, Phone, Building, Briefcase, ChevronRight, Eye, Truck
 , Heart } from "lucide-react";
@@ -10,6 +11,7 @@ import { useEffect, useState } from "react";
 
 export default function AccountProfilePage() {
     const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+    const t = useTranslations("Account");
     const router = useRouter();
     const [stats, setStats] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -47,14 +49,14 @@ export default function AccountProfilePage() {
             });
             const data = await res.json();
             if (data.success) {
-                setSuccess("Perfil actualizado correctamente");
+                setSuccess(t("profile_update_success"));
                 setIsEditing(false);
                 window.location.reload(); // Hard reload para refrescar globalmente
             } else {
-                setError(data.error || "Error al actualizar");
+                setError(data.error || t("profile_update_error"));
             }
         } catch {
-            setError("Error de red");
+            setError(t("network_error"));
         } finally {
             setSaving(false);
         }
@@ -98,12 +100,12 @@ export default function AccountProfilePage() {
                     </div>
 
                     {[
-                        { href: "/account/orders", icon: Package, label: "Mis pedidos", badge: stats?.pendingOrders },
-                        { href: "/account/proofs", icon: Eye, label: "Mis bocetos", badge: stats?.proofsToReview },
-                        { href: "/account/shipping", icon: Truck, label: "Mis envíos" },
-                        { href: "/account/quotes", icon: FileText, label: "Presupuestos", badge: stats?.activeQuotes },
-            { href: "/account/favorites", icon: Heart, label: "Favoritos" },
-                        { href: "/account/profile", icon: User, label: "Mi perfil" },
+                        { href: "/account/orders", icon: Package, label: t("nav_orders"), badge: stats?.pendingOrders },
+                        { href: "/account/proofs", icon: Eye, label: t("nav_proofs"), badge: stats?.proofsToReview },
+                        { href: "/account/shipping", icon: Truck, label: t("nav_shipping") },
+                        { href: "/account/quotes", icon: FileText, label: t("nav_quotes"), badge: stats?.activeQuotes },
+            { href: "/account/favorites", icon: Heart, label: t("nav_favorites") },
+                        { href: "/account/profile", icon: User, label: t("nav_profile") },
                     ].map(item => (
                         <Link key={item.href} href={item.href} className={`flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-surface-50 transition-colors ${item.href === "/account/profile" ? "bg-surface-50 text-brand-red font-bold" : "text-sm font-medium text-gray-600"}`}>
                             <div className="flex items-center gap-2.5"><item.icon size={16} /> {item.label}</div>
@@ -111,23 +113,23 @@ export default function AccountProfilePage() {
                         </Link>
                     ))}
                     <button onClick={() => { logout(); router.push("/"); }} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-red-500 transition-colors w-full mt-4">
-                        <LogOut size={16} /> Cerrar sesión
+                        <LogOut size={16} /> {t("logout")}
                     </button>
                 </aside>
 
                 {/* Main Content */}
                 <div className="space-y-6">
                     <div className="bg-white border border-surface-200 rounded-2xl p-6 sm:p-10">
-                        <h1 className="font-display font-extrabold text-2xl mb-2">Información de la Cuenta</h1>
-                        <p className="text-gray-500 text-sm mb-8">Estos son los datos vinculados a tu cuenta de cliente en Universo Merchan.</p>
+                        <h1 className="font-display font-extrabold text-2xl mb-2">{t("profile_title")}</h1>
+                        <p className="text-gray-500 text-sm mb-8">{t("profile_subtitle")}</p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100">
-                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><User size={14} /> Nombre y Apellidos</div>
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><User size={14} /> {t("field_name_label")}</div>
                                 {isEditing ? (
                                     <div className="flex gap-2">
-                                        <input placeholder="Nombre" className="w-1/2 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
-                                        <input placeholder="Apellidos" className="w-1/2 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
+                                        <input placeholder={t("field_firstname_placeholder")} className="w-1/2 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
+                                        <input placeholder={t("field_lastname_placeholder")} className="w-1/2 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
                                     </div>
                                 ) : (
                                     <div className="font-medium">{user?.firstName} {user?.lastName}</div>
@@ -135,45 +137,45 @@ export default function AccountProfilePage() {
                             </div>
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100">
-                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Mail size={14} /> Correo electrónico</div>
-                                <div className="font-medium text-gray-500">{user?.email} <span className="text-xs font-normal ml-2 text-gray-400">(No editable)</span></div>
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Mail size={14} /> {t("field_email_label")}</div>
+                                <div className="font-medium text-gray-500">{user?.email} <span className="text-xs font-normal ml-2 text-gray-400">{t("field_email_not_editable")}</span></div>
                             </div>
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100">
-                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Phone size={14} /> Teléfono</div>
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Phone size={14} /> {t("field_phone_label")}</div>
                                 {isEditing ? (
                                     <input type="tel" placeholder="+34 600..." className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                 ) : (
-                                    <div className="font-medium">{(user as any)?.phone || <span className="text-gray-400 italic">No especificado</span>}</div>
+                                    <div className="font-medium">{(user as any)?.phone || <span className="text-gray-400 italic">{t("not_specified")}</span>}</div>
                                 )}
                             </div>
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100">
-                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Building size={14} /> Empresa</div>
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Building size={14} /> {t("field_company_label")}</div>
                                 {isEditing ? (
-                                    <input placeholder="Nombre de tu empresa" className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} />
+                                    <input placeholder={t("field_company_placeholder")} className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} />
                                 ) : (
-                                    <div className="font-medium">{user?.companyName || <span className="text-gray-400 italic">No aplicable</span>}</div>
+                                    <div className="font-medium">{user?.companyName || <span className="text-gray-400 italic">{t("not_applicable")}</span>}</div>
                                 )}
                             </div>
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100 sm:col-span-2">
-                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Briefcase size={14} /> CIF / VAT Id</div>
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Briefcase size={14} /> {t("field_cif_label")}</div>
                                 {isEditing ? (
                                     <input placeholder="B12345678" className="w-full sm:w-1/2 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.cif} onChange={e => setFormData({ ...formData, cif: e.target.value })} />
                                 ) : (
-                                    <div className="font-medium">{(user as any)?.cif || <span className="text-gray-400 italic">No especificado</span>}</div>
+                                    <div className="font-medium">{(user as any)?.cif || <span className="text-gray-400 italic">{t("not_specified")}</span>}</div>
                                 )}
                             </div>
 
                             <div className="bg-surface-50 rounded-xl p-5 border border-surface-100 sm:col-span-2">
-                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Truck size={14} /> Dirección de Envío y Facturación</div>
+                                <div className="text-gray-400 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"><Truck size={14} /> {t("field_address_label")}</div>
                                 {isEditing ? (
                                     <div className="space-y-3">
-                                        <input placeholder="Calle, número, puerta" className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingStreet} onChange={e => setFormData({ ...formData, shippingStreet: e.target.value })} />
+                                        <input placeholder={t("field_street_placeholder")} className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingStreet} onChange={e => setFormData({ ...formData, shippingStreet: e.target.value })} />
                                         <div className="flex gap-3">
-                                            <input placeholder="Ciudad" className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingCity} onChange={e => setFormData({ ...formData, shippingCity: e.target.value })} />
-                                            <input placeholder="C.P." className="w-1/3 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingPostalCode} onChange={e => setFormData({ ...formData, shippingPostalCode: e.target.value })} />
+                                            <input placeholder={t("field_city_placeholder")} className="w-full px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingCity} onChange={e => setFormData({ ...formData, shippingCity: e.target.value })} />
+                                            <input placeholder={t("field_postalcode_placeholder")} className="w-1/3 px-3 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:border-brand-red" value={formData.shippingPostalCode} onChange={e => setFormData({ ...formData, shippingPostalCode: e.target.value })} />
                                         </div>
                                     </div>
                                 ) : (
@@ -184,7 +186,7 @@ export default function AccountProfilePage() {
                                                 <p>{(user as any).shippingCity}, {(user as any).shippingPostalCode}</p>
                                             </>
                                         ) : (
-                                            <span className="text-gray-400 italic">Ninguna dirección guardada. Introdúcela en tu próximo pedido.</span>
+                                            <span className="text-gray-400 italic">{t("address_empty")}</span>
                                         )}
                                     </div>
                                 )}
@@ -198,24 +200,24 @@ export default function AccountProfilePage() {
                             {isEditing ? (
                                 <>
                                     <p className="text-xs text-brand-red/80 flex-1 text-center sm:text-left">
-                                        Asegúrate de comprobar que el CIF es correcto para efectos de facturación automática.
+                                        {t("cif_billing_note")}
                                     </p>
                                     <div className="flex gap-2">
                                         <button onClick={() => setIsEditing(false)} className="bg-surface-100 text-gray-700 hover:bg-surface-200 px-5 py-2 rounded-full font-semibold text-sm transition-colors">
-                                            Cancelar
+                                            {t("cancel")}
                                         </button>
                                         <button onClick={handleSave} disabled={saving} className="bg-brand-red text-white hover:bg-brand-red-dark px-5 py-2 rounded-full font-semibold text-sm transition-colors flex items-center gap-2 disabled:opacity-50">
-                                            {saving ? <RefreshCw size={14} className="animate-spin" /> : "Guardar Cambios"}
+                                            {saving ? <RefreshCw size={14} className="animate-spin" /> : t("save_changes")}
                                         </button>
                                     </div>
                                 </>
                             ) : (
                                 <>
                                     <p className="text-xs text-gray-400 flex-1 text-center sm:text-left">
-                                        Mantén tus datos actualizados para agilizar tus futuros pedidos y facturas.
+                                        {t("keep_data_updated_note")}
                                     </p>
                                     <button onClick={() => setIsEditing(true)} className="bg-surface-100 text-gray-700 hover:bg-surface-200 px-5 py-2 rounded-full font-semibold text-sm transition-colors flex items-center gap-2">
-                                        Editar mis datos
+                                        {t("edit_my_data")}
                                     </button>
                                 </>
                             )}

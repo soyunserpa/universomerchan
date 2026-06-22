@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { X, Cookie } from "lucide-react";
 
 export function CookieBanner() {
+    const t = useTranslations("Misc");
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -36,13 +38,15 @@ export function CookieBanner() {
                         <Cookie size={20} className="text-brand-red" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-sm mb-1">Tu privacidad es importante</h3>
+                        <h3 className="font-bold text-sm mb-1">{t("cookie_privacy_title")}</h3>
                         <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                            Utilizamos cookies propias y de terceros para mejorar tu experiencia de navegación, analizar el uso del sitio y personalizar el contenido. Puedes aceptar todas o configurarlas en nuestra{" "}
-                            <Link href="/legal/cookies" className="underline hover:text-white transition-colors">
-                                Política de Cookies
-                            </Link>
-                            .
+                            {t.rich("cookie_privacy_text", {
+                                link: (chunks) => (
+                                    <Link href="/legal/cookies" className="underline hover:text-white transition-colors">
+                                        {chunks}
+                                    </Link>
+                                ),
+                            })}
                         </p>
                     </div>
                 </div>
@@ -52,18 +56,18 @@ export function CookieBanner() {
                         onClick={handleReject}
                         className="px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white transition-colors whitespace-nowrap"
                     >
-                        Rechazar
+                        {t("cookie_reject")}
                     </button>
                     <button
                         onClick={handleAccept}
                         className="px-5 py-2 text-sm font-bold bg-white text-gray-900 rounded-xl hover:bg-gray-100 transition-colors whitespace-nowrap"
                     >
-                        Aceptar todas
+                        {t("cookie_accept_all")}
                     </button>
                     <button
                         onClick={handleReject}
                         className="sm:hidden ml-2 text-gray-500 hover:text-white"
-                        aria-label="Cerrar"
+                        aria-label={t("cookie_close")}
                     >
                         <X size={20} />
                     </button>

@@ -231,17 +231,27 @@ export async function createCheckoutSession(params: {
 }): Promise<{ sessionUrl: string; sessionId: string }> {
   const { orderId, orderNumber, customerName, customerEmail, shippingAddress, totalPrice, items, expressShipping, couponCode, finalShippingCost, paymentMethod, locale } = params;
 
-  // ── TAX RATES (IVA 21%) ────────────────────────────────────
-  const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
-  let ivaRate = taxRatesList.data.find(t => t.percentage === 21 && t.display_name === "IVA");
-  if (!ivaRate) {
-    ivaRate = await stripe.taxRates.create({
-      display_name: "IVA",
-      description: "IVA España (21%)",
-      jurisdiction: "ES",
-      percentage: 21,
-      inclusive: false,
-    });
+  // ── TAX ────────────────────────────────────────────────────
+  // Stripe Tax (STRIPE_TAX_ENABLED=true): Stripe computes the correct VAT for
+  // the customer's country and applies intra-EU reverse charge (0%) for B2B
+  // buyers who enter a valid VAT-ID. Requires Stripe Tax activated + tax
+  // registrations (Spain, and OSS for B2C cross-border) in the Stripe Dashboard.
+  // Flag OFF (default): legacy flat Spanish IVA (21%) — unchanged behaviour.
+  const useStripeTax = process.env.STRIPE_TAX_ENABLED === "true";
+
+  let ivaRate: Stripe.TaxRate | undefined;
+  if (!useStripeTax) {
+    const taxRatesList = await stripe.taxRates.list({ active: true, limit: 100 });
+    ivaRate = taxRatesList.data.find(t => t.percentage === 21 && t.display_name === "IVA");
+    if (!ivaRate) {
+      ivaRate = await stripe.taxRates.create({
+        display_name: "IVA",
+        description: "IVA España (21%)",
+        jurisdiction: "ES",
+        percentage: 21,
+        inclusive: false,
+      });
+    }
   }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
@@ -253,9 +263,11 @@ export async function createCheckoutSession(params: {
         images: item.productImage && !item.productImage.startsWith("data:image") && item.productImage.length < 2000 ? [item.productImage] : undefined,
       },
       unit_amount: Math.round(item.unitPriceTotal * 100), // Stripe uses cents
+      // Prices are tax-exclusive (tax added on top) — same model as the legacy flat IVA.
+      ...(useStripeTax ? { tax_behavior: "exclusive" as const } : {}),
     },
     quantity: item.quantity,
-    tax_rates: [ivaRate.id],
+    ...(useStripeTax ? {} : { tax_rates: [ivaRate!.id] }),
   }));
 
   // ── Payment methods ────────────────────────────────────────
@@ -368,6 +380,13 @@ export async function createCheckoutSession(params: {
       enabled: true,
     },
 
+    // Stripe Tax: per-country VAT + intra-EU reverse charge when a valid VAT-ID
+    // is entered. tax_id_collection adds the VAT-ID field at checkout (B2B).
+    ...(useStripeTax ? {
+      automatic_tax: { enabled: true },
+      tax_id_collection: { enabled: true },
+    } : {}),
+
     // Inject temporary stripe coupon dynamically OR allow promo codes
     ...(stripeCouponId 
       ? { discounts: [{ coupon: stripeCouponId }] }
@@ -390,6 +409,7 @@ export async function createCheckoutSession(params: {
           type: "fixed_amount",
           fixed_amount: { amount: Math.round(finalShippingCost * 100), currency: "eur" },
           display_name: expressShipping ? "Envío Directo (Gestión pedidos < 300€)" : "Envío estándar",
+          ...(useStripeTax ? { tax_behavior: "exclusive" as const } : {}),
           delivery_estimate: expressShipping ? {
             minimum: { unit: "business_day", value: 3 },
             maximum: { unit: "business_day", value: 5 },
@@ -405,6 +425,10 @@ export async function createCheckoutSession(params: {
   // Stripe validation strictly prohibits using both customer and customer_email
   if (stripeCustomerId) {
     sessionConfig.customer = stripeCustomerId;
+    // Stripe Tax needs to read/refresh the customer address to compute VAT.
+    if (useStripeTax) {
+      sessionConfig.customer_update = { address: "auto", name: "auto" };
+    }
   } else {
     sessionConfig.customer_email = customerEmail;
   }

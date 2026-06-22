@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   MessageSquare,
   X,
@@ -64,30 +65,30 @@ type ChatMsg = {
 // WIZARD QUESTIONS
 // ════════════════════════════════════════════════════════════════
 
-const WIZARD_QUESTIONS = [
+const buildWizardQuestions = (t: (key: string) => string) => [
   {
-    question: "¿Cuál es el nombre de tu empresa?",
-    placeholder: "Ej: Acme Solutions",
+    question: t("chatbot.wizard.companyName.question"),
+    placeholder: t("chatbot.wizard.companyName.placeholder"),
     field: "company_name",
   },
   {
-    question: "¿A qué se dedica tu empresa?",
-    placeholder: "Ej: Consultoría tecnológica",
+    question: t("chatbot.wizard.industry.question"),
+    placeholder: t("chatbot.wizard.industry.placeholder"),
     field: "industry",
   },
   {
-    question: "¿Cuál es el objetivo del merchandising?",
-    placeholder: "Ej: Fidelizar clientes premium",
+    question: t("chatbot.wizard.objective.question"),
+    placeholder: t("chatbot.wizard.objective.placeholder"),
     field: "objective",
   },
   {
-    question: "Genial. ¿Y a qué email corporativo te gustaría que te enviáramos una copia de esta propuesta mágica?",
-    placeholder: "Ej: hola@empresa.com",
+    question: t("chatbot.wizard.email.question"),
+    placeholder: t("chatbot.wizard.email.placeholder"),
     field: "email",
   },
   {
-    question: "¡Anotado! Por último, ¿Qué número de teléfono dejamos guardado para que ventas te contacte (opcional)?",
-    placeholder: "Ej: 600 000 000",
+    question: t("chatbot.wizard.phone.question"),
+    placeholder: t("chatbot.wizard.phone.placeholder"),
     field: "phone",
   },
 ];
@@ -97,6 +98,8 @@ const WIZARD_QUESTIONS = [
 // ════════════════════════════════════════════════════════════════
 
 export function ChatbotBubble() {
+  const t = useTranslations("Quiz");
+  const WIZARD_QUESTIONS = buildWizardQuestions(t);
   // ─── State ───
   const [isOpen, setIsOpen] = useState(false);
   const [hasBeenOpened, setHasBeenOpened] = useState(false);
@@ -124,7 +127,7 @@ export function ChatbotBubble() {
 
   // Loading
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState("Pensando...");
+  const [loadingText, setLoadingText] = useState(t("chatbot.loading.thinking"));
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -207,7 +210,7 @@ export function ChatbotBubble() {
     setWizardStep(0);
     trackFunnel("started_wizard");
     addMsg({
-      content: "¡Hola! 👋 Voy a crear un pack de merchandising a medida para tu empresa. Necesito 3 datos rápidos.",
+      content: t("chatbot.wizard.intro"),
     });
     setTimeout(() => {
       addMsg({ content: WIZARD_QUESTIONS[0].question });
@@ -242,13 +245,13 @@ export function ChatbotBubble() {
 
   async function generatePack(answers: typeof wizardAnswers) {
     setIsLoading(true);
-    setLoadingText("Analizando tu empresa...");
+    setLoadingText(t("chatbot.loading.analyzingCompany"));
 
     // Loading messages sequence
     const loadingSteps = [
-      { text: "Buscando en +2.400 productos...", delay: 2000 },
-      { text: "Seleccionando los mejores para ti...", delay: 4000 },
-      { text: "Preparando tu propuesta personalizada...", delay: 6000 },
+      { text: t("chatbot.loading.searchingProducts"), delay: 2000 },
+      { text: t("chatbot.loading.selectingBest"), delay: 4000 },
+      { text: t("chatbot.loading.preparingProposal"), delay: 6000 },
     ];
 
     for (const step of loadingSteps) {
@@ -346,39 +349,39 @@ export function ChatbotBubble() {
       setTimeout(() => {
         addMsg({
           type: "options",
-          content: "¿Qué te parece?",
+          content: t("chatbot.options.whatDoYouThink"),
           options: [
-            { label: "🔄 Generar otro pack", action: "regenerate" },
-            { label: "🔍 Buscar productos", action: "start_search" },
-            { label: "💬 Tengo una duda", action: "start_freetext" },
+            { label: t("chatbot.options.generateAnother"), action: "regenerate" },
+            { label: t("chatbot.options.searchProducts"), action: "start_search" },
+            { label: t("chatbot.options.haveQuestion"), action: "start_freetext" },
           ],
         });
       }, 1800);
     } catch (err: any) {
       setIsLoading(false);
       addMsg({
-        content: `Lo siento, hubo un error generando tu propuesta. ¿Quieres intentarlo de nuevo?`,
+        content: t("chatbot.errors.generatePack"),
       });
       addMsg({
         type: "options",
         content: "",
         options: [
-          { label: "🔄 Intentar de nuevo", action: "regenerate" },
-          { label: "🏠 Volver al menú", action: "reset" },
+          { label: t("chatbot.options.tryAgain"), action: "regenerate" },
+          { label: t("chatbot.options.backToMenu"), action: "reset" },
         ],
       });
     }
   }
 
   async function handleRegenerate() {
-    addMsg({ role: "user", content: "Quiero ver otro pack diferente" });
+    addMsg({ role: "user", content: t("chatbot.userMsg.anotherPack") });
     await generatePack(wizardAnswers);
   }
 
   async function handleSwapProduct(masterCode: string) {
-    addMsg({ role: "user", content: `Quiero cambiar el producto ${masterCode}` });
+    addMsg({ role: "user", content: t("chatbot.userMsg.swapProduct", { masterCode }) });
     setIsLoading(true);
-    setLoadingText("Buscando alternativa...");
+    setLoadingText(t("chatbot.loading.searchingAlternative"));
 
     try {
       const res = await fetch("/api/chat", {
@@ -406,13 +409,13 @@ export function ChatbotBubble() {
         setCurrentPack(updatedPack);
 
         addMsg({
-          content: `He cambiado **${masterCode}** por un nuevo producto:`,
+          content: t("chatbot.swap.changed", { masterCode }),
         });
 
         setTimeout(() => {
           addMsg({
             type: "pack",
-            content: "Pack actualizado",
+            content: t("chatbot.swap.packUpdated"),
             pack: updatedPack,
           });
         }, 400);
@@ -420,17 +423,17 @@ export function ChatbotBubble() {
         setTimeout(() => {
           addMsg({
             type: "options",
-            content: "¿Algo más?",
+            content: t("chatbot.options.anythingElse"),
             options: [
-              { label: "🔄 Generar otro pack", action: "regenerate" },
-              { label: "✅ Me gusta este pack", action: "start_freetext" },
+              { label: t("chatbot.options.generateAnother"), action: "regenerate" },
+              { label: t("chatbot.options.likeThisPack"), action: "start_freetext" },
             ],
           });
         }, 1000);
       }
     } catch {
       setIsLoading(false);
-      addMsg({ content: "Error buscando alternativa. Inténtalo de nuevo." });
+      addMsg({ content: t("chatbot.errors.searchAlternative") });
     }
   }
 
@@ -443,14 +446,14 @@ export function ChatbotBubble() {
     setMessages([]);
     setWizardStep(-1);
     addMsg({
-      content: "¿Qué producto buscas? Escribe lo que necesites: mochilas, bolígrafos, camisetas, termos...",
+      content: t("chatbot.search.prompt"),
     });
   }
 
   async function handleSearch(query: string) {
     addMsg({ role: "user", content: query });
     setIsLoading(true);
-    setLoadingText("Buscando...");
+    setLoadingText(t("chatbot.loading.searching"));
 
     try {
       const res = await fetch("/api/catalog-search", {
@@ -464,12 +467,12 @@ export function ChatbotBubble() {
 
       if (products.length === 0) {
         addMsg({
-          content: `No encontré resultados para "${query}". Prueba con: mochilas, bolígrafos, termos, camisetas...`,
+          content: t("chatbot.search.noResults", { query }),
         });
       } else {
         addMsg({
           type: "product-cards",
-          content: `${products.length} resultado${products.length > 1 ? "s" : ""} para "${query}"`,
+          content: t("chatbot.search.resultsCount", { count: products.length, query }),
           products,
         });
         setTimeout(() => {
@@ -477,15 +480,15 @@ export function ChatbotBubble() {
             type: "options",
             content: "",
             options: [
-              { label: "🔍 Otra búsqueda", action: "start_search" },
-              { label: "🎁 Crear pack corporativo", action: "start_wizard" },
+              { label: t("chatbot.options.anotherSearch"), action: "start_search" },
+              { label: t("chatbot.options.createPack"), action: "start_wizard" },
             ],
           });
         }, 600);
       }
     } catch {
       setIsLoading(false);
-      addMsg({ content: "Error buscando productos. Inténtalo de nuevo." });
+      addMsg({ content: t("chatbot.errors.searchProducts") });
     }
   }
 
@@ -498,7 +501,7 @@ export function ChatbotBubble() {
     setMessages([]);
     setWizardStep(-1);
     addMsg({
-      content: "Escríbeme tu duda. Puedo ayudarte con plazos de entrega, técnicas de marcaje, cantidades mínimas, materiales...",
+      content: t("chatbot.freetext.prompt"),
     });
   }
 
@@ -552,11 +555,11 @@ export function ChatbotBubble() {
       // Para dudas free text podrías conectar con otro endpoint
       addMsg({ role: "user", content: text });
       addMsg({
-        content: "Para consultas personalizadas, escríbenos a **pedidos@universomerchan.com** o llámanos. ¿Te ayudo con algo más?",
+        content: t("chatbot.freetext.reply"),
         type: "options",
         options: [
-          { label: "🎁 Crear pack corporativo", action: "start_wizard" },
-          { label: "🔍 Buscar productos", action: "start_search" },
+          { label: t("chatbot.options.createPack"), action: "start_wizard" },
+          { label: t("chatbot.options.searchProducts"), action: "start_search" },
         ],
       });
     }
@@ -575,10 +578,10 @@ export function ChatbotBubble() {
     mode === "wizard" && wizardStep >= 0 && wizardStep < WIZARD_QUESTIONS.length
       ? WIZARD_QUESTIONS[wizardStep].placeholder
       : mode === "search"
-        ? "Busca: mochilas, bolígrafos, termos..."
+        ? t("chatbot.placeholders.search")
         : mode === "freetext"
-          ? "Escribe tu pregunta..."
-          : "Selecciona una opción...";
+          ? t("chatbot.placeholders.freetext")
+          : t("chatbot.placeholders.menu");
 
   // ════════════════════════════════════════════════════════════════
   // RENDER
@@ -590,7 +593,7 @@ export function ChatbotBubble() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 w-[60px] h-[60px] bg-brand-red text-white rounded-full shadow-2xl hover:bg-red-700 transition-all transform hover:scale-110 flex items-center justify-center focus:outline-none"
-        aria-label={isOpen ? "Cerrar chat" : "Abrir asistente"}
+        aria-label={isOpen ? t("chatbot.aria.closeChat") : t("chatbot.aria.openAssistant")}
       >
         {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
         {!hasBeenOpened && !isOpen && (
@@ -609,10 +612,10 @@ export function ChatbotBubble() {
                 <Bot size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-sm leading-tight">Asistente Merchan</h3>
+                <h3 className="font-bold text-sm leading-tight">{t("chatbot.header.title")}</h3>
                 <p className="text-white/70 text-[11px] flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" />
-                  Respuesta automática
+                  {t("chatbot.header.autoReply")}
                 </p>
               </div>
             </div>
@@ -620,7 +623,7 @@ export function ChatbotBubble() {
               {mode !== "menu" && (
                 <button
                   onClick={resetAll}
-                  title="Volver al menú"
+                  title={t("chatbot.aria.backToMenu")}
                   className="text-white/60 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all"
                 >
                   <RotateCcw size={16} />
@@ -628,7 +631,7 @@ export function ChatbotBubble() {
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                title="Cerrar"
+                title={t("chatbot.aria.close")}
                 className="text-white/60 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all"
               >
                 <X size={16} />
@@ -645,9 +648,9 @@ export function ChatbotBubble() {
                 <div className="bg-brand-red/5 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
                   <Package size={28} className="text-brand-red" />
                 </div>
-                <p className="text-sm font-semibold text-gray-800 mb-1">¡Hola! Soy tu asistente.</p>
+                <p className="text-sm font-semibold text-gray-800 mb-1">{t("chatbot.menu.greeting")}</p>
                 <p className="text-xs text-gray-500 mb-6 max-w-[260px]">
-                  Te ayudo a encontrar el merchandising perfecto para tu empresa
+                  {t("chatbot.menu.subtitle")}
                 </p>
 
                 <div className="flex flex-col gap-2.5 w-full max-w-[280px]">
@@ -656,28 +659,28 @@ export function ChatbotBubble() {
                     className="bg-brand-red text-white py-3.5 px-4 rounded-xl text-sm font-semibold shadow-md hover:bg-red-700 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Sparkles size={16} />
-                    Propuesta de packs por sector
+                    {t("chatbot.menu.packsBySector")}
                   </button>
                   <button
                     onClick={startWizard}
                     className="bg-white border border-gray-200 text-gray-700 py-3.5 px-4 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Gift size={16} />
-                    Crear pack corporativo (vía Chat)
+                    {t("chatbot.menu.createPackChat")}
                   </button>
                   <button
                     onClick={startSearch}
                     className="bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-xl text-sm font-medium shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2.5 transition-all active:scale-[0.98]"
                   >
                     <Search size={16} />
-                    Buscar en catálogo
+                    {t("chatbot.menu.searchCatalog")}
                   </button>
                   <button
                     onClick={startFreetext}
                     className="bg-white border border-gray-200 text-gray-500 py-2.5 px-4 rounded-xl text-xs shadow-sm hover:bg-gray-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
                     <HelpCircle size={14} />
-                    Tengo una duda
+                    {t("chatbot.menu.haveQuestion")}
                   </button>
                   <a
                     href="https://wa.me/34614446640"
@@ -688,7 +691,7 @@ export function ChatbotBubble() {
                     <svg viewBox="0 0 448 512" className="w-[14px] h-[14px] fill-current">
                       <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157.1zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
                     </svg>
-                    Contactar por WhatsApp
+                    {t("chatbot.menu.contactWhatsApp")}
                   </a>
                 </div>
               </div>
@@ -743,7 +746,7 @@ export function ChatbotBubble() {
                             <Gift size={16} className="text-brand-red" />
                             <span className="text-sm font-bold text-gray-900">{msg.pack.title}</span>
                           </div>
-                          <span className="text-[11px] text-gray-400">{msg.pack.products.length} productos seleccionados</span>
+                          <span className="text-[11px] text-gray-400">{t("chatbot.pack.productsSelected", { count: msg.pack.products.length })}</span>
                         </div>
 
                         {/* Product cards */}
@@ -787,13 +790,13 @@ export function ChatbotBubble() {
                                 href={product.url}
                                 className="flex-1 py-2 text-[11px] font-medium text-brand-red hover:bg-red-50 transition-colors flex items-center justify-center gap-1 border-r border-gray-50"
                               >
-                                <ExternalLink size={11} /> Ver producto
+                                <ExternalLink size={11} /> {t("chatbot.pack.viewProduct")}
                               </a>
                               <button
                                 onClick={() => handleOptionClick("swap", product.masterCode)}
                                 className="flex-1 py-2 text-[11px] font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
                               >
-                                <Replace size={11} /> Cambiar
+                                <Replace size={11} /> {t("chatbot.pack.swap")}
                               </button>
                             </div>
                           </div>
@@ -898,7 +901,7 @@ export function ChatbotBubble() {
                 type="submit"
                 disabled={!input.trim() || isLoading || !showInput}
                 className="p-2.5 bg-brand-red text-white rounded-full hover:bg-red-700 disabled:opacity-30 transition-all flex-shrink-0 active:scale-95"
-                aria-label="Enviar"
+                aria-label={t("chatbot.aria.send")}
               >
                 <Send size={15} />
               </button>

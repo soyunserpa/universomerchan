@@ -2,11 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/routing";;
+import { useTranslations } from "next-intl";
 import { Leaf, ArrowUpDown, Star } from "lucide-react";
 
 interface CatalogFiltersProps {
-  categories: Array<{ name: string; slug: string; productCount: number }>;
-  subcategories: Array<{ name: string; slug: string; productCount: number }>;
+  categories: Array<{ name: string; slug: string; productCount: number; displayName?: string }>;
+  subcategories: Array<{ name: string; slug: string; productCount: number; displayName?: string }>;
   currentCategory: string;
   currentSubcategory: string;
   currentSort: string;
@@ -17,6 +18,7 @@ interface CatalogFiltersProps {
 
 export function CatalogFilters({ categories, subcategories, currentCategory, currentSubcategory, currentSort, currentColor, greenOnly, search }: CatalogFiltersProps) {
   const router = useRouter();
+  const t = useTranslations("Catalog");
 
   const buildUrl = (overrides: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
@@ -49,7 +51,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
                 : "bg-surface-100 text-gray-900 hover:bg-surface-200"
             }`}
           >
-            {cat.name}
+            {cat.name === "Todos" ? t("filter_all") : (cat.displayName || cat.name)}
           </button>
         ))}
       </div>
@@ -68,7 +70,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
                 : "bg-white text-gray-700 hover:bg-gray-100 border border-surface-200"
             }`}
           >
-            Todas
+            {t("filter_all_sub")}
           </button>
           {subcategories.map((sub) => (
             <button
@@ -80,7 +82,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
                   : "bg-white text-gray-700 hover:bg-gray-100 border border-surface-200"
               }`}
             >
-              {sub.name} <span className={currentSubcategory === sub.name ? "opacity-70" : "text-gray-400"}>({sub.productCount})</span>
+              {sub.displayName || sub.name} <span className={currentSubcategory === sub.name ? "opacity-70" : "text-gray-400"}>({sub.productCount})</span>
             </button>
           ))}
         </div>
@@ -94,11 +96,11 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             onChange={(e) => router.push(buildUrl({ sort: e.target.value === "newest" ? undefined : e.target.value, page: undefined }))}
             className="bg-transparent text-sm font-medium text-gray-900 border-none cursor-pointer focus:ring-0 p-0"
           >
-            <option value="newest">Más recientes</option>
-            <option value="name">Nombre A-Z</option>
-            <option value="price_asc">Precio: menor a mayor</option>
-            <option value="price_desc">Precio: mayor a menor</option>
-            <option value="stock">Más stock</option>
+            <option value="newest">{t("sort_newest")}</option>
+            <option value="name">{t("sort_name")}</option>
+            <option value="price_asc">{t("sort_price_asc")}</option>
+            <option value="price_desc">{t("sort_price_desc")}</option>
+            <option value="stock">{t("sort_stock")}</option>
           </select>
         </div>
 
@@ -110,14 +112,14 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             onChange={(e) => router.push(buildUrl({ search: e.target.value || undefined, page: undefined, category: undefined, subcategory: undefined }))}
             className="bg-transparent text-sm font-bold text-amber-900 border-none cursor-pointer focus:ring-0 p-0"
           >
-            <option value="">Colecciones...</option>
-            <option value="verano">☀️ Especial Verano</option>
-            <option value="oficina">🎒 Oficina y Cole</option>
-            <option value="feria">🎪 Ferias y Eventos</option>
-            <option value="deporte">🏃 Deporte y Gimnasio</option>
-            <option value="tecnologia">💻 Tecnología y VIP</option>
-            <option value="hosteleria">🍽️ Hostelería</option>
-            <option value="navidad">🎄 Especial Navidad</option>
+            <option value="">{t("collections_placeholder")}</option>
+            <option value="verano">{t("col_summer")}</option>
+            <option value="oficina">{t("col_office")}</option>
+            <option value="feria">{t("col_fair")}</option>
+            <option value="deporte">{t("col_sport")}</option>
+            <option value="tecnologia">{t("col_tech")}</option>
+            <option value="hosteleria">{t("col_horeca")}</option>
+            <option value="navidad">{t("col_christmas")}</option>
           </select>
         </div>
 
@@ -128,19 +130,19 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
             onChange={(e) => router.push(buildUrl({ color: e.target.value === "Todos" ? undefined : e.target.value, page: undefined }))}
             className="bg-transparent text-sm font-medium text-gray-900 border-none cursor-pointer focus:ring-0 p-0"
           >
-            <option value="Todos">Cualquier Color</option>
-            <option value="Negro">Negro</option>
-            <option value="Blanco">Blanco</option>
-            <option value="Azul">Azul</option>
-            <option value="Rojo">Rojo</option>
-            <option value="Verde">Verde</option>
-            <option value="Amarillo">Amarillo</option>
-            <option value="Naranja">Naranja</option>
-            <option value="Rosa">Rosa</option>
-            <option value="Morado">Morado</option>
-            <option value="Gris">Gris</option>
-            <option value="Madera">Madera / Natural</option>
-            <option value="Marron">Marrón</option>
+            <option value="Todos">{t("color_any")}</option>
+            <option value="Negro">{t("color_black")}</option>
+            <option value="Blanco">{t("color_white")}</option>
+            <option value="Azul">{t("color_blue")}</option>
+            <option value="Rojo">{t("color_red")}</option>
+            <option value="Verde">{t("color_green")}</option>
+            <option value="Amarillo">{t("color_yellow")}</option>
+            <option value="Naranja">{t("color_orange")}</option>
+            <option value="Rosa">{t("color_pink")}</option>
+            <option value="Morado">{t("color_purple")}</option>
+            <option value="Gris">{t("color_gray")}</option>
+            <option value="Madera">{t("color_wood")}</option>
+            <option value="Marron">{t("color_brown")}</option>
           </select>
         </div>
 
@@ -152,7 +154,7 @@ export function CatalogFilters({ categories, subcategories, currentCategory, cur
               : "bg-surface-100 text-gray-400 hover:bg-green-50 hover:text-green-600"
           }`}
         >
-          <Leaf size={12} /> Solo sostenibles
+          <Leaf size={12} /> {t("only_sustainable")}
         </button>
       </div>
     </div>

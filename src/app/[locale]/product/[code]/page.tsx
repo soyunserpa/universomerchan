@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getProductDetail, getProductList, type CatalogProductResponse } from "@/lib/catalog-api";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const masterCode = params.code.split('-')[0].toUpperCase();
   const product = await getProductDetail(masterCode);
   if (!product) return notFound();
+
+  const t = await getTranslations("Product");
 
   // Fetch related products
   let relatedProducts: CatalogProductResponse[] = [];
@@ -58,10 +61,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-900 mb-6">
-        <a href="/catalog" className="hover:text-gray-600 transition-colors">Catálogo</a>
+        <a href="/catalog" className="hover:text-gray-600 transition-colors">{t("breadcrumb_catalog")}</a>
         <span>›</span>
         <a href={`/catalog?category=${encodeURIComponent(product.category)}`} className="hover:text-gray-600 transition-colors">
-          {product.category}
+          {product.categoryDisplay || product.category}
         </a>
         <span>›</span>
         <span className="text-gray-700 font-medium">{product.name}</span>
@@ -78,11 +81,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <section className="mt-20 border-t border-surface-200 pt-16 pb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div>
-              <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-gray-900 mb-2">También te podría interesar</h2>
-              <p className="text-gray-500 text-sm">Explora productos similares dentro de la familia <b>{product.category}</b></p>
+              <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-gray-900 mb-2">{t("related_title")}</h2>
+              <p className="text-gray-500 text-sm">{t.rich("related_subtitle", { category: product.categoryDisplay || product.category, b: (c) => <b>{c}</b> })}</p>
             </div>
             <a href={`/catalog?category=${encodeURIComponent(product.category)}`} className="text-brand-red font-semibold text-sm bg-brand-red/10 px-4 py-2 rounded-lg hover:bg-brand-red/20 transition-colors">
-              Ver más de esta categoría
+              {t("related_see_more")}
             </a>
           </div>
           
