@@ -968,5 +968,17 @@
     "category_title": "Custom {category} for businesses | Universo Merchan",
     "category_description": "Catalogue of {category} customisable with your logo. Personalise online and request a quote with volume discounts. Europe-wide shipping.",
     "breadcrumb_home": "Home"
+  },
+  "Popup": {
+    "title": "Leaving so soon?",
+    "subtitle": "Get 5% off your first order and receive ideas and offers to brand your business.",
+    "email_placeholder": "you@email.com",
+    "button": "Get my 5%",
+    "sending": "Sending...",
+    "success_title": "Done! 🎉",
+    "success_desc": "Use this code on your first order:",
+    "no_thanks": "No, thanks",
+    "privacy": "No spam. Unsubscribe anytime.",
+    "invalid_email": "Enter a valid email"
   }
 }

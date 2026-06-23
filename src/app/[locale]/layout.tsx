@@ -18,6 +18,7 @@ import { Footer } from "@/components/layout/Footer";
 import { MiniCart } from "@/components/layout/MiniCart";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { ChatbotBubble } from "@/components/chatbot/ChatbotBubble";
+import { LeadCaptureModal } from "@/components/marketing/LeadCaptureModal";
 
 import Script from "next/script";
 
@@ -207,6 +208,7 @@ export default async function RootLayout({ children, params: {locale} }: { child
                     <ChatbotBubble />
                     <Footer />
                     <CookieBanner />
+                    <LeadCaptureModal />
                   </div>
                 </CartProvider>
               </FavoritesProvider>

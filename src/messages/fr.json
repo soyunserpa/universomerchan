@@ -968,5 +968,17 @@
     "category_title": "{category} personnalisés pour entreprises | Universo Merchan",
     "category_description": "Catalogue de {category} personnalisables avec votre logo. Personnalisez en ligne et demandez un devis avec remises sur volume. Livraison en Europe.",
     "breadcrumb_home": "Accueil"
+  },
+  "Popup": {
+    "title": "Vous partez déjà ?",
+    "subtitle": "Obtenez 5% sur votre première commande et recevez des idées et offres pour votre marque.",
+    "email_placeholder": "vous@email.com",
+    "button": "Obtenir mes 5%",
+    "sending": "Envoi...",
+    "success_title": "C'est fait ! 🎉",
+    "success_desc": "Utilisez ce code sur votre première commande :",
+    "no_thanks": "Non, merci",
+    "privacy": "Pas de spam. Désabonnez-vous à tout moment.",
+    "invalid_email": "Saisissez un email valide"
   }
 }

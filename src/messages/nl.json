@@ -968,5 +968,17 @@
     "category_title": "{category} met logo voor bedrijven | Universo Merchan",
     "category_description": "Catalogus met {category} personaliseerbaar met uw logo. Personaliseer online en vraag een offerte met volumekorting. Levering in heel Europa.",
     "breadcrumb_home": "Home"
+  },
+  "Popup": {
+    "title": "Ga je nu al?",
+    "subtitle": "Krijg 5% korting op je eerste bestelling en ontvang ideeën en aanbiedingen voor je merk.",
+    "email_placeholder": "jij@email.com",
+    "button": "Mijn 5% ophalen",
+    "sending": "Versturen...",
+    "success_title": "Klaar! 🎉",
+    "success_desc": "Gebruik deze code bij je eerste bestelling:",
+    "no_thanks": "Nee, bedankt",
+    "privacy": "Geen spam. Schrijf je altijd uit.",
+    "invalid_email": "Voer een geldig e-mailadres in"
   }
 }

@@ -968,5 +968,17 @@
     "category_title": "{category} mit Logo für Unternehmen | Universo Merchan",
     "category_description": "Katalog an {category} personalisierbar mit Ihrem Logo. Online gestalten und Angebot mit Mengenrabatt anfordern. Versand europaweit.",
     "breadcrumb_home": "Startseite"
+  },
+  "Popup": {
+    "title": "Schon weg?",
+    "subtitle": "Sichern Sie sich 5% auf Ihre erste Bestellung und erhalten Sie Ideen und Angebote für Ihre Marke.",
+    "email_placeholder": "sie@email.com",
+    "button": "Meine 5% sichern",
+    "sending": "Senden...",
+    "success_title": "Fertig! 🎉",
+    "success_desc": "Verwenden Sie diesen Code bei Ihrer ersten Bestellung:",
+    "no_thanks": "Nein, danke",
+    "privacy": "Kein Spam. Jederzeit abbestellbar.",
+    "invalid_email": "Gültige E-Mail eingeben"
   }
 }

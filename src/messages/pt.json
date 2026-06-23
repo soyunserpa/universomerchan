@@ -968,5 +968,17 @@
     "category_title": "{category} personalizados para empresas | Universo Merchan",
     "category_description": "Catálogo de {category} personalizáveis com o seu logótipo. Personalize online e peça orçamento com descontos por volume. Envios para toda a Europa.",
     "breadcrumb_home": "Início"
+  },
+  "Popup": {
+    "title": "Já vai embora?",
+    "subtitle": "Leve 5% no seu primeiro pedido e receba ideias e ofertas para a sua marca.",
+    "email_placeholder": "tu@email.com",
+    "button": "Quero os meus 5%",
+    "sending": "A enviar...",
+    "success_title": "Pronto! 🎉",
+    "success_desc": "Use este código no seu primeiro pedido:",
+    "no_thanks": "Não, obrigado",
+    "privacy": "Sem spam. Cancele quando quiser.",
+    "invalid_email": "Introduza um email válido"
   }
 }

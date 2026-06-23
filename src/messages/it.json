@@ -968,5 +968,17 @@
     "category_title": "{category} personalizzati per aziende | Universo Merchan",
     "category_description": "Catalogo di {category} personalizzabili con il tuo logo. Personalizza online e richiedi un preventivo con sconti quantità. Spedizioni in Europa.",
     "breadcrumb_home": "Home"
+  },
+  "Popup": {
+    "title": "Già in partenza?",
+    "subtitle": "Ottieni il 5% sul primo ordine e ricevi idee e offerte per il tuo brand.",
+    "email_placeholder": "tu@email.com",
+    "button": "Ottieni il mio 5%",
+    "sending": "Invio...",
+    "success_title": "Fatto! 🎉",
+    "success_desc": "Usa questo codice nel tuo primo ordine:",
+    "no_thanks": "No, grazie",
+    "privacy": "Niente spam. Disiscriviti quando vuoi.",
+    "invalid_email": "Inserisci un'email valida"
   }
 }
