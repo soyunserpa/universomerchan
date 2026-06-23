@@ -535,7 +535,8 @@
     "sample_title": "Erst die Qualität prüfen?",
     "sample_desc": "Bestellen Sie 1 Muster. Wir ziehen den Betrag mit dem Code MUESTRA bei Ihrer ersten Bestellung ab 500 € ab.",
     "sample_button": "Muster anfordern (1 Stk.) →",
-    "google_rating_note": "Bewertung 5/5 auf Google"
+    "google_rating_note": "Bewertung 5/5 auf Google",
+    "delivery_note": "Lieferung in unter 10 Tagen"
   },
   "Account": {
     "nav_orders": "Meine Bestellungen",

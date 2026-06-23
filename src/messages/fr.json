@@ -535,7 +535,8 @@
     "sample_title": "Vous voulez vérifier la qualité ?",
     "sample_desc": "Commandez 1 échantillon. Nous déduisons son montant avec le code MUESTRA sur votre première commande dès 500 €.",
     "sample_button": "Demander un échantillon (1 u.) →",
-    "google_rating_note": "Note de 5/5 sur Google"
+    "google_rating_note": "Note de 5/5 sur Google",
+    "delivery_note": "Livraison en moins de 10 jours"
   },
   "Account": {
     "nav_orders": "Mes commandes",

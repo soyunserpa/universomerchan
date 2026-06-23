@@ -28,7 +28,13 @@ export const SOCIAL_LINKS = {
   whatsapp: "https://api.whatsapp.com/send?phone=614446640",
 };
 
-export const PUBLITAS_CATALOG_URL = "https://view.publitas.com/md-es/gifts_spa_eur/page/1?v=UniversoMerchan";
+// ⛔️ NO USAR DE CARA AL CLIENTE — este flipbook es el catálogo de Midocean
+// ("md ES - GIFTS_SPA_EUR"): expone al proveedor y muestra precios/códigos que
+// NO son los de Universo Merchan. Pendiente: sustituir por el catálogo BRANDED
+// propio (PDF/flipbook) que enviará Marina y usarlo como imán de leads
+// (capturar email → enviar catálogo + descuento primer pedido).
+// Hasta entonces, NO enlazar ningún catálogo al cliente. (Ref. decisión: NO exponer Midocean)
+// export const PUBLITAS_CATALOG_URL = "https://view.publitas.com/md-es/gifts_spa_eur/page/1?v=UniversoMerchan";
 
 // ============================================================
 // STATIC PAGES — Slugs for the legal/info pages

@@ -535,7 +535,8 @@
     "sample_title": "Vuoi vedere la qualità prima?",
     "sample_desc": "Ordina 1 campione. Scontiamo il suo importo con il codice MUESTRA nel primo ordine da 500 €.",
     "sample_button": "Richiedi un campione (1 pz) →",
-    "google_rating_note": "Valutazione 5/5 su Google"
+    "google_rating_note": "Valutazione 5/5 su Google",
+    "delivery_note": "Consegna in meno di 10 giorni"
   },
   "Account": {
     "nav_orders": "I miei ordini",

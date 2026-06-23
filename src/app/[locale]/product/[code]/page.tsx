@@ -6,6 +6,7 @@ import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 export const dynamic = "force-dynamic";
 import { ProductAccordion } from "@/components/product/ProductAccordion";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { GoogleReviewsSection } from "@/components/home/GoogleReviewsSection";
 
 interface ProductPageProps {
   params: { code: string };
@@ -100,6 +101,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </section>
       )}
+
+      {/* Reseñas reales (Google) — prueba social en la ficha */}
+      <div className="-mx-4 sm:-mx-6 mt-8">
+        <GoogleReviewsSection />
+      </div>
 
       {/* JSON-LD Schema for rich snippets */}
       <script

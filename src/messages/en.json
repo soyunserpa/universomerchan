@@ -535,7 +535,8 @@
     "sample_title": "Want to check the quality first?",
     "sample_desc": "Order 1 sample unit. We discount its cost with code MUESTRA on your first order over €500.",
     "sample_button": "Request a sample (1 unit) →",
-    "google_rating_note": "Rated 5/5 on Google"
+    "google_rating_note": "Rated 5/5 on Google",
+    "delivery_note": "Delivery in under 10 days"
   },
   "Account": {
     "nav_orders": "My orders",

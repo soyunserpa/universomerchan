@@ -535,7 +535,8 @@
     "sample_title": "¿Quieres ver la calidad antes?",
     "sample_desc": "Pide 1 unidad de muestra. Te descontamos su importe con el código MUESTRA en tu primer pedido desde 500€.",
     "sample_button": "Pedir muestra (1 ud) →",
-    "google_rating_note": "Valoración 5/5 en Google"
+    "google_rating_note": "Valoración 5/5 en Google",
+    "delivery_note": "Entrega en menos de 10 días"
   },
   "Account": {
     "nav_orders": "Mis pedidos",

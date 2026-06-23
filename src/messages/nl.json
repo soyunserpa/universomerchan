@@ -535,7 +535,8 @@
     "sample_title": "Eerst de kwaliteit checken?",
     "sample_desc": "Bestel 1 monster. We trekken het bedrag af met code MUESTRA bij je eerste bestelling vanaf € 500.",
     "sample_button": "Monster aanvragen (1 stuk) →",
-    "google_rating_note": "Beoordeling 5/5 op Google"
+    "google_rating_note": "Beoordeling 5/5 op Google",
+    "delivery_note": "Levering binnen 10 dagen"
   },
   "Account": {
     "nav_orders": "Mijn bestellingen",

@@ -535,7 +535,8 @@
     "sample_title": "Quer ver a qualidade primeiro?",
     "sample_desc": "Peça 1 amostra. Descontamos o seu valor com o código MUESTRA no seu primeiro pedido a partir de 500 €.",
     "sample_button": "Pedir amostra (1 un.) →",
-    "google_rating_note": "Avaliação 5/5 no Google"
+    "google_rating_note": "Avaliação 5/5 no Google",
+    "delivery_note": "Entrega em menos de 10 dias"
   },
   "Account": {
     "nav_orders": "As minhas encomendas",

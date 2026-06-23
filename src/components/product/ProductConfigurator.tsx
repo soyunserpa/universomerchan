@@ -1026,6 +1026,7 @@ function ProductConfiguratorInner({ product }: Props) {
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5"><span className="text-amber-500">★★★★★</span> {t("google_rating_note")}</span>
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">🚚</span> {t("delivery_note")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("more_quantity_more_discount")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("free_mockup_note")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("dedicated_advisor_note")}</span>
