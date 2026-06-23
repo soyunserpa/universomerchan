@@ -533,8 +533,9 @@
     "dedicated_advisor_note": "Consultor dedicado para o seu pedido",
     "save_label": "poupa",
     "sample_title": "Quer ver a qualidade primeiro?",
-    "sample_desc": "Peça 1 amostra. Devolvemos o valor no seu primeiro pedido a partir de 500 €.",
-    "sample_button": "Pedir amostra (1 un.) →"
+    "sample_desc": "Peça 1 amostra. Descontamos o seu valor com o código MUESTRA no seu primeiro pedido a partir de 500 €.",
+    "sample_button": "Pedir amostra (1 un.) →",
+    "google_rating_note": "Avaliação 5/5 no Google"
   },
   "Account": {
     "nav_orders": "As minhas encomendas",

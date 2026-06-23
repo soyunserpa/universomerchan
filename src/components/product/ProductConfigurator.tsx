@@ -1025,6 +1025,7 @@ function ProductConfiguratorInner({ product }: Props) {
             <PriceBox basePrice={basePrice} setupCost={setupCost} printTotal={printTotal} handlingTotal={handlingTotal} total={total} perUnit={perUnit} unitProductPrice={unitProductPrice} qty={qty} hasPrint={step > 1 && zonesCount > 0} printPerUnit={printPerUnit} numColors={effectiveColorsUI} handlingPerUnit={round(handlingCostPerUnit * printMarginMultiplier)} MARGINS={MARGINS} />
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">★★★★★</span> {t("google_rating_note")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("more_quantity_more_discount")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("free_mockup_note")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("dedicated_advisor_note")}</span>

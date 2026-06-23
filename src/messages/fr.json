@@ -533,8 +533,9 @@
     "dedicated_advisor_note": "Conseiller dédié pour votre commande",
     "save_label": "économie",
     "sample_title": "Vous voulez vérifier la qualité ?",
-    "sample_desc": "Commandez 1 échantillon. Nous remboursons son montant sur votre première commande dès 500 €.",
-    "sample_button": "Demander un échantillon (1 u.) →"
+    "sample_desc": "Commandez 1 échantillon. Nous déduisons son montant avec le code MUESTRA sur votre première commande dès 500 €.",
+    "sample_button": "Demander un échantillon (1 u.) →",
+    "google_rating_note": "Note de 5/5 sur Google"
   },
   "Account": {
     "nav_orders": "Mes commandes",

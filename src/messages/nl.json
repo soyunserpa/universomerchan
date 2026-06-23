@@ -533,8 +533,9 @@
     "dedicated_advisor_note": "Toegewijde adviseur voor je bestelling",
     "save_label": "bespaar",
     "sample_title": "Eerst de kwaliteit checken?",
-    "sample_desc": "Bestel 1 monster. We betalen het bedrag terug bij je eerste bestelling vanaf € 500.",
-    "sample_button": "Monster aanvragen (1 stuk) →"
+    "sample_desc": "Bestel 1 monster. We trekken het bedrag af met code MUESTRA bij je eerste bestelling vanaf € 500.",
+    "sample_button": "Monster aanvragen (1 stuk) →",
+    "google_rating_note": "Beoordeling 5/5 op Google"
   },
   "Account": {
     "nav_orders": "Mijn bestellingen",
