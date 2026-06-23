@@ -60,6 +60,12 @@ Todo el tracking vive en `src/app/[locale]/layout.tsx`. **Prohibido borrarlo o d
 
 <!-- Entrada más reciente arriba. Plantilla al final del archivo. -->
 
+### 2026-06-23 — País de envío por IP en el checkout (Cloudflare CF-IPCountry)
+- **Qué pasaba / por qué:** desde que Cloudflare está activo, el visitante llega con la cabecera `CF-IPCountry` (país ISO-2 real). Se quería usar para pre-seleccionar el país en el checkout (y a futuro, el IVA por país).
+- **Qué se cambió:** (1) **nuevo `src/app/api/geo/route.ts`** (GET, `force-dynamic`, `Cache-Control: no-store`): lee `headers().get("cf-ipcountry")`, filtra `XX`/`T1`/inválidos y devuelve `{ country: "ES" | null }`. (2) **`checkout/address/page.tsx`** (client): al cargar hace `fetch("/api/geo")` y pre-selecciona el país **SOLO si sigue en el `"ES"` por defecto** y el usuario no lo ha tocado (ref `countryTouched`, marcada en el `onChange` del `<select>`). No pisa direcciones guardadas en sessionStorage ni elecciones manuales. Tolerante a fallos (si /api/geo falla → se queda en ES).
+- **Deploy:** scp 2 archivos → build OK → restart. Commit `6fbd966`. Verificado en vivo: `/api/geo` → `{"country":"ES"}` (vía Cloudflare, cf-ray presente). **Seguridad confirmada:** enviando una cabecera falsa `CF-IPCountry: FR` + IP falsa, Cloudflare la IGNORA y devuelve el país real (ES) → el dato es fiable (no se puede falsear el país/IVA).
+- **Conexiones / qué NO romper:** `CF-IPCountry` solo llega si la petición pasa por Cloudflare (proxy naranja en `@`/`www`). El endpoint `/api/geo` está bajo `/api` (no indexable, robots lo bloquea). El país por IP es solo una SUGERENCIA inicial; el IVA real lo seguirá calculando Stripe Tax (cuando se active `STRIPE_TAX_ENABLED`). Lista de países válidos = `EU_COUNTRY_CODES` del checkout (EU-27).
+
 ### 2026-06-23 — SEO "nivel 11": breadcrumbs + ItemList JSON-LD, sameAs, H1 de categoría localizado
 - **Qué se cambió:**
   - **`seo.ts`**: nuevos helpers `breadcrumbLd()`, `itemListLd()`, `productPath()` (slug = misma lógica que ProductCard/sitemap) y `SOCIAL_PROFILES`.
