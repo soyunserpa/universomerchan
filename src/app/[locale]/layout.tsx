@@ -26,7 +26,7 @@ import { TrafficTracker } from "@/components/providers/TrafficTracker";
 import { ClientErrorTracker } from "@/components/ClientErrorTracker";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
-import { alternatesFor, ogLocale, ogAlternateLocales, localeUrl, SITE_URL, DEFAULT_OG_IMAGE, SCHEMA_LANGUAGES, bcp47 } from "@/lib/seo";
+import { alternatesFor, ogLocale, ogAlternateLocales, localeUrl, SITE_URL, DEFAULT_OG_IMAGE, SCHEMA_LANGUAGES, bcp47, SOCIAL_PROFILES } from "@/lib/seo";
 
 export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "Seo" });
@@ -142,7 +142,7 @@ export default async function RootLayout({ children, params: {locale} }: { child
                     },
                     description: "Regalos corporativos personalizados que generan emociones. +2.000 productos con entrega en menos de 10 días.",
                     email: "pedidos@universomerchan.com",
-                    sameAs: [],
+                    sameAs: SOCIAL_PROFILES,
                     contactPoint: {
                       "@type": "ContactPoint",
                       email: "pedidos@universomerchan.com",

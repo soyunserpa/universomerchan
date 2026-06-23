@@ -54,9 +54,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: tSeo("breadcrumb_catalog"), item: localeUrl(locale, "/catalog") },
-              { "@type": "ListItem", position: 2, name: (product as any).categoryDisplay || product.category, item: localeUrl(locale, `/catalog?category=${encodeURIComponent(product.category)}`) },
-              { "@type": "ListItem", position: 3, name: product.name },
+              { "@type": "ListItem", position: 1, name: tSeo("breadcrumb_home"), item: localeUrl(locale, "") },
+              { "@type": "ListItem", position: 2, name: tSeo("breadcrumb_catalog"), item: localeUrl(locale, "/catalog") },
+              { "@type": "ListItem", position: 3, name: (product as any).categoryDisplay || product.category, item: localeUrl(locale, `/catalog?category=${encodeURIComponent(product.category)}`) },
+              { "@type": "ListItem", position: 4, name: product.name },
             ],
           }),
         }}

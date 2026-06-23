@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from "@/i18n/routing";
 import { getTranslations, getLocale } from "next-intl/server";
-import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE } from "@/lib/seo";
+import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE, breadcrumbLd, itemListLd, productPath } from "@/lib/seo";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { InfiniteProductGrid } from "@/components/catalog/InfiniteProductGrid";
@@ -61,8 +61,26 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
   const allCategories = [{ name: "Todos", slug: "todos", productCount: 0 }, ...categories];
 
+  // ── SEO: migas de pan estructuradas + listado de productos (JSON-LD) ──
+  const locale = await getLocale();
+  const tSeo = await getTranslations("Seo");
+  const catLabel = category !== "Todos"
+    ? ((categories.find((c) => c.name === category) as any)?.displayName || category)
+    : null;
+  const breadcrumbJson = breadcrumbLd([
+    { name: tSeo("breadcrumb_home"), url: localeUrl(locale, "") },
+    { name: tSeo("breadcrumb_catalog"), url: localeUrl(locale, "/catalog") },
+    ...(catLabel ? [{ name: catLabel }] : []),
+  ]);
+  const itemListJson = itemListLd(
+    tSeo("catalog_title"),
+    result.products.map((p) => localeUrl(locale, productPath(p.masterCode, p.name)))
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJson) }} />
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display font-extrabold text-3xl mb-2">{t("title")}</h1>

@@ -56,3 +56,45 @@ export function bcp47(locale: string): string {
 
 // Imagen OG por defecto (absoluta).
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/images/about-us-hero-new.webp`;
+
+// Perfiles sociales oficiales → JSON-LD Organization.sameAs (SEO de entidad).
+export const SOCIAL_PROFILES = [
+  "https://www.instagram.com/universomerchan",
+  "https://www.linkedin.com/company/universomerchan",
+];
+
+// Slug/URL de producto — MISMA lógica que ProductCard y el sitemap (no cambiar sin alinear los 3).
+export function productPath(masterCode: string, name?: string): string {
+  const slug = (name || "producto")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+  return `/product/${masterCode.toLowerCase()}-${slug}`;
+}
+
+// BreadcrumbList JSON-LD (migas de pan estructuradas). El último item suele ir sin url.
+export function breadcrumbLd(items: Array<{ name: string; url?: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: it.name,
+      ...(it.url ? { item: it.url } : {}),
+    })),
+  };
+}
+
+// ItemList JSON-LD — listado de productos (rich results de listado/carrusel).
+export function itemListLd(name: string, urls: string[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    numberOfItems: urls.length,
+    itemListElement: urls.map((url, i) => ({ "@type": "ListItem", position: i + 1, url })),
+  };
+}

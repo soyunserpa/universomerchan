@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE } from "@/lib/seo";
+import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE, breadcrumbLd, itemListLd, productPath } from "@/lib/seo";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
@@ -70,16 +70,32 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   const allCategories = [{ name: "Todos", slug: "todos", productCount: 0 }, ...categories];
 
+  // ── SEO: nombre localizado + migas de pan + listado de productos (JSON-LD) ──
+  const locale = await getLocale();
+  const tSeo = await getTranslations("Seo");
+  const categoryDisplay = (currentCat as any).displayName || category;
+  const breadcrumbJson = breadcrumbLd([
+    { name: tSeo("breadcrumb_home"), url: localeUrl(locale, "") },
+    { name: tSeo("breadcrumb_catalog"), url: localeUrl(locale, "/catalog") },
+    { name: categoryDisplay },
+  ]);
+  const itemListJson = itemListLd(
+    categoryDisplay,
+    result.products.map((p) => localeUrl(locale, productPath(p.masterCode, p.name)))
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJson) }} />
       {/* Header SEO */}
       <div className="mb-8 bg-brand-red text-white p-8 sm:p-12 rounded-3xl relative overflow-hidden shadow-lg animate-fade-in">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         <div className="relative z-10 max-w-3xl">
-          <h1 className="font-display font-extrabold text-4xl sm:text-5xl tracking-tight mb-4">{t("category_hero_title", { category })}</h1>
+          <h1 className="font-display font-extrabold text-4xl sm:text-5xl tracking-tight mb-4">{t("category_hero_title", { category: categoryDisplay })}</h1>
           <p className="text-white/90 text-lg leading-relaxed font-body font-medium">
-            {t("category_hero_description", { category: category.toLowerCase() })}
+            {t("category_hero_description", { category: categoryDisplay.toLowerCase() })}
           </p>
         </div>
       </div>
@@ -98,7 +114,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           />
         </form>
         <span className="text-sm font-bold text-gray-900 hidden sm:block bg-surface-100 px-4 py-2 rounded-full">
-          {t("category_model_count", { count: result.total, category: category.toLowerCase() })}
+          {t("category_model_count", { count: result.total, category: categoryDisplay.toLowerCase() })}
         </span>
       </div>
 
@@ -160,9 +176,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
       {/* SEO Footer Text Block */}
       <div className="mt-16 pt-12 border-t border-surface-200 max-w-4xl mx-auto text-center px-4">
-        <h2 className="font-display font-bold text-2xl mb-4">{t("category_seo_heading", { category: category.toLowerCase() })}</h2>
+        <h2 className="font-display font-bold text-2xl mb-4">{t("category_seo_heading", { category: categoryDisplay.toLowerCase() })}</h2>
         <p className="text-gray-600 text-sm leading-relaxed mb-4">
-          {t("category_seo_paragraph_1", { category: category.toLowerCase() })}
+          {t("category_seo_paragraph_1", { category: categoryDisplay.toLowerCase() })}
         </p>
         <p className="text-gray-600 text-sm leading-relaxed">
           {t.rich("category_seo_paragraph_2", {

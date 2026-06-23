@@ -948,6 +948,7 @@
     "product_desc_tail": "Personnalisez-le avec votre logo et recevez-le partout en Europe en moins de 10 jours. Demandez votre devis !",
     "breadcrumb_catalog": "Catalogue",
     "category_title": "{category} personnalisés pour entreprises | Universo Merchan",
-    "category_description": "Catalogue de {category} personnalisables avec votre logo. Personnalisez en ligne et demandez un devis avec remises sur volume. Livraison en Europe."
+    "category_description": "Catalogue de {category} personnalisables avec votre logo. Personnalisez en ligne et demandez un devis avec remises sur volume. Livraison en Europe.",
+    "breadcrumb_home": "Accueil"
   }
 }
