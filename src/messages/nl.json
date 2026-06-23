@@ -531,7 +531,10 @@
     "notify_invalid_email": "Voer een geldig e-mailadres in",
     "free_mockup_note": "Gratis mockup vóór productie",
     "dedicated_advisor_note": "Toegewijde adviseur voor je bestelling",
-    "save_label": "bespaar"
+    "save_label": "bespaar",
+    "sample_title": "Eerst de kwaliteit checken?",
+    "sample_desc": "Bestel 1 monster. We betalen het bedrag terug bij je eerste bestelling vanaf € 500.",
+    "sample_button": "Monster aanvragen (1 stuk) →"
   },
   "Account": {
     "nav_orders": "Mijn bestellingen",

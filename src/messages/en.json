@@ -531,7 +531,10 @@
     "notify_invalid_email": "Enter a valid email",
     "free_mockup_note": "Free mockup before production",
     "dedicated_advisor_note": "Dedicated advisor for your order",
-    "save_label": "save"
+    "save_label": "save",
+    "sample_title": "Want to check the quality first?",
+    "sample_desc": "Order 1 sample unit. We refund its cost on your first order over €500.",
+    "sample_button": "Request a sample (1 unit) →"
   },
   "Account": {
     "nav_orders": "My orders",

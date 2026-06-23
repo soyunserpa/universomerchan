@@ -1053,6 +1053,23 @@ function ProductConfiguratorInner({ product }: Props) {
                 <FavoriteButton productId={product.id} variant="button" />
               </div>
             </div>
+
+            {/* Muestra reembolsable (gateway a pedido grande). Pone 1 ud y reutiliza el flujo
+                de "añadir sin personalizar" existente. Reembolso desde 500€ (proceso manual). */}
+            {variant.stock > 0 && (
+              <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-3.5">
+                <p className="text-sm font-bold text-blue-900 mb-0.5">📦 {t("sample_title")}</p>
+                <p className="text-xs text-blue-800 mb-2.5">{t("sample_desc")}</p>
+                <button
+                  type="button"
+                  onClick={() => { setBaseQty(1); setShowBlankConfirm(true); }}
+                  disabled={isAddingToCart}
+                  className="text-xs font-bold text-blue-700 hover:text-blue-900 underline disabled:opacity-50"
+                >
+                  {t("sample_button")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

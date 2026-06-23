@@ -531,7 +531,10 @@
     "notify_invalid_email": "Inserisci un'email valida",
     "free_mockup_note": "Mockup gratuito prima della produzione",
     "dedicated_advisor_note": "Consulente dedicato per il tuo ordine",
-    "save_label": "risparmi"
+    "save_label": "risparmi",
+    "sample_title": "Vuoi vedere la qualità prima?",
+    "sample_desc": "Ordina 1 campione. Ti rimborsiamo l'importo nel primo ordine da 500 €.",
+    "sample_button": "Richiedi un campione (1 pz) →"
   },
   "Account": {
     "nav_orders": "I miei ordini",

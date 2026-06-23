@@ -531,7 +531,10 @@
     "notify_invalid_email": "Introduza um email válido",
     "free_mockup_note": "Mockup grátis antes de produzir",
     "dedicated_advisor_note": "Consultor dedicado para o seu pedido",
-    "save_label": "poupa"
+    "save_label": "poupa",
+    "sample_title": "Quer ver a qualidade primeiro?",
+    "sample_desc": "Peça 1 amostra. Devolvemos o valor no seu primeiro pedido a partir de 500 €.",
+    "sample_button": "Pedir amostra (1 un.) →"
   },
   "Account": {
     "nav_orders": "As minhas encomendas",

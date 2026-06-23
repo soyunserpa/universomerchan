@@ -531,7 +531,10 @@
     "notify_invalid_email": "Gültige E-Mail eingeben",
     "free_mockup_note": "Kostenloses Mockup vor der Produktion",
     "dedicated_advisor_note": "Persönlicher Berater für Ihre Bestellung",
-    "save_label": "sparen"
+    "save_label": "sparen",
+    "sample_title": "Erst die Qualität prüfen?",
+    "sample_desc": "Bestellen Sie 1 Muster. Wir erstatten den Betrag bei Ihrer ersten Bestellung ab 500 €.",
+    "sample_button": "Muster anfordern (1 Stk.) →"
   },
   "Account": {
     "nav_orders": "Meine Bestellungen",

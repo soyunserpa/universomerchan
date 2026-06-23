@@ -531,7 +531,10 @@
     "notify_invalid_email": "Saisissez un email valide",
     "free_mockup_note": "Maquette gratuite avant production",
     "dedicated_advisor_note": "Conseiller dédié pour votre commande",
-    "save_label": "économie"
+    "save_label": "économie",
+    "sample_title": "Vous voulez vérifier la qualité ?",
+    "sample_desc": "Commandez 1 échantillon. Nous remboursons son montant sur votre première commande dès 500 €.",
+    "sample_button": "Demander un échantillon (1 u.) →"
   },
   "Account": {
     "nav_orders": "Mes commandes",

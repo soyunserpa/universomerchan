@@ -531,7 +531,10 @@
     "notify_invalid_email": "Introduce un email válido",
     "free_mockup_note": "Mockup gratis antes de producir",
     "dedicated_advisor_note": "Asesor dedicado para tu pedido",
-    "save_label": "ahorras"
+    "save_label": "ahorras",
+    "sample_title": "¿Quieres ver la calidad antes?",
+    "sample_desc": "Pide 1 unidad de muestra. Te devolvemos su importe en tu primer pedido desde 500€.",
+    "sample_button": "Pedir muestra (1 ud) →"
   },
   "Account": {
     "nav_orders": "Mis pedidos",
