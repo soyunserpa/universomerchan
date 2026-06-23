@@ -60,6 +60,19 @@ Todo el tracking vive en `src/app/[locale]/layout.tsx`. **Prohibido borrarlo o d
 
 <!-- Entrada más reciente arriba. Plantilla al final del archivo. -->
 
+### 2026-06-23 — CRO Batch 1: conversión (guest checkout, sin Midocean, margen ×1,55, Avísame, muestra, reseñas)
+- **Qué se cambió (desplegado con OK de Marina):**
+  - **Margen ×1,40 → ×1,55** (`admin_settings.margin_product_pct` 40→55). OJO: sube TODOS los PVP ~10,7% (BAI ROLL 19,21€ → 21,27€). El margen real pasa de 28,6% a 35,5%. Tras cambiarlo hay que reiniciar PM2 (caché de precios catalog-api).
+  - **Guest checkout:** carrito ya no muestra "Iniciar sesión para comprar" → siempre "Continuar al pago" (`cart/page.tsx`). El checkout invitado YA funcionaba; solo era la etiqueta. La clave `login_to_buy` sigue en messages (sin usar) — aparece en el HTML solo por el catálogo de next-intl, no se renderiza.
+  - **Sin "Midocean" visible al cliente:** `Checkout.shipping_method_title` y `Account.proof_sending_order` neutralizados en 7 idiomas.
+  - **"Consultar precio"** en productos sin precio (en vez de "Desde 0,00€"); **stock claro** en tarjetas ("{n} en stock" / "Bajo pedido" si 0) — `ProductCard.tsx`.
+  - **"Avísame" en agotados:** `StockNotifyForm.tsx` + `/api/notify-stock` + `sendStockNotifyRequest()` → aviso a **universomerchan7@gmail.com**. Integrado en el configurador solo cuando `variant.stock<=0` y `!hasSize`.
+  - **Muestra reembolsable AUTOMÁTICA:** cupón **`MUESTRA`** (fixed 20€, min_order_value 500€, activo) creado en tabla `coupons`. Mensaje en ficha (`Configurator.sample_desc`) indica el código. NO toca el flujo de pago (decisión segura). Marina puede ajustar valor/límite en /admin.
+  - **Reseñas Google:** badge "★★★★★ Valoración 5/5 en Google" junto al CTA de producto (`Configurator.google_rating_note`).
+- **Deploy:** tarball 14 archivos → build OK → UPDATE margen + INSERT cupón → `pm2 restart`. Commits locales `2ec189c` + `dd4c3e4`. **Verificado en vivo:** todas las páginas 200, BAI ROLL 21,27€ (margen nuevo), 0 "Midocean", "Continuar al pago" OK, `/api/notify-stock` valida (400 email inválido), cupón MUESTRA aplica a 600€ y rechaza a 100€ ("mínimo 500€").
+- **Conexiones / qué NO romper:** el cupón MUESTRA es de momento PÚBLICO (cualquiera con un pedido ≥500€ puede usarlo) — abuso bajo por el mínimo; si se quiere único por cliente hace falta tocar el flujo de pago (v2, requiere test). Apple Pay ya activo en Stripe (sin código). Pago exprés sale solo en Stripe Checkout hospedado. Decisiones de negocio en memoria [[um-business-decisions]].
+- **PENDIENTE del plan CRO (no desplegado):** tabla de precios por volumen visible, cross-sell en carrito, fecha estimada de entrega en checkout, consolidar líneas idénticas, recuperación de carrito abandonado (cron existe), auditoría móvil dedicada, imágenes WebP/AVIF, catálogo propio branded (Marina lo enviará — chip task_ee511a17).
+
 ### 2026-06-23 — País de envío por IP en el checkout (Cloudflare CF-IPCountry)
 - **Qué pasaba / por qué:** desde que Cloudflare está activo, el visitante llega con la cabecera `CF-IPCountry` (país ISO-2 real). Se quería usar para pre-seleccionar el país en el checkout (y a futuro, el IVA por país).
 - **Qué se cambió:** (1) **nuevo `src/app/api/geo/route.ts`** (GET, `force-dynamic`, `Cache-Control: no-store`): lee `headers().get("cf-ipcountry")`, filtra `XX`/`T1`/inválidos y devuelve `{ country: "ES" | null }`. (2) **`checkout/address/page.tsx`** (client): al cargar hace `fetch("/api/geo")` y pre-selecciona el país **SOLO si sigue en el `"ES"` por defecto** y el usuario no lo ha tocado (ref `countryTouched`, marcada en el `onChange` del `<select>`). No pisa direcciones guardadas en sessionStorage ni elecciones manuales. Tolerante a fallos (si /api/geo falla → se queda en ES).
