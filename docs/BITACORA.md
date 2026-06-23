@@ -60,6 +60,17 @@ Todo el tracking vive en `src/app/[locale]/layout.tsx`. **Prohibido borrarlo o d
 
 <!-- Entrada más reciente arriba. Plantilla al final del archivo. -->
 
+### 2026-06-23 — CRO Batch 2 + auditoría: reseñas en ficha, entrega, y verificación del resto del plan
+- **Desplegado (commits `a599f39`):**
+  - **Reseñas Google reales** (testimonios 5★ de `GoogleReviewsSection`) añadidas a la ficha de producto (`product/[code]/page.tsx`, envuelto en `-mx` para full-bleed dentro del contenedor).
+  - **Línea "🚚 Entrega en menos de 10 días"** en el bloque de confianza del CTA (`Configurator.delivery_note`, 7 idiomas).
+  - `cms-content.ts`: `PUBLITAS_CATALOG_URL` (catálogo Midocean) **comentado** (no se usaba en ningún sitio; alinea con "no exponer Midocean"). El whatsapp oficial es `614446640`.
+- **Verificado que YA EXISTÍAN (no había que crearlas):** tabla de precios por volumen con % de ahorro (configurador, líneas ~1001), fecha de entrega en checkout (línea 506, +14d), cross-sell de productos relacionados en ficha, formatos de imagen webp/avif (next.config), botón WhatsApp (en el ChatbotBubble).
+- **Carrito abandonado (investigado, NO es bug):** el cron `check-abandoned-carts` corre cada hora y la lógica (`lib/abandoned-cart.ts`) es correcta — busca pedidos `status='draft'` de 10-34h con email de usuario. Último envío real: 25-abr. Causa = **volumen bajo de drafts reales** (los drafts recientes son de cuenta de prueba user_id=16; la mayoría de carritos se abandonan ANTES de llegar al checkout, donde aún no hay email). Mejorarlo = captar email antes (exit-intent / popup) → feature mayor, NO tocado (riesgo de spam si se modifica el envío).
+- **Auditoría móvil:** home verificada responsive (414px OK); ficha de producto renderiza bien. (La herramienta de resize fue inconsistente en algunas capturas, pero la web es responsive.)
+- **DEFERIDO a propósito (polish de bajo valor / alto riesgo en tienda viva sin test):** CTA "añadir" sticky en móvil, cross-sell en el CARRITO (ya hay "Vistos recientemente"), consolidar líneas idénticas + etiqueta "S3". Requieren tocar configurador/cart-store; no se hacen sin poder testear bien.
+- **EN PAUSA:** catálogo propio branded (lo enviará Marina — [[um-catalogo-branded]]).
+
 ### 2026-06-23 — CRO Batch 1: conversión (guest checkout, sin Midocean, margen ×1,55, Avísame, muestra, reseñas)
 - **Qué se cambió (desplegado con OK de Marina):**
   - **Margen ×1,40 → ×1,55** (`admin_settings.margin_product_pct` 40→55). OJO: sube TODOS los PVP ~10,7% (BAI ROLL 19,21€ → 21,27€). El margen real pasa de 28,6% a 35,5%. Tras cambiarlo hay que reiniciar PM2 (caché de precios catalog-api).
