@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-context";
 import { useSearchParams } from "next/navigation";
@@ -93,6 +93,22 @@ function CheckoutAddressPage() {
       }));
     }
   }, [user]);
+
+  // País por IP (Cloudflare CF-IPCountry): pre-selecciona el país de envío al cargar,
+  // SOLO si sigue en el "ES" por defecto y el usuario no lo ha cambiado a mano.
+  const countryTouched = useRef(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/geo")
+      .then((r) => r.json())
+      .then((d) => {
+        const c = (d?.country || "").toUpperCase();
+        if (cancelled || countryTouched.current || !EU_COUNTRY_CODES.includes(c)) return;
+        setForm((prev) => (prev.country === "ES" ? { ...prev, country: c } : prev));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Save form to sessionStorage on change
   useEffect(() => {
@@ -282,7 +298,7 @@ function CheckoutAddressPage() {
 
               <div className="sm:col-span-2">
                 <label className="text-sm font-semibold mb-1.5 block">{t("field_country")}</label>
-                <select value={form.country} onChange={e => update("country", e.target.value)} required className="w-full px-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm bg-white">
+                <select value={form.country} onChange={e => { countryTouched.current = true; update("country", e.target.value); }} required className="w-full px-4 py-2.5 border-2 border-surface-200 rounded-xl text-sm bg-white">
                   {euCountries.map((c) => (
                     <option key={c.code} value={c.code}>{c.name}</option>
                   ))}
