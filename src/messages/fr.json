@@ -401,7 +401,8 @@
     "cancel_subtitle": "Ne vous inquiétez pas, votre panier est resté intact.",
     "cancel_back_to_cart": "Retour au panier",
     "loading": "Chargement...",
-    "vat_rate": "TVA ({rate}%)"
+    "vat_rate": "TVA ({rate}%)",
+    "delivery_estimate": "Livraison estimée avant le {date}"
   },
   "MiniCart": {
     "close_cart": "Fermer le panier",
@@ -527,7 +528,10 @@
     "notify_button": "Prévenez-moi",
     "notify_sending": "Envoi...",
     "notify_success": "C'est fait ! Nous vous préviendrons par email.",
-    "notify_invalid_email": "Saisissez un email valide"
+    "notify_invalid_email": "Saisissez un email valide",
+    "free_mockup_note": "Maquette gratuite avant production",
+    "dedicated_advisor_note": "Conseiller dédié pour votre commande",
+    "save_label": "économie"
   },
   "Account": {
     "nav_orders": "Mes commandes",

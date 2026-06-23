@@ -995,6 +995,8 @@ function ProductConfiguratorInner({ product }: Props) {
 
               const rawScales = (vp && vp.scales && vp.scales.length > 0) ? vp.scales : (product.priceScales || []);
               const displayScales = [...rawScales].sort((a: any, b: any) => a.minQuantity - b.minQuantity);
+              const numUnit = (sc: any) => sc?.priceSell != null ? sc.priceSell : (parseFloat(String(sc?.pricePerUnit || "").replace(",", ".").replace(/[^0-9.]/g, "")) || 0);
+              const baseUnit = numUnit(displayScales[0]);
 
               return displayScales.length > 1 ? (
                 <div className="mb-5">
@@ -1004,11 +1006,14 @@ function ProductConfiguratorInner({ product }: Props) {
                       const nextScale = displayScales[i + 1];
                       const isActive = qty >= s.minQuantity && (!nextScale || qty < nextScale.minQuantity);
                       const priceFormatted = s.pricePerUnit || (s.priceSell ? s.priceSell.toFixed(2) + "€" : "");
+                      const thisUnit = numUnit(s);
+                      const savePct = baseUnit > 0 && thisUnit > 0 && thisUnit < baseUnit ? Math.round((1 - thisUnit / baseUnit) * 100) : 0;
 
                       return (
                         <button key={s.minQuantity} title={hasSize ? t("enter_quantity_in_sizes") : t("add_units", { count: s.minQuantity })} onClick={() => !hasSize && setBaseQty(s.minQuantity)} disabled={hasSize} className={`text-center px-3 py-2 rounded-lg text-xs transition-all ${isActive ? "bg-brand-red text-white font-bold shadow-sm scale-105" : qty >= s.minQuantity ? "bg-brand-red/10 text-brand-red font-semibold" : "bg-surface-100 text-gray-400"}`}>
                           <div>≥{s.minQuantity}</div>
                           <div className="font-bold">{priceFormatted}</div>
+                          {savePct > 0 && <div className={`text-[9px] font-bold ${isActive ? "text-white/90" : "text-green-600"}`}>-{savePct}%</div>}
                         </button>
                       );
                     })}
@@ -1021,6 +1026,8 @@ function ProductConfiguratorInner({ product }: Props) {
 
             <div className="mt-3 text-xs bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-amber-900 font-medium flex flex-col gap-1.5">
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("more_quantity_more_discount")}</span>
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("free_mockup_note")}</span>
+              <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("dedicated_advisor_note")}</span>
               <span className="flex items-center gap-1.5"><span className="text-amber-500">✓</span> {t("large_quantity_contact")}</span>
             </div>
 

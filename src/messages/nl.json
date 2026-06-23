@@ -401,7 +401,8 @@
     "cancel_subtitle": "Maak je geen zorgen, je winkelwagen blijft intact.",
     "cancel_back_to_cart": "Terug naar de winkelwagen",
     "loading": "Laden...",
-    "vat_rate": "btw ({rate}%)"
+    "vat_rate": "btw ({rate}%)",
+    "delivery_estimate": "Geschatte levering vóór {date}"
   },
   "MiniCart": {
     "close_cart": "Winkelwagen sluiten",
@@ -527,7 +528,10 @@
     "notify_button": "Houd me op de hoogte",
     "notify_sending": "Versturen...",
     "notify_success": "Klaar! We mailen je zodra het er weer is.",
-    "notify_invalid_email": "Voer een geldig e-mailadres in"
+    "notify_invalid_email": "Voer een geldig e-mailadres in",
+    "free_mockup_note": "Gratis mockup vóór productie",
+    "dedicated_advisor_note": "Toegewijde adviseur voor je bestelling",
+    "save_label": "bespaar"
   },
   "Account": {
     "nav_orders": "Mijn bestellingen",

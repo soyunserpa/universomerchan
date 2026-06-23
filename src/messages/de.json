@@ -401,7 +401,8 @@
     "cancel_subtitle": "Keine Sorge, Ihr Warenkorb bleibt unverändert.",
     "cancel_back_to_cart": "Zurück zum Warenkorb",
     "loading": "Wird geladen...",
-    "vat_rate": "MwSt. ({rate}%)"
+    "vat_rate": "MwSt. ({rate}%)",
+    "delivery_estimate": "Voraussichtliche Lieferung vor dem {date}"
   },
   "MiniCart": {
     "close_cart": "Warenkorb schließen",
@@ -527,7 +528,10 @@
     "notify_button": "Benachrichtigen",
     "notify_sending": "Senden...",
     "notify_success": "Erledigt! Wir benachrichtigen Sie per E-Mail.",
-    "notify_invalid_email": "Gültige E-Mail eingeben"
+    "notify_invalid_email": "Gültige E-Mail eingeben",
+    "free_mockup_note": "Kostenloses Mockup vor der Produktion",
+    "dedicated_advisor_note": "Persönlicher Berater für Ihre Bestellung",
+    "save_label": "sparen"
   },
   "Account": {
     "nav_orders": "Meine Bestellungen",

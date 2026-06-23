@@ -401,7 +401,8 @@
     "cancel_subtitle": "Non preoccuparti, il tuo carrello è ancora intatto.",
     "cancel_back_to_cart": "Torna al carrello",
     "loading": "Caricamento...",
-    "vat_rate": "IVA ({rate}%)"
+    "vat_rate": "IVA ({rate}%)",
+    "delivery_estimate": "Consegna stimata entro il {date}"
   },
   "MiniCart": {
     "close_cart": "Chiudi carrello",
@@ -527,7 +528,10 @@
     "notify_button": "Avvisami",
     "notify_sending": "Invio...",
     "notify_success": "Fatto! Ti avviseremo via email.",
-    "notify_invalid_email": "Inserisci un'email valida"
+    "notify_invalid_email": "Inserisci un'email valida",
+    "free_mockup_note": "Mockup gratuito prima della produzione",
+    "dedicated_advisor_note": "Consulente dedicato per il tuo ordine",
+    "save_label": "risparmi"
   },
   "Account": {
     "nav_orders": "I miei ordini",

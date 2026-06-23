@@ -501,6 +501,10 @@ function CheckoutAddressPage() {
                 <span className="font-display font-extrabold text-2xl text-brand-red">{finalTotal.toFixed(2)}€</span>
               </div>
               <p className="text-[11px] text-gray-400 text-right">{t("vat_included")}</p>
+              <div className="mt-3 flex items-center gap-2 text-xs text-gray-700 bg-surface-50 rounded-lg px-3 py-2" suppressHydrationWarning>
+                <Truck size={14} className="text-brand-red shrink-0" />
+                <span>{t("delivery_estimate", { date: new Date(Date.now() + 14 * 86400000).toLocaleDateString(locale, { day: "numeric", month: "long" }) })}</span>
+              </div>
             </div>
           </div>
         </div>

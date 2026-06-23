@@ -401,7 +401,8 @@
     "cancel_subtitle": "Don't worry, your cart is still intact.",
     "cancel_back_to_cart": "Back to cart",
     "loading": "Loading...",
-    "vat_rate": "VAT ({rate}%)"
+    "vat_rate": "VAT ({rate}%)",
+    "delivery_estimate": "Estimated delivery before {date}"
   },
   "MiniCart": {
     "close_cart": "Close cart",
@@ -527,7 +528,10 @@
     "notify_button": "Notify me",
     "notify_sending": "Sending...",
     "notify_success": "Done! We'll email you when it's back.",
-    "notify_invalid_email": "Enter a valid email"
+    "notify_invalid_email": "Enter a valid email",
+    "free_mockup_note": "Free mockup before production",
+    "dedicated_advisor_note": "Dedicated advisor for your order",
+    "save_label": "save"
   },
   "Account": {
     "nav_orders": "My orders",

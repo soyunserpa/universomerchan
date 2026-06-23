@@ -401,7 +401,8 @@
     "cancel_subtitle": "Não se preocupe, o seu carrinho continua intacto.",
     "cancel_back_to_cart": "Voltar ao carrinho",
     "loading": "A carregar...",
-    "vat_rate": "IVA ({rate}%)"
+    "vat_rate": "IVA ({rate}%)",
+    "delivery_estimate": "Entrega estimada antes de {date}"
   },
   "MiniCart": {
     "close_cart": "Fechar carrinho",
@@ -527,7 +528,10 @@
     "notify_button": "Avisar-me",
     "notify_sending": "A enviar...",
     "notify_success": "Pronto! Avisamos por email quando voltar.",
-    "notify_invalid_email": "Introduza um email válido"
+    "notify_invalid_email": "Introduza um email válido",
+    "free_mockup_note": "Mockup grátis antes de produzir",
+    "dedicated_advisor_note": "Consultor dedicado para o seu pedido",
+    "save_label": "poupa"
   },
   "Account": {
     "nav_orders": "As minhas encomendas",
