@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
+import { alternatesFor, localeUrl, ogLocale } from "@/lib/seo";
 import { getProductDetail, getProductList, type CatalogProductResponse } from "@/lib/catalog-api";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) return notFound();
 
   const t = await getTranslations("Product");
+  const locale = await getLocale();
+  const tSeo = await getTranslations("Seo");
 
   // Fetch related products
   let relatedProducts: CatalogProductResponse[] = [];
@@ -51,8 +54,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Catálogo", item: "https://universomerchan.com/catalog" },
-              { "@type": "ListItem", position: 2, name: product.category, item: `https://universomerchan.com/catalog?category=${encodeURIComponent(product.category)}` },
+              { "@type": "ListItem", position: 1, name: tSeo("breadcrumb_catalog"), item: localeUrl(locale, "/catalog") },
+              { "@type": "ListItem", position: 2, name: (product as any).categoryDisplay || product.category, item: localeUrl(locale, `/catalog?category=${encodeURIComponent(product.category)}`) },
               { "@type": "ListItem", position: 3, name: product.name },
             ],
           }),
@@ -188,43 +191,39 @@ export default async function ProductPage({ params }: ProductPageProps) {
 export async function generateMetadata({ params }: ProductPageProps) {
   const masterCode = params.code.split('-')[0].toUpperCase();
   const product = await getProductDetail(masterCode);
-  if (!product) return { title: "Producto no encontrado" };
+  if (!product) return { title: "Producto no encontrado | Universo Merchan" };
+
+  // getProductDetail ya localiza name/shortDescription al idioma del visitante.
+  const locale = await getLocale();
+  const tSeo = await getTranslations({ locale, namespace: "Seo" });
 
   const slug = product.name ? product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : "";
   const deterministicUrl = `/product/${product.masterCode.toLowerCase()}-${slug}`;
 
-  // Optimize Title (Target: 50-60 chars)
-  let optimizedTitle = `${product.name} Personalizado | Universo Merchan`;
-  if (optimizedTitle.length < 40) {
-    optimizedTitle = `${product.name} Personalizado - Regalos Corporativos | Universo Merchan`;
-  }
+  // Título traducido por idioma: "<Producto> Personalizado | Universo Merchan"
+  const optimizedTitle = `${product.name} ${tSeo("product_suffix")}`;
 
-  // Optimize Description (Target: 120-155 chars)
-  let rawDesc = product.shortDescription || product.longDescription || "";
-  // Strip HTML if any
-  rawDesc = rawDesc.replace(/<[^>]*>?/gm, '');
-  
-  let optimizedDesc = rawDesc.substring(0, 80).trim();
+  // Descripción: descripción corta (ya localizada) + cola CTA traducida (objetivo 120-160)
+  let rawDesc = (product.shortDescription || product.longDescription || "").replace(/<[^>]*>?/gm, '');
+  let optimizedDesc = rawDesc.substring(0, 90).trim();
   if (optimizedDesc.length > 0 && !optimizedDesc.endsWith('.')) optimizedDesc += '.';
-  
-  optimizedDesc = `${optimizedDesc} Descubre nuestro catálogo de regalos corporativos sostenibles y merchandising. ¡Pide presupuesto de tu ${product.name} personalizado hoy mismo!`;
-
-  // Cap at 155 to avoid truncation warnings in audits
-  if (optimizedDesc.length > 155) {
-    optimizedDesc = optimizedDesc.substring(0, 152) + '...';
+  optimizedDesc = `${optimizedDesc} ${tSeo("product_desc_tail")}`.trim();
+  if (optimizedDesc.length > 160) {
+    optimizedDesc = optimizedDesc.substring(0, 157) + '...';
   }
 
   return {
     title: optimizedTitle,
     description: optimizedDesc,
-    alternates: {
-      canonical: deterministicUrl
-    },
+    // canonical auto-referente por idioma + hreflang de los 7 idiomas + x-default
+    alternates: alternatesFor(locale, deterministicUrl),
     openGraph: {
       title: optimizedTitle,
       description: optimizedDesc,
       images: product.mainImage ? [product.mainImage] : undefined,
-      url: `https://universomerchan.com${deterministicUrl}`,
+      url: localeUrl(locale, deterministicUrl),
+      type: "website",
+      locale: ogLocale(locale),
     },
   };
 }

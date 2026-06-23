@@ -936,5 +936,18 @@
     "category_seo_heading": "Warum unsere {category} für Unternehmen wählen?",
     "category_seo_paragraph_1": "Die Wahl von Firmenartikeln sollte nicht auf die leichte Schulter genommen werden. Bei Universo Merchan haben wir uns auf den Vertrieb von {category} spezialisiert, die einen positiven Eindruck bei deinen Kunden, Mitarbeitenden und Partnern hinterlassen. Unser Engagement für europäische Qualität und B2B-Personalisierung garantiert, dass dein Markenlogo auf jedem Objekt makellos zur Geltung kommt.",
     "category_seo_paragraph_2": "Ganz gleich, ob du ökologische Optionen, hochwertige Materialien wie Bambus oder Kork oder besonders langlebige Siebdrucktechnik suchst – unsere Plattform ermöglicht es dir, dein Design vor dem Kauf in 3D zu visualisieren. <b>Erstelle jetzt dein Angebot als PDF</b> und profitiere von unserem Logistiknetzwerk, um deine Bestellung in Rekordzeit auf dem Festland zu erhalten."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Werbegeschenke & bedruckte Werbeartikel",
+    "default_description": "Über 2.000 mit Ihrem Logo personalisierbare Produkte, europaweit in unter 10 Tagen geliefert. Jetzt Angebot anfordern.",
+    "catalog_title": "Katalog personalisierbarer Produkte | Universo Merchan",
+    "catalog_description": "Entdecken Sie über 2.000 Werbegeschenke und Werbeartikel mit Ihrem Logo. Filtern Sie nach Kategorie, Farbe und Budget. Versand europaweit.",
+    "blog_title": "Blog für Werbegeschenke & Werbeartikel | Universo Merchan",
+    "blog_description": "Ideen, Trends und Tipps zu Werbegeschenken, personalisierten Werbeartikeln und Markenbildung. Machen Sie Ihre Marke unvergesslich.",
+    "product_suffix": "Personalisiert | Universo Merchan",
+    "product_desc_tail": "Personalisieren Sie es mit Ihrem Logo und erhalten Sie es europaweit in unter 10 Tagen. Jetzt Angebot anfordern!",
+    "breadcrumb_catalog": "Katalog",
+    "category_title": "{category} mit Logo für Unternehmen | Universo Merchan",
+    "category_description": "Katalog an {category} personalisierbar mit Ihrem Logo. Online gestalten und Angebot mit Mengenrabatt anfordern. Versand europaweit."
   }
 }

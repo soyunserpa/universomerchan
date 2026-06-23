@@ -936,5 +936,18 @@
     "category_seo_heading": "Porquê escolher os nossos {category} para empresas?",
     "category_seo_paragraph_1": "A escolha de material corporativo não deve ser feita de ânimo leve. Na Universo Merchan especializamo-nos em distribuir {category} concebidos para gerar um impacto positivo nos teus clientes, colaboradores e parceiros. O nosso compromisso com a qualidade europeia e a personalização B2B garante que o logótipo da tua marca ficará impecável em cada objeto.",
     "category_seo_paragraph_2": "Quer procures opções ecológicas, materiais premium como o bambu ou a cortiça, ou tecnologia de serigrafia de alta durabilidade, a nossa plataforma permite-te visualizar o teu design em 3D antes de comprar. <b>Gera o teu orçamento em PDF agora mesmo</b> e aproveita a nossa rede logística para receberes a tua encomenda na península num tempo recorde."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Brindes corporativos e merchandising personalizado",
+    "default_description": "Mais de 2.000 produtos personalizáveis com o seu logótipo, entregues em toda a Europa em menos de 10 dias. Peça orçamento.",
+    "catalog_title": "Catálogo de produtos personalizáveis | Universo Merchan",
+    "catalog_description": "Explore mais de 2.000 brindes corporativos e merchandising personalizável com o seu logótipo. Filtre por categoria, cor e orçamento. Envios para toda a Europa.",
+    "blog_title": "Blog de brindes corporativos e merchandising | Universo Merchan",
+    "blog_description": "Ideias, tendências e dicas sobre brindes corporativos, merchandising personalizado e marca. Saiba como tornar a sua marca memorável.",
+    "product_suffix": "Personalizado | Universo Merchan",
+    "product_desc_tail": "Personalize-o com o seu logótipo e receba-o em toda a Europa em menos de 10 dias. Peça o seu orçamento hoje!",
+    "breadcrumb_catalog": "Catálogo",
+    "category_title": "{category} personalizados para empresas | Universo Merchan",
+    "category_description": "Catálogo de {category} personalizáveis com o seu logótipo. Personalize online e peça orçamento com descontos por volume. Envios para toda a Europa."
   }
 }

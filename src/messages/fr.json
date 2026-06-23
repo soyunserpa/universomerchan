@@ -936,5 +936,18 @@
     "category_seo_heading": "Pourquoi choisir nos {category} pour les entreprises ?",
     "category_seo_paragraph_1": "Le choix du matériel corporate ne doit pas être pris à la légère. Chez Universo Merchan, nous sommes spécialisés dans la distribution de {category} conçus pour générer un impact positif sur vos clients, employés et collaborateurs. Notre engagement envers la qualité européenne et la personnalisation B2B garantit que le logo de votre marque sera impeccable sur chaque objet.",
     "category_seo_paragraph_2": "Que vous recherchiez des options écologiques, des matériaux premium comme le bambou ou le liège, ou une technologie de sérigraphie de haute durabilité, notre plateforme vous permet de visualiser votre design en 3D avant d'acheter. <b>Générez votre devis en PDF dès maintenant</b> et profitez de notre réseau logistique pour recevoir votre commande sur la péninsule en un temps record."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Cadeaux d'entreprise et objets personnalisés",
+    "default_description": "Plus de 2 000 produits personnalisables avec votre logo, livrés dans toute l'Europe en moins de 10 jours. Demandez un devis.",
+    "catalog_title": "Catalogue de produits personnalisables | Universo Merchan",
+    "catalog_description": "Découvrez plus de 2 000 cadeaux d'entreprise et objets publicitaires personnalisables avec votre logo. Filtrez par catégorie, couleur et budget.",
+    "blog_title": "Blog cadeaux d'entreprise et objets publicitaires | Universo Merchan",
+    "blog_description": "Idées, tendances et conseils sur les cadeaux d'entreprise, les objets personnalisés et l'image de marque. Marquez les esprits.",
+    "product_suffix": "Personnalisé | Universo Merchan",
+    "product_desc_tail": "Personnalisez-le avec votre logo et recevez-le partout en Europe en moins de 10 jours. Demandez votre devis !",
+    "breadcrumb_catalog": "Catalogue",
+    "category_title": "{category} personnalisés pour entreprises | Universo Merchan",
+    "category_description": "Catalogue de {category} personnalisables avec votre logo. Personnalisez en ligne et demandez un devis avec remises sur volume. Livraison en Europe."
   }
 }

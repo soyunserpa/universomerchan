@@ -25,23 +25,32 @@ import { UtmProvider } from "@/components/providers/UtmProvider";
 import { TrafficTracker } from "@/components/providers/TrafficTracker";
 import { ClientErrorTracker } from "@/components/ClientErrorTracker";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
+import { alternatesFor, ogLocale, ogAlternateLocales, localeUrl, SITE_URL, DEFAULT_OG_IMAGE, SCHEMA_LANGUAGES, bcp47 } from "@/lib/seo";
 
 export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
-  const languages: Record<string, string> = {
-    'es': '/es', 'en': '/en', 'fr': '/fr', 'de': '/de', 'it': '/it', 'pt': '/pt', 'nl': '/nl'
-  };
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  const title = t("default_title");
+  const description = t("default_description");
 
   return {
-    title: "Universo Merchan — Consigue que tu marca se recuerde con productos personalizados",
-    description: "Consigue que tu marca se recuerde. +2.000 productos personalizables con entrega en menos de 10 días. #GeneraEmociones",
+    title,
+    description,
     openGraph: {
-      title: "Universo Merchan — Consigue que tu marca se recuerde con productos personalizados",
-      description: "+2.000 productos personalizables. Elige, personaliza, visualiza y recibe en menos de 10 días.",
-      url: "https://universomerchan.com",
+      title,
+      description,
+      url: localeUrl(locale, ""),
       siteName: "Universo Merchan",
-      locale: locale === 'en' ? 'en_US' : `${locale}_${locale.toUpperCase()}`,
+      locale: ogLocale(locale),
+      alternateLocale: ogAlternateLocales(locale),
       type: "website",
+      images: [DEFAULT_OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [DEFAULT_OG_IMAGE],
     },
     verification: {
       google: "mVS8J7HnqcunvWp4QbzZXuasi0ETBhRQS6mV5wT3-sI",
@@ -57,10 +66,9 @@ export async function generateMetadata({ params: { locale } }: { params: { local
         "max-snippet": -1,
       },
     },
-    alternates: {
-      languages,
-    },
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://universomerchan.com"),
+    // canonical auto-referente por idioma + hreflang de los 7 idiomas + x-default
+    alternates: alternatesFor(locale, ""),
+    metadataBase: new URL(SITE_URL),
   };
 }
 
@@ -139,7 +147,7 @@ export default async function RootLayout({ children, params: {locale} }: { child
                       "@type": "ContactPoint",
                       email: "pedidos@universomerchan.com",
                       contactType: "sales",
-                      availableLanguage: ["Spanish"],
+                      availableLanguage: SCHEMA_LANGUAGES,
                     },
                   },
                   {
@@ -171,6 +179,7 @@ export default async function RootLayout({ children, params: {locale} }: { child
                     "@id": "https://universomerchan.com/#website",
                     url: "https://universomerchan.com",
                     name: "Universo Merchan",
+                    inLanguage: bcp47(locale),
                     publisher: { "@id": "https://universomerchan.com/#organization" },
                     potentialAction: {
                       "@type": "SearchAction",

@@ -936,5 +936,18 @@
     "category_seo_heading": "Perché scegliere i nostri {category} per le aziende?",
     "category_seo_paragraph_1": "La scelta del materiale aziendale non va presa alla leggera. In Universo Merchan siamo specializzati nella distribuzione di {category} progettati per generare un impatto positivo su clienti, dipendenti e collaboratori. Il nostro impegno per la qualità europea e la personalizzazione B2B garantisce che il logo del tuo brand apparirà impeccabile su ogni oggetto.",
     "category_seo_paragraph_2": "Che tu cerchi opzioni ecologiche, materiali premium come il bambù o il sughero, o tecnologia di serigrafia ad alta durata, la nostra piattaforma ti permette di visualizzare il tuo design in 3D prima di acquistare. <b>Genera ora il tuo preventivo in PDF</b> e approfitta della nostra rete logistica per ricevere il tuo ordine nella penisola in tempi record."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Regali aziendali e gadget personalizzati",
+    "default_description": "Oltre 2.000 prodotti personalizzabili con il tuo logo, consegnati in tutta Europa in meno di 10 giorni. Richiedi un preventivo.",
+    "catalog_title": "Catalogo di prodotti personalizzabili | Universo Merchan",
+    "catalog_description": "Scopri oltre 2.000 regali aziendali e gadget promozionali personalizzabili con il tuo logo. Filtra per categoria, colore e budget. Spedizioni in tutta Europa.",
+    "blog_title": "Blog su regali aziendali e gadget | Universo Merchan",
+    "blog_description": "Idee, tendenze e consigli su regali aziendali, gadget personalizzati e branding. Scopri come rendere il tuo marchio indimenticabile.",
+    "product_suffix": "Personalizzato | Universo Merchan",
+    "product_desc_tail": "Personalizzalo con il tuo logo e ricevilo in tutta Europa in meno di 10 giorni. Richiedi subito il tuo preventivo!",
+    "breadcrumb_catalog": "Catalogo",
+    "category_title": "{category} personalizzati per aziende | Universo Merchan",
+    "category_description": "Catalogo di {category} personalizzabili con il tuo logo. Personalizza online e richiedi un preventivo con sconti quantità. Spedizioni in Europa."
   }
 }

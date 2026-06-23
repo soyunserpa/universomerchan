@@ -2,24 +2,21 @@ import type { MetadataRoute } from 'next';
 import { db } from "@/lib/database";
 import { products } from "@/lib/schema";
 import { eq } from "drizzle-orm";
+import { SEO_LOCALES, DEFAULT_LOCALE, localeUrl } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Config
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://universomerchan.com';
-  const locales = ['es', 'en', 'fr', 'de', 'it', 'pt', 'nl'];
-
+  // hreflang correcto: el español va SIN prefijo (`/path`), el resto con `/{locale}/path`,
+  // + `x-default`. (Antes apuntaba a `/es/path`, que no es la URL real del español.)
   const getAlternates = (path: string) => {
-    const alternates: Record<string, string> = {};
-    locales.forEach(loc => {
-      alternates[loc] = `${baseUrl}/${loc}${path === '/' ? '' : path}`;
-    });
-    return { languages: alternates };
+    const languages: Record<string, string> = {};
+    SEO_LOCALES.forEach(loc => { languages[loc] = localeUrl(loc, path); });
+    languages["x-default"] = localeUrl(DEFAULT_LOCALE, path);
+    return { languages };
   };
 
   const createEntry = (path: string, priority: number, changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never', lastMod?: Date): MetadataRoute.Sitemap[number] => {
-    // Note: The root entry itself must be an absolute URL for the default locale.
     return {
-      url: `${baseUrl}${path === '/' ? '' : path}`,
+      url: localeUrl(DEFAULT_LOCALE, path),
       lastModified: lastMod || new Date(),
       changeFrequency,
       priority,

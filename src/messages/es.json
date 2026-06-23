@@ -936,5 +936,18 @@
     "category_seo_heading": "¿Por qué elegir nuestros {category} para empresas?",
     "category_seo_paragraph_1": "La elección de material corporativo no debe tomarse a la ligera. En Universo Merchan nos especializamos en distribuir {category} diseñados para generar un impacto positivo en tus clientes, empleados y colaboradores. Nuestro compromiso con la calidad europea y la personalización B2B garantiza que el logotipo de tu marca lucirá impecable en cada objeto.",
     "category_seo_paragraph_2": "Ya sea que busques opciones ecológicas, materiales premium como el bambú o el corcho, o tecnología de serigrafía de alta duración, nuestra plataforma te permite visualizar tu diseño en 3D antes de comprar. <b>Genera tu presupuesto en PDF ahora mismo</b> y aprovecha nuestra red logística para recibir tu pedido en la península en un tiempo récord."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Regalos de empresa y merchandising personalizado",
+    "default_description": "Más de 2.000 productos personalizables con tu logo y entrega en menos de 10 días en toda Europa. Pide presupuesto. #GeneraEmociones",
+    "catalog_title": "Catálogo de productos personalizables | Universo Merchan",
+    "catalog_description": "Explora +2.000 regalos de empresa y merchandising personalizable con tu logo. Filtra por categoría, color y presupuesto. Envíos a toda Europa.",
+    "blog_title": "Blog de regalos de empresa y merchandising | Universo Merchan",
+    "blog_description": "Ideas, tendencias y consejos sobre regalos corporativos, merchandising personalizado y marca. Haz que tu marca se recuerde.",
+    "product_suffix": "Personalizado | Universo Merchan",
+    "product_desc_tail": "Personalízalo con tu logo y recíbelo en menos de 10 días en toda Europa. ¡Pide presupuesto hoy!",
+    "breadcrumb_catalog": "Catálogo",
+    "category_title": "{category} personalizados para empresas | Universo Merchan",
+    "category_description": "Catálogo de {category} personalizables con tu logo. Personaliza online y pide presupuesto con descuentos por volumen. Envíos a toda Europa."
   }
 }

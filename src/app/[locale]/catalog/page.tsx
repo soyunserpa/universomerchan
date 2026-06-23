@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from "@/i18n/routing";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
+import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE } from "@/lib/seo";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { InfiniteProductGrid } from "@/components/catalog/InfiniteProductGrid";
@@ -10,6 +11,27 @@ import { RecentlyViewedCarousel } from "@/components/product/RecentlyViewedCarou
 
 interface CatalogPageProps {
   searchParams: { category?: string; subcategory?: string; search?: string; page?: string; sort?: string; green?: string; color?: string; budget?: string };
+}
+
+export async function generateMetadata() {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  const title = t("catalog_title");
+  const description = t("catalog_description");
+  return {
+    title,
+    description,
+    // canonical SIEMPRE a /catalog limpio (sin filtros) para no indexar duplicados de query.
+    alternates: alternatesFor(locale, "/catalog"),
+    openGraph: {
+      title,
+      description,
+      url: localeUrl(locale, "/catalog"),
+      type: "website",
+      locale: ogLocale(locale),
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
 }
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {

@@ -936,5 +936,18 @@
     "category_seo_heading": "Waarom kiezen voor onze {category} voor bedrijven?",
     "category_seo_paragraph_1": "De keuze van zakelijk materiaal mag niet lichtvaardig worden genomen. Bij Universo Merchan zijn we gespecialiseerd in het distribueren van {category} die ontworpen zijn om een positieve impact te maken op je klanten, medewerkers en partners. Onze toewijding aan Europese kwaliteit en B2B-personalisatie garandeert dat het logo van jouw merk er onberispelijk uitziet op elk object.",
     "category_seo_paragraph_2": "Of je nu op zoek bent naar ecologische opties, premium materialen zoals bamboe of kurk, of zeefdruktechnologie met een lange levensduur, ons platform stelt je in staat om je ontwerp in 3D te visualiseren voordat je koopt. <b>Genereer nu meteen je offerte in PDF</b> en profiteer van ons logistieke netwerk om je bestelling razendsnel op het vasteland te ontvangen."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Relatiegeschenken en bedrukte merchandise",
+    "default_description": "Meer dan 2.000 producten te personaliseren met uw logo, binnen 10 dagen in heel Europa geleverd. Vraag een offerte aan.",
+    "catalog_title": "Catalogus van personaliseerbare producten | Universo Merchan",
+    "catalog_description": "Ontdek meer dan 2.000 relatiegeschenken en promotieartikelen met uw logo. Filter op categorie, kleur en budget. Levering in heel Europa.",
+    "blog_title": "Blog over relatiegeschenken en merchandise | Universo Merchan",
+    "blog_description": "Ideeën, trends en tips over relatiegeschenken, gepersonaliseerde merchandise en branding. Maak uw merk onvergetelijk.",
+    "product_suffix": "Gepersonaliseerd | Universo Merchan",
+    "product_desc_tail": "Personaliseer het met uw logo en ontvang het binnen 10 dagen in heel Europa. Vraag vandaag nog uw offerte aan!",
+    "breadcrumb_catalog": "Catalogus",
+    "category_title": "{category} met logo voor bedrijven | Universo Merchan",
+    "category_description": "Catalogus met {category} personaliseerbaar met uw logo. Personaliseer online en vraag een offerte met volumekorting. Levering in heel Europa."
   }
 }

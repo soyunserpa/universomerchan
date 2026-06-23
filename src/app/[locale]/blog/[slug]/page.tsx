@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import Image from "next/image";
 import { ShareButton } from "@/components/blog/ShareButton";
 import { getTranslations } from "next-intl/server";
+import { alternatesFor, localeUrl, ogLocale } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: { slug: string, locale: string } }): Promise<Metadata> {
   const post = await getPostBySlug(params.slug, params.locale);
@@ -32,14 +33,15 @@ export async function generateMetadata({ params }: { params: { slug: string, loc
   return {
     title: optimizedTitle,
     description: optimizedDesc,
-    alternates: {
-      canonical: `/blog/${post.slug}`
-    },
+    // canonical auto-referente por idioma + hreflang (el slug es canónico/igual en todos los idiomas)
+    alternates: alternatesFor(params.locale, `/blog/${post.slug}`),
     openGraph: {
       title: optimizedTitle,
       description: optimizedDesc,
+      url: localeUrl(params.locale, `/blog/${post.slug}`),
       images: post.featuredImage ? [{ url: post.featuredImage }] : [],
       type: "article",
+      locale: ogLocale(params.locale),
     },
   };
 }

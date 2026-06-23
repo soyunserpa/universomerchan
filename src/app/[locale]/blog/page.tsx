@@ -1,15 +1,28 @@
 import { Link } from "@/i18n/routing";
 import { getPublishedPosts } from "@/lib/cms-content";
 import { Clock, ArrowRight } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
+import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE } from "@/lib/seo";
 
-export const metadata = {
-  title: "Blog & Novedades de Merchandising | Universo Merchan",
-  description: "Descubre las últimas tendencias en merchandising corporativo, regalos originales y técnicas de marcaje para impulsar tu marca.",
-  alternates: {
-    canonical: '/blog'
-  }
-};
+export async function generateMetadata() {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  const title = t("blog_title");
+  const description = t("blog_description");
+  return {
+    title,
+    description,
+    alternates: alternatesFor(locale, "/blog"),
+    openGraph: {
+      title,
+      description,
+      url: localeUrl(locale, "/blog"),
+      type: "website",
+      locale: ogLocale(locale),
+      images: [DEFAULT_OG_IMAGE],
+    },
+  };
+}
 
 export default async function BlogPage({ params: { locale } }: { params: { locale: string } }) {
   const { posts } = await getPublishedPosts({ limit: 50, locale });

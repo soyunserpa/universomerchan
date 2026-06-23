@@ -936,5 +936,18 @@
     "category_seo_heading": "Why choose our {category} for businesses?",
     "category_seo_paragraph_1": "Choosing corporate materials should not be taken lightly. At Universo Merchan we specialize in distributing {category} designed to create a positive impact on your clients, employees and partners. Our commitment to European quality and B2B customization ensures that your brand's logo will look impeccable on every item.",
     "category_seo_paragraph_2": "Whether you're looking for eco-friendly options, premium materials such as bamboo or cork, or long-lasting screen-printing technology, our platform lets you visualize your design in 3D before buying. <b>Generate your PDF quote right now</b> and take advantage of our logistics network to receive your order on the Spanish mainland in record time."
+  },
+  "Seo": {
+    "default_title": "Universo Merchan — Custom corporate gifts & branded merchandise",
+    "default_description": "2,000+ products customisable with your logo, delivered across Europe in under 10 days. Get a quote today.",
+    "catalog_title": "Catalogue of customisable products | Universo Merchan",
+    "catalog_description": "Browse 2,000+ corporate gifts and branded merchandise customisable with your logo. Filter by category, colour and budget. Europe-wide shipping.",
+    "blog_title": "Corporate gifts & merchandise blog | Universo Merchan",
+    "blog_description": "Ideas, trends and tips on corporate gifts, custom merchandise and branding. Learn how to make your brand memorable.",
+    "product_suffix": "Customised | Universo Merchan",
+    "product_desc_tail": "Customise it with your logo and receive it across Europe in under 10 days. Get your quote today!",
+    "breadcrumb_catalog": "Catalogue",
+    "category_title": "Custom {category} for businesses | Universo Merchan",
+    "category_description": "Catalogue of {category} customisable with your logo. Personalise online and request a quote with volume discounts. Europe-wide shipping."
   }
 }

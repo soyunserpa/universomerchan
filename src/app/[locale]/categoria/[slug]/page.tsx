@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { alternatesFor, ogLocale, localeUrl, DEFAULT_OG_IMAGE } from "@/lib/seo";
 import { getProductList, getCategories, getSubcategories } from "@/lib/catalog-api";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
@@ -10,30 +11,28 @@ import type { Metadata } from "next";
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const categories = await getCategories();
   const cat = categories.find(c => c.slug === params.slug);
-  if (!cat) return { title: "Categoría no encontrada" };
+  if (!cat) return { title: "Categoría no encontrada | Universo Merchan" };
 
-  // Optimize Title (50-60 chars)
-  let optimizedTitle = `${cat.name} Personalizados para Empresas | Universo Merchan`;
-  if (optimizedTitle.length < 40) {
-    optimizedTitle = `${cat.name} Personalizados - Regalos Corporativos | Universo Merchan`;
-  }
-
-  // Inject user keywords dynamically into description
-  const isSustainable = cat.slug.includes("sostenible") || cat.slug.includes("eco");
-  const keyword = cat.slug === "camisetas" ? "camisetas personalizadas" : (isSustainable ? "regalos corporativos sostenibles" : "merchandising B2B");
-  
-  let optimizedDesc = `Catálogo premium de ${cat.name.toLowerCase()} y ${keyword}. Personaliza online con tu logo y recibe presupuestos con descuentos por volumen. ¡Descúbrelo!`;
-  
-  if (optimizedDesc.length > 155) {
-    optimizedDesc = optimizedDesc.substring(0, 152) + '...';
-  }
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  // getCategories añade displayName localizado; usamos ese para título/desc traducidos.
+  const categoryName = (cat as any).displayName || cat.name;
+  const title = t("category_title", { category: categoryName });
+  const description = t("category_description", { category: categoryName.toLowerCase() });
 
   return {
-    title: optimizedTitle,
-    description: optimizedDesc,
-    alternates: {
-      canonical: `/categoria/${params.slug}`
-    }
+    title,
+    description,
+    // canonical auto-referente por idioma + hreflang de los 7 idiomas + x-default
+    alternates: alternatesFor(locale, `/categoria/${params.slug}`),
+    openGraph: {
+      title,
+      description,
+      url: localeUrl(locale, `/categoria/${params.slug}`),
+      type: "website",
+      locale: ogLocale(locale),
+      images: [DEFAULT_OG_IMAGE],
+    },
   };
 }
 
