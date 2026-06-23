@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { StockNotifyForm } from "./StockNotifyForm";
+import { StickyMobileBar } from "./StickyMobileBar";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
 import { useEffect, Suspense } from "react";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
@@ -1055,6 +1056,15 @@ function ProductConfiguratorInner({ product }: Props) {
                 <FavoriteButton productId={product.id} variant="button" />
               </div>
             </div>
+
+            {/* Barra CTA fija en móvil (Portal a body para esquivar transforms del configurador) */}
+            <StickyMobileBar
+              visible={step === 1}
+              priceText={`${total.toFixed(2)}€`}
+              label={t("customize_with_logo")}
+              onClick={() => changeStep(2)}
+              disabled={!canProceed}
+            />
 
             {/* Muestra reembolsable (gateway a pedido grande). Pone 1 ud y reutiliza el flujo
                 de "añadir sin personalizar" existente. Reembolso desde 500€ (proceso manual). */}
