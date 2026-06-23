@@ -222,10 +222,12 @@
     "card_remove_favorite": "Remover dos favoritos",
     "card_top_sales": "🔥 MAIS VENDIDO",
     "card_eco": "Eco",
-    "card_units": "{count} un.",
+    "card_units": "{count} em stock",
     "card_base_price": "Base: {price} €",
     "card_from_price": "Desde {price} €",
-    "card_vip_rate": "TARIFA VIP"
+    "card_vip_rate": "TARIFA VIP",
+    "card_price_consult": "Preço sob consulta",
+    "card_made_to_order": "Sob encomenda"
   },
   "Product": {
     "breadcrumb_catalog": "Catálogo",
@@ -356,7 +358,7 @@
     "country_at": "Áustria",
     "field_email": "E-mail *",
     "field_phone": "Telefone *",
-    "shipping_method_title": "Método de envio Midocean",
+    "shipping_method_title": "Método de envio",
     "shipping_basic_title": "Envio Básico (Gestão mínima)",
     "shipping_basic_desc": "Aplicado a encomendas inferiores a 100€",
     "shipping_direct_title": "Envio Direto (Gestão pequena)",
@@ -518,7 +520,14 @@
     "per_unit": "Por unidade",
     "artwork_upload_error": "Lamentamos, ocorreu um problema de ligação ao carregar o seu design. Tente novamente ou utilize um formato mais leve.",
     "pdf_generation_error": "Erro: {message}. Verifique a consola (F12).",
-    "unknown_error": "desconhecido"
+    "unknown_error": "desconhecido",
+    "notify_oos_title": "Temporariamente esgotado",
+    "notify_oos_desc": "Deixe o seu email e avisamos assim que estiver disponível.",
+    "notify_email_placeholder": "tu@email.com",
+    "notify_button": "Avisar-me",
+    "notify_sending": "A enviar...",
+    "notify_success": "Pronto! Avisamos por email quando voltar.",
+    "notify_invalid_email": "Introduza um email válido"
   },
   "Account": {
     "nav_orders": "As minhas encomendas",
@@ -632,7 +641,7 @@
     "proof_approve_confirm_question": "Confirmo que o design artístico está correto e autorizo a sua passagem a máquina",
     "proof_reject_adjust_question": "Que ajustes precisas que façamos ao esboço?",
     "proof_reject_detailed_placeholder": "Descreve com precisão que alterações precisas (tamanho, posição, cor, proporções...)",
-    "proof_sending_order": "A enviar ordem para a Midocean...",
+    "proof_sending_order": "A enviar o seu pedido para produção...",
     "proof_confirm_authorization": "Confirmar Autorização",
     "proof_request_changes": "Solicitar Alterações",
     "favorites_title": "Os Meus Favoritos",

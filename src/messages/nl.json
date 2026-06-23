@@ -222,10 +222,12 @@
     "card_remove_favorite": "Verwijderen uit favorieten",
     "card_top_sales": "🔥 BESTSELLER",
     "card_eco": "Eco",
-    "card_units": "{count} st.",
+    "card_units": "{count} op voorraad",
     "card_base_price": "Basis: € {price}",
     "card_from_price": "Vanaf € {price}",
-    "card_vip_rate": "VIP-TARIEF"
+    "card_vip_rate": "VIP-TARIEF",
+    "card_price_consult": "Prijs op aanvraag",
+    "card_made_to_order": "Op bestelling"
   },
   "Product": {
     "breadcrumb_catalog": "Catalogus",
@@ -356,7 +358,7 @@
     "country_at": "Oostenrijk",
     "field_email": "E-mail *",
     "field_phone": "Telefoon *",
-    "shipping_method_title": "Verzendmethode Midocean",
+    "shipping_method_title": "Verzendmethode",
     "shipping_basic_title": "Basisverzending (minimale verwerking)",
     "shipping_basic_desc": "Van toepassing op bestellingen onder 100€",
     "shipping_direct_title": "Directe verzending (kleine verwerking)",
@@ -518,7 +520,14 @@
     "per_unit": "Per eenheid",
     "artwork_upload_error": "Het spijt ons, er was een verbindingsprobleem bij het uploaden van je ontwerp. Probeer het opnieuw of gebruik een lichter formaat.",
     "pdf_generation_error": "Fout: {message}. Controleer de console (F12).",
-    "unknown_error": "onbekend"
+    "unknown_error": "onbekend",
+    "notify_oos_title": "Tijdelijk uitverkocht",
+    "notify_oos_desc": "Laat je e-mail achter en we laten het je weten zodra het weer op voorraad is.",
+    "notify_email_placeholder": "jij@email.com",
+    "notify_button": "Houd me op de hoogte",
+    "notify_sending": "Versturen...",
+    "notify_success": "Klaar! We mailen je zodra het er weer is.",
+    "notify_invalid_email": "Voer een geldig e-mailadres in"
   },
   "Account": {
     "nav_orders": "Mijn bestellingen",
@@ -632,7 +641,7 @@
     "proof_approve_confirm_question": "Ik bevestig dat het grafische ontwerp correct is en geef toestemming om het naar productie te sturen",
     "proof_reject_adjust_question": "Welke aanpassingen moeten we aan het ontwerp doorvoeren?",
     "proof_reject_detailed_placeholder": "Beschrijf nauwkeurig welke wijzigingen je nodig hebt (formaat, positie, kleur, verhoudingen...)",
-    "proof_sending_order": "Bestelling versturen naar Midocean...",
+    "proof_sending_order": "Je bestelling wordt naar productie gestuurd...",
     "proof_confirm_authorization": "Autorisatie bevestigen",
     "proof_request_changes": "Wijzigingen aanvragen",
     "favorites_title": "Mijn favorieten",

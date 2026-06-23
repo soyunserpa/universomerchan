@@ -222,10 +222,12 @@
     "card_remove_favorite": "Retirer des favoris",
     "card_top_sales": "🔥 MEILLEURE VENTE",
     "card_eco": "Éco",
-    "card_units": "{count} pcs",
+    "card_units": "{count} en stock",
     "card_base_price": "Base : {price} €",
     "card_from_price": "À partir de {price} €",
-    "card_vip_rate": "TARIF VIP"
+    "card_vip_rate": "TARIF VIP",
+    "card_price_consult": "Prix sur demande",
+    "card_made_to_order": "Sur commande"
   },
   "Product": {
     "breadcrumb_catalog": "Catalogue",
@@ -356,7 +358,7 @@
     "country_at": "Autriche",
     "field_email": "E-mail *",
     "field_phone": "Téléphone *",
-    "shipping_method_title": "Mode de livraison Midocean",
+    "shipping_method_title": "Mode de livraison",
     "shipping_basic_title": "Livraison Basique (Gestion minimale)",
     "shipping_basic_desc": "Appliquée aux commandes de moins de 100 €",
     "shipping_direct_title": "Livraison Directe (Petite gestion)",
@@ -518,7 +520,14 @@
     "per_unit": "Par unité",
     "artwork_upload_error": "Nous sommes désolés, un problème de connexion est survenu lors du téléchargement de votre design. Réessayez ou utilisez un format plus léger.",
     "pdf_generation_error": "Erreur : {message}. Consultez la console (F12).",
-    "unknown_error": "inconnu"
+    "unknown_error": "inconnu",
+    "notify_oos_title": "Temporairement en rupture de stock",
+    "notify_oos_desc": "Laissez votre email et nous vous préviendrons dès qu'il sera de nouveau disponible.",
+    "notify_email_placeholder": "vous@email.com",
+    "notify_button": "Prévenez-moi",
+    "notify_sending": "Envoi...",
+    "notify_success": "C'est fait ! Nous vous préviendrons par email.",
+    "notify_invalid_email": "Saisissez un email valide"
   },
   "Account": {
     "nav_orders": "Mes commandes",
@@ -632,7 +641,7 @@
     "proof_approve_confirm_question": "Je confirme que le visuel artistique est correct et j'autorise son passage en machine",
     "proof_reject_adjust_question": "Quels ajustements souhaitez-vous que nous apportions à la maquette ?",
     "proof_reject_detailed_placeholder": "Décrivez précisément les modifications nécessaires (taille, position, couleur, proportions...)",
-    "proof_sending_order": "Envoi de la commande à Midocean...",
+    "proof_sending_order": "Envoi de votre commande en production...",
     "proof_confirm_authorization": "Confirmer l'autorisation",
     "proof_request_changes": "Demander des modifications",
     "favorites_title": "Mes favoris",

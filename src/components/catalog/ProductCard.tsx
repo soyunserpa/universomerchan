@@ -99,8 +99,8 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
             </span>
           )}
         </div>
-        <span className="absolute top-2.5 right-2.5 bg-surface-100 text-gray-900 text-sm font-semibold px-2 py-0.5 rounded-full">
-          {t("card_units", { count: product.totalStock.toLocaleString("es-ES") })}
+        <span className={`absolute top-2.5 right-2.5 text-sm font-semibold px-2 py-0.5 rounded-full ${product.totalStock > 0 ? "bg-surface-100 text-gray-900" : "bg-amber-50 text-amber-700"}`}>
+          {product.totalStock > 0 ? t("card_units", { count: product.totalStock.toLocaleString("es-ES") }) : t("card_made_to_order")}
         </span>
       </div>
 
@@ -115,17 +115,23 @@ export function ProductCard({ product, index, isTopVenta }: { product: CatalogPr
         </p>
         <div className="flex justify-between items-end">
           <div className="flex flex-col">
-            {hasB2BDiscount ? (
-              <>
-                <span className="text-xs text-gray-400 line-through mb-0.5">{t("card_base_price", { price: product.startingPriceRaw.toFixed(2) })}</span>
-                <span className="font-bold text-base text-brand-red flex items-center gap-1">
-                  {t("card_from_price", { price: discountedPriceRaw.toFixed(2) })} <Star size={12} className="fill-brand-red text-brand-red" />
+            {product.startingPriceRaw > 0 ? (
+              hasB2BDiscount ? (
+                <>
+                  <span className="text-xs text-gray-400 line-through mb-0.5">{t("card_base_price", { price: product.startingPriceRaw.toFixed(2) })}</span>
+                  <span className="font-bold text-base text-brand-red flex items-center gap-1">
+                    {t("card_from_price", { price: discountedPriceRaw.toFixed(2) })} <Star size={12} className="fill-brand-red text-brand-red" />
+                  </span>
+                  <span className="text-[10px] text-brand-red font-bold uppercase tracking-wider mt-0.5">{t("card_vip_rate")}</span>
+                </>
+              ) : (
+                <span className="font-bold text-base text-brand-red">
+                  {t("card_from_price", { price: product.startingPriceRaw.toFixed(2) })}
                 </span>
-                <span className="text-[10px] text-brand-red font-bold uppercase tracking-wider mt-0.5">{t("card_vip_rate")}</span>
-              </>
+              )
             ) : (
-              <span className="font-bold text-base text-brand-red">
-                {t("card_from_price", { price: product.startingPriceRaw.toFixed(2) })}
+              <span className="font-bold text-sm text-gray-700">
+                {t("card_price_consult")}
               </span>
             )}
           </div>

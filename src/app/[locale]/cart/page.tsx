@@ -379,7 +379,7 @@ function CartContent() {
                 onClick={handleCheckout}
                 className="w-full bg-brand-red text-white py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-red-dark transition-colors shadow-md"
               >
-                <CreditCard size={16} /> {isAuthenticated ? t("checkout_button") : t("login_to_buy")}
+                <CreditCard size={16} /> {t("checkout_button")}
               </button>
 
               <button

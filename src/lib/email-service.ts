@@ -93,6 +93,30 @@ export async function sendProspectEmail(to: string, subject: string, htmlContent
   });
 }
 
+// ── STOCK ALERT (Avísame) ────────────────────────────────
+// Aviso interno a operaciones cuando un cliente pide ser avisado de un producto agotado.
+const STOCK_ALERT_EMAIL = process.env.STOCK_ALERT_EMAIL || "universomerchan7@gmail.com";
+export async function sendStockNotifyRequest(d: { customerEmail: string; productName: string; masterCode: string }) {
+  const html = T(
+    `<h2 style="font-size:22px;font-weight:800">🔔 Solicitud de aviso de stock</h2>
+     <p style="color:#666">Un cliente quiere que le avisen cuando este producto vuelva a estar disponible:</p>
+     <div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0">
+       <p style="font-size:18px;font-weight:800;margin:0">${d.productName}</p>
+       <p style="font-size:13px;color:#888;margin:4px 0 0">Ref: ${d.masterCode}</p>
+     </div>
+     <p style="color:#111">Email del cliente: <strong>${d.customerEmail}</strong></p>
+     <p style="font-size:12px;color:#888;margin-top:16px">Cuando vuelva a haber stock, avísale a este email.</p>`,
+    "Solicitud de aviso de stock"
+  );
+  return sendEmail({
+    emailType: "stock_alert_request",
+    recipientType: "admin",
+    to: STOCK_ALERT_EMAIL,
+    subject: `🔔 Aviso de stock solicitado: ${d.productName} (${d.masterCode})`,
+    html,
+  });
+}
+
 // ── CUSTOMER EMAILS ──────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, firstName: string) {

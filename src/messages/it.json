@@ -222,10 +222,12 @@
     "card_remove_favorite": "Rimuovi dai preferiti",
     "card_top_sales": "🔥 PIÙ VENDUTO",
     "card_eco": "Eco",
-    "card_units": "{count} pz",
+    "card_units": "{count} disponibili",
     "card_base_price": "Base: {price} €",
     "card_from_price": "Da {price} €",
-    "card_vip_rate": "TARIFFA VIP"
+    "card_vip_rate": "TARIFFA VIP",
+    "card_price_consult": "Prezzo su richiesta",
+    "card_made_to_order": "Su ordinazione"
   },
   "Product": {
     "breadcrumb_catalog": "Catalogo",
@@ -356,7 +358,7 @@
     "country_at": "Austria",
     "field_email": "Email *",
     "field_phone": "Telefono *",
-    "shipping_method_title": "Metodo di spedizione Midocean",
+    "shipping_method_title": "Metodo di spedizione",
     "shipping_basic_title": "Spedizione Base (Gestione minima)",
     "shipping_basic_desc": "Applicata agli ordini inferiori a 100€",
     "shipping_direct_title": "Spedizione Diretta (Gestione ridotta)",
@@ -518,7 +520,14 @@
     "per_unit": "Per unità",
     "artwork_upload_error": "Siamo spiacenti, si è verificato un problema di connessione durante il caricamento del tuo design. Riprova o utilizza un formato più leggero.",
     "pdf_generation_error": "Errore: {message}. Controlla la console (F12).",
-    "unknown_error": "sconosciuto"
+    "unknown_error": "sconosciuto",
+    "notify_oos_title": "Temporaneamente esaurito",
+    "notify_oos_desc": "Lascia la tua email e ti avviseremo non appena sarà di nuovo disponibile.",
+    "notify_email_placeholder": "tu@email.com",
+    "notify_button": "Avvisami",
+    "notify_sending": "Invio...",
+    "notify_success": "Fatto! Ti avviseremo via email.",
+    "notify_invalid_email": "Inserisci un'email valida"
   },
   "Account": {
     "nav_orders": "I miei ordini",
@@ -632,7 +641,7 @@
     "proof_approve_confirm_question": "Confermo che il disegno artistico è corretto e autorizzo il suo passaggio in macchina",
     "proof_reject_adjust_question": "Quali modifiche vuoi che apportiamo alla bozza?",
     "proof_reject_detailed_placeholder": "Descrivi con precisione quali modifiche ti servono (dimensione, posizione, colore, proporzioni...)",
-    "proof_sending_order": "Invio dell'ordine a Midocean...",
+    "proof_sending_order": "Invio dell'ordine in produzione...",
     "proof_confirm_authorization": "Conferma autorizzazione",
     "proof_request_changes": "Richiedi modifiche",
     "favorites_title": "I miei preferiti",

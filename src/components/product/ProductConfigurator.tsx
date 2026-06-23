@@ -11,6 +11,7 @@ import {
   Layers, Loader2, Package, ShieldCheck, Handshake, Star
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
+import { StockNotifyForm } from "./StockNotifyForm";
 import { ProductCanvasEditor, PreviewWithLogo, type CanvasEditorRef, type PrintZone, type LogoPlacement } from "./ProductCanvasEditor";
 import { useEffect, Suspense } from "react";
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed";
@@ -958,6 +959,11 @@ function ProductConfiguratorInner({ product }: Props) {
                     : t("globally_sold_out")}
                 </span>
               </div>
+            )}
+
+            {/* Producto agotado → captura de email "Avísame" (aviso a operaciones) */}
+            {!hasSize && variant.stock <= 0 && (
+              <StockNotifyForm productName={product.name} masterCode={product.masterCode} />
             )}
 
             {/* Quantity (non-textiles) */}

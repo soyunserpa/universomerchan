@@ -222,10 +222,12 @@
     "card_remove_favorite": "Remove from favorites",
     "card_top_sales": "🔥 BESTSELLER",
     "card_eco": "Eco",
-    "card_units": "{count} pcs",
+    "card_units": "{count} in stock",
     "card_base_price": "Base: €{price}",
     "card_from_price": "From €{price}",
-    "card_vip_rate": "VIP RATE"
+    "card_vip_rate": "VIP RATE",
+    "card_price_consult": "Price on request",
+    "card_made_to_order": "Made to order"
   },
   "Product": {
     "breadcrumb_catalog": "Catalog",
@@ -356,7 +358,7 @@
     "country_at": "Austria",
     "field_email": "Email *",
     "field_phone": "Phone *",
-    "shipping_method_title": "Midocean shipping method",
+    "shipping_method_title": "Shipping method",
     "shipping_basic_title": "Basic Shipping (Minimal handling)",
     "shipping_basic_desc": "Applied to orders under €100",
     "shipping_direct_title": "Direct Shipping (Small handling)",
@@ -518,7 +520,14 @@
     "per_unit": "Per unit",
     "artwork_upload_error": "Sorry, there was a connection problem while uploading your design. Please try again or use a lighter file format.",
     "pdf_generation_error": "Error: {message}. Check the console (F12).",
-    "unknown_error": "unknown"
+    "unknown_error": "unknown",
+    "notify_oos_title": "Temporarily out of stock",
+    "notify_oos_desc": "Leave your email and we'll notify you as soon as it's back in stock.",
+    "notify_email_placeholder": "you@email.com",
+    "notify_button": "Notify me",
+    "notify_sending": "Sending...",
+    "notify_success": "Done! We'll email you when it's back.",
+    "notify_invalid_email": "Enter a valid email"
   },
   "Account": {
     "nav_orders": "My orders",
@@ -632,7 +641,7 @@
     "proof_approve_confirm_question": "I confirm that the artwork is correct and I authorize it to go to print",
     "proof_reject_adjust_question": "What adjustments do you need us to make to the proof?",
     "proof_reject_detailed_placeholder": "Describe precisely what changes you need (size, position, color, proportions...)",
-    "proof_sending_order": "Sending order to Midocean...",
+    "proof_sending_order": "Sending your order to production...",
     "proof_confirm_authorization": "Confirm Authorization",
     "proof_request_changes": "Request Changes",
     "favorites_title": "My Favorites",

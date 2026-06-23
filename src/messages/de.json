@@ -222,10 +222,12 @@
     "card_remove_favorite": "Aus Favoriten entfernen",
     "card_top_sales": "🔥 BESTSELLER",
     "card_eco": "Öko",
-    "card_units": "{count} Stk.",
+    "card_units": "{count} auf Lager",
     "card_base_price": "Basis: {price} €",
     "card_from_price": "Ab {price} €",
-    "card_vip_rate": "VIP-TARIF"
+    "card_vip_rate": "VIP-TARIF",
+    "card_price_consult": "Preis auf Anfrage",
+    "card_made_to_order": "Auf Bestellung"
   },
   "Product": {
     "breadcrumb_catalog": "Katalog",
@@ -356,7 +358,7 @@
     "country_at": "Österreich",
     "field_email": "E-Mail *",
     "field_phone": "Telefon *",
-    "shipping_method_title": "Versandart Midocean",
+    "shipping_method_title": "Versandart",
     "shipping_basic_title": "Basis-Versand (Minimale Bearbeitung)",
     "shipping_basic_desc": "Gilt für Bestellungen unter 100€",
     "shipping_direct_title": "Direkt-Versand (Kleine Bearbeitung)",
@@ -518,7 +520,14 @@
     "per_unit": "Pro Einheit",
     "artwork_upload_error": "Es tut uns leid, beim Hochladen Ihres Designs ist ein Verbindungsproblem aufgetreten. Versuchen Sie es erneut oder verwenden Sie ein leichteres Format.",
     "pdf_generation_error": "Fehler: {message}. Überprüfen Sie die Konsole (F12).",
-    "unknown_error": "unbekannt"
+    "unknown_error": "unbekannt",
+    "notify_oos_title": "Vorübergehend nicht auf Lager",
+    "notify_oos_desc": "Hinterlassen Sie Ihre E-Mail und wir benachrichtigen Sie, sobald es wieder verfügbar ist.",
+    "notify_email_placeholder": "sie@email.com",
+    "notify_button": "Benachrichtigen",
+    "notify_sending": "Senden...",
+    "notify_success": "Erledigt! Wir benachrichtigen Sie per E-Mail.",
+    "notify_invalid_email": "Gültige E-Mail eingeben"
   },
   "Account": {
     "nav_orders": "Meine Bestellungen",
@@ -632,7 +641,7 @@
     "proof_approve_confirm_question": "Ich bestätige, dass das Artwork korrekt ist, und gebe es für die Produktion frei",
     "proof_reject_adjust_question": "Welche Anpassungen sollen wir am Entwurf vornehmen?",
     "proof_reject_detailed_placeholder": "Beschreibe genau, welche Änderungen du benötigst (Größe, Position, Farbe, Proportionen ...)",
-    "proof_sending_order": "Auftrag wird an Midocean gesendet ...",
+    "proof_sending_order": "Bestellung wird an die Produktion gesendet...",
     "proof_confirm_authorization": "Freigabe bestätigen",
     "proof_request_changes": "Änderungen anfordern",
     "favorites_title": "Meine Favoriten",
