@@ -60,6 +60,16 @@ Todo el tracking vive en `src/app/[locale]/layout.tsx`. **Prohibido borrarlo o d
 
 <!-- Entrada más reciente arriba. Plantilla al final del archivo. -->
 
+### 2026-06-23 — SEO "nivel 11": breadcrumbs + ItemList JSON-LD, sameAs, H1 de categoría localizado
+- **Qué se cambió:**
+  - **`seo.ts`**: nuevos helpers `breadcrumbLd()`, `itemListLd()`, `productPath()` (slug = misma lógica que ProductCard/sitemap) y `SOCIAL_PROFILES`.
+  - **Catálogo y categoría**: `BreadcrumbList` JSON-LD (Inicio › Catálogo › [Categoría]) + `ItemList` JSON-LD de los productos del listado. Clave `Seo.breadcrumb_home` (Inicio/Home/Accueil…) en los 7 idiomas.
+  - **Producto**: breadcrumb ampliado a 4 niveles (Inicio › Catálogo › Categoría › Producto).
+  - **Categoría — BUG SEO arreglado**: el H1 y los textos del hero usaban el nombre de categoría en español (`category`) en TODOS los idiomas. Ahora usan `currentCat.displayName` localizado (ej. `/fr` → "Sacs et voyages personnalisés"). El nombre ES (`category`) se mantiene SOLO para la query a `getProductList`/`getSubcategories` (es el valor de filtro canónico).
+  - **`layout.tsx`**: `Organization.sameAs` con Instagram + LinkedIn (SEO de entidad).
+- **Deploy:** 12 archivos (tarball) → build OK → restart. Commit `b3532da`. Verificado en vivo: BreadcrumbList + ItemList en `/catalog` y `/fr/categoria/...`, breadcrumb 4 niveles en producto, H1 localizado, sameAs presente.
+- **Conexiones / qué NO romper:** en categoría, `category` (ES) = valor de filtro para queries; `categoryDisplay` = solo para mostrar. No cruzarlos. `productPath()` debe seguir alineado con ProductCard y el sitemap (3 sitios con la misma lógica de slug).
+
 ### 2026-06-23 — SEO multi-país europeo (hreflang, canonical por idioma, metadata traducida)
 - **Qué pasaba / por qué:** la metadata SEO no estaba lista para multi-idioma: title/description iguales en los 7 idiomas, `hreflang` apuntaba a `/es` (el español vive en `/`, no `/es`), faltaba `x-default`, y —grave— el **canonical de producto/blog/categoría era fijo a la URL ES en TODOS los idiomas**, lo que hace que Google descarte las versiones traducidas (FR canonicaliza a la ES → no indexa la FR). Objetivo: que Google indexe y sirva cada idioma a su país.
 - **Qué se cambió:**
