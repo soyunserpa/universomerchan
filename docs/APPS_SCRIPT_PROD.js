@@ -34,7 +34,7 @@ function publicarBlogSEO() {
   // 1. Claves 
   var openAiKey = "sk-proj-[REDACTED]"; 
   var webhookUrl = "https://universomerchan.com/api/webhooks/n8n-blog";
-  var webhookToken = "***REMOVED***"; 
+  var webhookToken = "whsec_ELIMINADO"; 
 
   // 2. Selección de categoría para que sea dinámico cada día
   var categorias = [

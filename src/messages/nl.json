@@ -27,7 +27,8 @@
     "about": "Over ons",
     "how_it_works": "Hoe het werkt",
     "ships_europe": "Wij verzenden door heel Europa",
-    "choose_language": "Taal wijzigen"
+    "choose_language": "Taal wijzigen",
+    "shop": "Winkel"
   },
   "Footer": {
     "about": "Over ons",
@@ -234,6 +235,8 @@
     "related_title": "Dit zou je ook kunnen interesseren",
     "related_subtitle": "Ontdek vergelijkbare producten binnen de familie <b>{category}</b>",
     "related_see_more": "Meer uit deze categorie bekijken",
+    "accordion_sizeguide_title": "Maattabel",
+    "accordion_sizeguide_intro": "Bekijk de maten (borst, lengte…) om vóór aankoop de juiste maat te kiezen.",
     "accordion_details_title": "Productdetails",
     "accordion_details_no_description": "Er is geen uitgebreide beschrijving beschikbaar.",
     "accordion_details_material": "Materiaal:",
@@ -424,6 +427,11 @@
     "ref_label": "REF",
     "color_label": "Kleur",
     "quantities_by_size": "Aantallen per maat",
+    "size_guide": "Maattabel",
+    "size_guide_title": "Maattabel",
+    "size_guide_hint": "Bekijk de maten om vóór aankoop de juiste maat te kiezen.",
+    "size_guide_open": "PDF openen / downloaden",
+    "close": "Sluiten",
     "total_units": "Totaal: {qty} st",
     "available_count": "{count} beschikbaar",
     "sold_out": "Uitverkocht",
@@ -980,5 +988,24 @@
     "no_thanks": "Nee, bedankt",
     "privacy": "Geen spam. Schrijf je altijd uit.",
     "invalid_email": "Voer een geldig e-mailadres in"
+  },
+  "Magazine": {
+    "title": "Catalogus",
+    "intro": "Blader door de pagina's en ontdek onze personaliseerbare producten. Prijzen vanaf, altijd actueel.",
+    "tagline": "Relatiegeschenken die emoties oproepen.",
+    "swipe_hint": "Veeg of gebruik de pijlen om te bladeren",
+    "download_cta": "Catalogus downloaden (PDF)",
+    "from": "Vanaf",
+    "view": "Bekijk product",
+    "products": "producten",
+    "page": "Pagina",
+    "of": "van",
+    "back_title": "Maken we jouw volgende relatiegeschenk?",
+    "back_text": "We personaliseren elk product met jouw merk. Vertel ons je idee.",
+    "back_cta": "Catalogus downloaden (PDF)",
+    "europe": "80% Europese productie · Levering in minder dan 10 dagen",
+    "empty": "De catalogus is binnenkort beschikbaar.",
+    "meta_title": "Catalogus | Universo Merchan",
+    "meta_description": "Ontdek de catalogus van Universo Merchan: 2.000+ personaliseerbare producten voor jouw merk. Prijzen vanaf, levering in minder dan 10 dagen."
   }
 }

@@ -7,4 +7,4 @@
 Cuando intentes conectar o hacer despliegues al servidor de producción (`212.227.90.110`), ten en cuenta la siguiente configuración de seguridad (fail2ban/firewall):
 - El firewall puede bloquear silenciosamente el tráfico ICMP (ping) impidiendo que responda a comandos de prueba de red.
 - Si un comando `ping` te da 100% de pérdida de paquetes o timeout, **NO ASUMAS** que tu IP ha sido bloqueada por completo y que estás sin acceso.
-- El puerto 22 (SSH) a menudo sigue abierto. Prueba **SIEMPRE** la conexión directa por SSH (`sshpass -p '***REMOVED***' ssh -o StrictHostKeyChecking=no root@212.227.90.110`) antes de darte por vencido o pausar un despliegue.
+- El puerto 22 (SSH) a menudo sigue abierto. Prueba **SIEMPRE** la conexión directa por SSH (`sshpass -p '<CONTRASEÑA-ELIMINADA-usar-.deploy.local.env>' ssh -o StrictHostKeyChecking=no root@212.227.90.110`) antes de darte por vencido o pausar un despliegue.

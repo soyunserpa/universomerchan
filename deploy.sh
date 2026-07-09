@@ -15,15 +15,50 @@
 set -euo pipefail
 
 # --- Configuración real del servidor (verificada 2026-06-22) ---
-export SSHPASS="***REMOVED***"
 SERVER="root@212.227.90.110"
 REMOTE_ROOT="/var/www/universomerchan"
 PM2_PROCESS="universo-tienda"
 SSH_OPTS="-o StrictHostKeyChecking=no"
 
+# Credenciales de deploy desde archivo NO versionado (.deploy.local.env, ignorado por git)
+DEPLOY_ENV="$(cd "$(dirname "$0")" && pwd)/.deploy.local.env"
+if [ -f "$DEPLOY_ENV" ]; then
+  set -a; . "$DEPLOY_ENV"; set +a
+else
+  echo "Falta $DEPLOY_ENV (debe definir SSHPASS=...). Esta en .gitignore; crealo desde tu gestor de contrasenas."
+  exit 1
+fi
+
 if [ "$#" -lt 1 ]; then
   echo "Uso: ./deploy.sh <archivo1> [archivo2] ..."
   exit 1
+fi
+
+# ============================================================
+# GUARD OBLIGATORIO — actualizar el "cerebro" antes de desplegar
+# ------------------------------------------------------------
+# El vault de Obsidian ("Universo Merchan/Sistema y Bitacora") es un
+# symlink a docs/, así que editar docs/BITACORA.md actualiza el cerebro.
+# Este deploy EXIGE que la bitácora se haya tocado en las últimas 6 h.
+# Bypass de emergencia:  SKIP_BRAIN_UPDATE=1 ./deploy.sh <archivos...>
+# ============================================================
+if [ "${SKIP_BRAIN_UPDATE:-0}" != "1" ]; then
+  if [ -z "$(find docs/BITACORA.md -mmin -360 2>/dev/null)" ]; then
+    echo "⛔ DEPLOY BLOQUEADO — el cerebro del sistema no está actualizado."
+    echo "   docs/BITACORA.md no se ha modificado en las últimas 6 h."
+    echo ""
+    echo "   Antes de desplegar:"
+    echo "     1) Añade una entrada en docs/BITACORA.md (qué pasaba, qué se cambió,"
+    echo "        deploy + verificación, qué NO romper)."
+    echo "        → Eso actualiza también el Obsidian de Universo Merchan (symlink a docs/)."
+    echo "     2) Revisa si CLAUDE.md necesita reflejar este cambio."
+    echo ""
+    echo "   Reejecución legítima sin cambios de doc:"
+    echo "     SKIP_BRAIN_UPDATE=1 ./deploy.sh <archivos...>"
+    exit 1
+  fi
+  echo "✅ Bitácora (cerebro) actualizada recientemente."
+  echo "   Recuerda: ¿CLAUDE.md también refleja este cambio, si aplica?"
 fi
 
 echo "=== Subiendo $# archivo(s) a $SERVER:$REMOTE_ROOT ==="

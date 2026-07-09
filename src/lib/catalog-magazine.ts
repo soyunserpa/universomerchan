@@ -12,7 +12,7 @@
 
 import { db } from "@/lib/database";
 import { eq } from "drizzle-orm";
-import { adminSettings } from "@/lib/schema";
+import { adminSettings, coupons } from "@/lib/schema";
 import { getCategories, getProductList } from "@/lib/catalog-api";
 
 // Productos máximos por categoría en la revista (amplio pero manejable).
@@ -104,4 +104,31 @@ export async function getCatalogCouponCode(): Promise<string> {
   } catch {
     return DEFAULT_CATALOG_COUPON;
   }
+}
+
+/**
+ * Garantiza que el cupón de primer pedido existe y está activo.
+ * Idempotente: si ya existe no lo toca (Marina puede editarlo/desactivarlo
+ * desde /admin/coupons). Si no existe, lo crea al 10%.
+ * Devuelve el código a comunicar al lead.
+ */
+export async function ensureCatalogCoupon(): Promise<string> {
+  const code = await getCatalogCouponCode();
+  try {
+    const existing = await db.query.coupons.findFirst({
+      where: eq(coupons.code, code),
+    });
+    if (!existing) {
+      await db.insert(coupons).values({
+        code,
+        discountType: "percentage",
+        discountValue: "10",
+        isActive: true,
+      });
+    }
+  } catch (e) {
+    // Si falla la creación (p.ej. carrera), seguimos: el código se comunica igual.
+    console.error("[catalog-magazine] ensureCatalogCoupon:", (e as any)?.message);
+  }
+  return code;
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, Leaf, FileText, Download, Truck, PaintBucket } from "lucide-react";
+import { ChevronDown, Leaf, FileText, Download, Truck, PaintBucket, Ruler } from "lucide-react";
 
 interface ProductAccordionProps {
   product: {
@@ -17,7 +17,7 @@ interface ProductAccordionProps {
 
 export function ProductAccordion({ product }: ProductAccordionProps) {
   const t = useTranslations("Product");
-  const [openIndex, setOpenIndex] = useState<number>(0); // First tab open by default
+  const [openIndex, setOpenIndex] = useState<number>(-1); // Todas cerradas por defecto
 
   const toggleTab = (index: number) => {
     setOpenIndex(prev => (prev === index ? -1 : index));
@@ -28,7 +28,33 @@ export function ProductAccordion({ product }: ProductAccordionProps) {
     doc => doc.url.toLowerCase().endsWith(".pdf")
   );
 
+  // Guía de tallas (PDF size_chart de Midocean) — solo textiles que lo traen
+  const sizeChartDoc = product.documents?.find(doc => doc.subtype === "size_chart");
+
   const tabs = [
+    ...(sizeChartDoc ? [{
+      title: t("accordion_sizeguide_title"),
+      icon: <Ruler size={18} className="text-gray-400" />,
+      content: (
+        <div className="text-sm text-gray-600 font-body space-y-4">
+          <p className="leading-relaxed">{t("accordion_sizeguide_intro")}</p>
+          <iframe
+            src={sizeChartDoc.url}
+            title={t("accordion_sizeguide_title")}
+            className="w-full h-[60vh] rounded-xl border border-gray-200 bg-gray-50"
+          />
+          <a
+            href={sizeChartDoc.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors text-xs"
+          >
+            <Download size={15} className="text-gray-500" />
+            {t("size_guide_open")}
+          </a>
+        </div>
+      ),
+    }] : []),
     {
       title: t("accordion_details_title"),
       icon: <FileText size={18} className="text-gray-400" />,

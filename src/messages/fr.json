@@ -27,7 +27,8 @@
     "about": "À propos",
     "how_it_works": "Comment ça marche",
     "ships_europe": "Nous livrons dans toute l'Europe",
-    "choose_language": "Changer de langue"
+    "choose_language": "Changer de langue",
+    "shop": "Boutique"
   },
   "Footer": {
     "about": "À propos",
@@ -234,6 +235,8 @@
     "related_title": "Ceci pourrait aussi vous intéresser",
     "related_subtitle": "Explorez des produits similaires au sein de la famille <b>{category}</b>",
     "related_see_more": "Voir plus dans cette catégorie",
+    "accordion_sizeguide_title": "Guide des tailles",
+    "accordion_sizeguide_intro": "Consultez les mesures (poitrine, longueur…) pour choisir la bonne taille avant d'acheter.",
     "accordion_details_title": "Détails du produit",
     "accordion_details_no_description": "Aucune description détaillée disponible.",
     "accordion_details_material": "Matériau :",
@@ -424,6 +427,11 @@
     "ref_label": "REF",
     "color_label": "Couleur",
     "quantities_by_size": "Quantités par taille",
+    "size_guide": "Guide des tailles",
+    "size_guide_title": "Guide des tailles",
+    "size_guide_hint": "Consultez les mesures pour choisir la bonne taille avant d'acheter.",
+    "size_guide_open": "Ouvrir / Télécharger le PDF",
+    "close": "Fermer",
     "total_units": "Total : {qty} u",
     "available_count": "{count} disponibles",
     "sold_out": "Épuisé",
@@ -980,5 +988,24 @@
     "no_thanks": "Non, merci",
     "privacy": "Pas de spam. Désabonnez-vous à tout moment.",
     "invalid_email": "Saisissez un email valide"
+  },
+  "Magazine": {
+    "title": "Catalogue",
+    "intro": "Feuilletez les pages et découvrez nos produits personnalisables. Prix à partir de, toujours à jour.",
+    "tagline": "Des cadeaux d'entreprise qui suscitent l'émotion.",
+    "swipe_hint": "Faites glisser ou utilisez les flèches pour tourner les pages",
+    "download_cta": "Télécharger le catalogue (PDF)",
+    "from": "À partir de",
+    "view": "Voir le produit",
+    "products": "produits",
+    "page": "Page",
+    "of": "sur",
+    "back_title": "On crée votre prochain cadeau d'entreprise ?",
+    "back_text": "Nous personnalisons tout produit avec votre marque. Parlez-nous de votre idée.",
+    "back_cta": "Télécharger le catalogue (PDF)",
+    "europe": "Production 80% européenne · Livraison en moins de 10 jours",
+    "empty": "Le catalogue sera disponible très bientôt.",
+    "meta_title": "Catalogue | Universo Merchan",
+    "meta_description": "Découvrez le catalogue Universo Merchan : plus de 2 000 produits personnalisables pour votre marque. Prix à partir de, livraison en moins de 10 jours."
   }
 }

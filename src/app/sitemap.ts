@@ -27,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static core routes
   const coreRoutes: MetadataRoute.Sitemap = [
     createEntry('/', 1.0, 'daily'),
+    createEntry('/catalogo', 0.9, 'daily'),
     createEntry('/catalog', 0.9, 'hourly'),
     createEntry('/about-us', 0.6, 'monthly'),
     createEntry('/contact', 0.5, 'yearly'),

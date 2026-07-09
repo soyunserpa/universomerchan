@@ -24,18 +24,18 @@ Para modificar el crontab del servidor de producción:
 # CRÍTICO: La cabecera Authorization DEBE ir siempre envuelta con comillas dobles "". 
 # De lo contrario cURL falla porque interpreta la palabra 'Bearer' como el nombre de página a visitar e ignora el resto.
 # Funciona a las 09:00 AM Europe/Madrid (07:00 UTC en el servidor).
-0 7 * * * curl -X POST -H "Authorization: Bearer ***REMOVED***" https://universomerchan.com/api/cron/generate-blog >> /var/log/universomerchan/cron-blog.log 2>&1
+0 7 * * * curl -X POST -H "Authorization: Bearer CRON_SECRET_placeholder" https://universomerchan.com/api/cron/generate-blog >> /var/log/universomerchan/cron-blog.log 2>&1
 
 # =======================================================
 # RECORDATORIOS DE CARRITOS ABANDONADOS Y MOCKUPS
 # =======================================================
-0 * * * * curl -s -H "Authorization: Bearer ***REMOVED***" https://universomerchan.com/api/cron/check-abandoned-carts > /dev/null 2>&1
-0 4 * * * curl -s -X GET https://universomerchan.com/api/cron/clean-mockups -H "Authorization: Bearer ***REMOVED***" >/dev/null 2>&1
+0 * * * * curl -s -H "Authorization: Bearer CRON_SECRET_placeholder" https://universomerchan.com/api/cron/check-abandoned-carts > /dev/null 2>&1
+0 4 * * * curl -s -X GET https://universomerchan.com/api/cron/clean-mockups -H "Authorization: Bearer MOCKUP_TOKEN_placeholder" >/dev/null 2>&1
 
 # =======================================================
 # SISTEMA B2B CAPTACIÓN DE RESEÑAS POST-ENTREGA (+6 DÍAS)
 # =======================================================
-0 10 * * * curl -X POST -H "Authorization: Bearer ***REMOVED***" https://universomerchan.com/api/cron/request-reviews >> /var/log/universomerchan/cron-reviews.log 2>&1
+0 10 * * * curl -X POST -H "Authorization: Bearer CRON_SECRET_placeholder" https://universomerchan.com/api/cron/request-reviews >> /var/log/universomerchan/cron-reviews.log 2>&1
 
 # =======================================================
 # AUTOPURGA DE PRODUCTOS FANTASMAS (MIDOCEAN DESCATALOGADOS)

@@ -60,6 +60,39 @@ Todo el tracking vive en `src/app/[locale]/layout.tsx`. **Prohibido borrarlo o d
 
 <!-- Entrada más reciente arriba. Plantilla al final del archivo. -->
 
+### 2026-07-09 — Fase 0 seguridad: secretos "guardados mejor" (SIN rotación) + guard de deploy ⚠️ LOCAL, SIN DESPLEGAR
+- **Qué pasaba / por qué:** auditoría (2026-07-08) detectó que la contraseña root del VPS estaba hardcodeada en `deploy.sh`, `.claude/settings.json`, `.agents/AGENTS.md` y en ~200 scripts sueltos versionados, además del historial de git; el repo GitHub `soyunserpa/universomerchan` estaba PÚBLICO. Marina lo puso **privado** y decidió **NO rotar** contraseñas (nadie accedió), solo "guardarlas mejor".
+- **Qué se cambió (todo LOCAL, nada desplegado, nada rotado):**
+  - **`deploy.sh`**: quitada la línea `export SSHPASS="..."`; ahora lee la credencial de **`.deploy.local.env`** (archivo NO versionado, en `.gitignore`, perms 600). Si falta, el deploy aborta con aviso.
+  - **`.claude/settings.json`** y **`.agents/AGENTS.md`**: eliminado el secreto que contenían.
+  - **Borrados 203 scripts basura** (158 sueltos en raíz + 45 `ssh-*.js` en `scripts/`) que llevaban la contraseña — dead code de depuración, ninguno referenciado por `package.json`/crons. `git rm` (reversible; backup completo en el Mac).
+  - **Otros secretos limpiados:** borrado `Token Linkedin/token-linkedin.txt` + 10 scripts `test_*`/`force.mjs` que embebían el token de LinkedIn; scrub (→ placeholder) de la clave OpenAI y webhook en `docs/APPS_SCRIPT_PROD.js`, los bearer de cron/mockup en `docs/SERVER_CRONTAB.md`, la contraseña de BD en `.env.example` y menciones en la propia bitácora. **Residuo en código** (fallbacks `|| '***REMOVED***'` / n8n en `src/app/api/cron/*` y `webhooks/flyer-data`): se quitan en Fase 1/2 (requieren env + deploy).
+  - `.env.local/.env.recovery/.env.server-copy` → `chmod 600`.
+  - **Guard obligatorio en `deploy.sh`**: bloquea el deploy si `docs/BITACORA.md` no se tocó en 6h (recuerda actualizar cerebro + CLAUDE.md). Bypass: `SKIP_BRAIN_UPDATE=1`. Hook opcional en `.claude/hooks/pre-deploy-brain-check.sh` (registrar en settings.local.json a mano).
+  - Backup manual completo (BD+código+uploads+.env) descargado al Mac: `universomerchanweb/server-backups/backup-manual-20260709-064359/` (copia OFFSITE que faltaba).
+- **Estado:** 0 archivos del working tree contienen ya el secreto. **RESIDUO: 43 commits del historial de git aún lo tienen** (repo privado, sin accesos) → pendiente decisión de Marina sobre purga de historial (`git filter-repo` + force-push, irreversible).
+- **Runbook de rotación completo** (por si algún día se rota): `docs/RUNBOOK-Fase0-seguridad.md`.
+- **Conexiones / qué NO romper:** `deploy.sh` ahora **exige `.deploy.local.env`** con `SSHPASS=...` (créalo desde el gestor si se clona en otra máquina). Los secretos NO se rotaron: la contraseña sigue siendo válida y sigue en el historial de git. Cambios locales SIN commitear (staged): commitear cuando Marina lo pida.
+
+### 2026-06-23 — Catálogo branded "revista" (flipbook) + imán de leads ⚠️ CONSTRUIDO, PENDIENTE DE DEPLOY
+- **Qué es / por qué:** sustituye al catálogo de Midocean (Publitas, prohibido de cara al cliente — [[um-catalogo-branded]]). En vez de un PDF estático que se queda obsoleto, es una **revista digital en la propia web que lee los productos y precios EN VIVO** de la BD (siempre actualizada, con marca UM, sin códigos/precios de Midocean). Decisión de Marina: amplio por categorías, formato flipbook embebido, precios "Desde X€", descuento primer pedido **10%**. Lo construyó Claude (no Marina).
+- **Archivos NUEVOS:**
+  - `src/lib/catalog-magazine.ts` — builder de datos (reusa `getCategories`/`getProductList`/`getStartingPrice`); `getCatalogCouponCode()` (lee `admin_settings.catalog_lead_coupon`, default `CATALOGO10`); `ensureCatalogCoupon()` (crea el cupón 10% si no existe, idempotente).
+  - `src/app/[locale]/catalogo/page.tsx` — página servidor (revalida 1h) que arma los datos y monta el flipbook. **OJO: ruta `/catalogo` ≠ `/catalog`** (esta última sigue siendo el grid de tienda).
+  - `src/components/catalog/CatalogFlipbook.tsx` — visor flipbook (pasar-página CSS 3D, swipe, teclado, salto por categoría). **SIN dependencias nuevas** (deploy hace `npm run build` pero NO `npm install`).
+  - `src/components/catalog/CatalogLeadModal.tsx` — gate de email → `POST /api/catalog/lead` → muestra cupón + descarga PDF.
+  - `src/app/api/catalog/lead/route.ts` — guarda lead (`utmSource=catalogo`), garantiza cupón, manda email AL CLIENTE (catálogo+cupón) y **AVISO INTERNO a Marina** (`universomerchan7@gmail.com`, vía `sendCatalogLeadAdminNotice`, env `LEAD_ALERT_EMAIL`/`STOCK_ALERT_EMAIL`). NO bloquea si los emails fallan (`Promise.allSettled`).
+  - `src/lib/catalog-pdf.tsx` + `src/app/api/catalog/pdf/route.ts` — PDF branded en vivo (`@react-pdf/renderer`, runtime nodejs, cache 1h).
+- **Archivos MODIFICADOS:**
+  - `src/lib/email-service.ts` — nueva `sendCatalogLeadEmail(to,{coupon})` (usa plantilla `T()`, enlaza PDF + catálogo online + cupón).
+  - `src/components/layout/Header.tsx` — nav: añadido **"Catálogo" → `/catalogo`** (la revista) y **renombrado el grid a "Tienda" → `/catalog`** (`Header.shop`).
+  - `src/messages/*.json` (×7) — nueva clave `Header.shop` + namespace `Magazine` (vía `scripts/add-magazine-i18n.js`, idempotente).
+  - `src/app/sitemap.ts` — añadida `/catalogo`.
+- **Convive con CRO Batch 3:** ese popup ofrece 5% (`BIENVENIDA5`, `utmSource=popup`). Este imán del catálogo ofrece **10% (`CATALOGO10`, `utmSource=catalogo`)** — cupones y orígenes distintos, no chocan.
+- **Sin migración de BD:** usa tablas existentes (`leads`, `coupons`, `admin_settings`). El cupón `CATALOGO10` (10%, sin caducidad, ilimitado) se autocrea al primer lead; Marina puede editar/desactivar en `/admin/coupons` o cambiar el código en `admin_settings.catalog_lead_coupon`.
+- **Estado:** typecheck OK en los archivos nuevos. **NO desplegado** (Marina pidió avisar antes). Deploy previsto con `./deploy.sh` de los ~14 archivos.
+- **Qué verificar tras deploy:** `/catalogo` carga y pasa páginas; el PDF (`/api/catalog/pdf`) genera sin romper por imágenes (riesgo: una imagen remota rota podría tumbar el PDF — los URLs son los mismos del grid, deberían valer); el gate de email crea lead + cupón + manda email; el menú muestra "Catálogo" y "Tienda".
+
 ### 2026-06-23 — CRO Batch 3: popup de captación + CTA sticky móvil + investigación de pricing
 - **Popup de captación (lead-gen) — desplegado, commit `90cc0bd`:** `LeadCaptureModal.tsx` (Portal-less, en layout) muestra una vez por sesión (exit-intent + timer 30s + scroll 55%), oculto en checkout/cart/account/admin/auth (localStorage `um_lead_popup_v1`). Ofrece **5% (código `BIENVENIDA5`)** a cambio del email. `/api/lead-capture` guarda el lead en tabla `leads` (CRM, `utmSource='popup'`). Cupón `BIENVENIDA5` (percentage 5%) creado en `coupons`. Namespace `Popup` ×7 idiomas. Verificado: lead se guarda (200), cupón aplica 5%.
 - **CTA sticky en móvil — desplegado, commit `4ffc3d3`:** `StickyMobileBar.tsx` — barra fija inferior SOLO móvil (`lg:hidden`) con total + "Personalizar con tu logo", render por **`createPortal` a `document.body`** (esquiva los `transform` del configurador). Visible solo en paso 1. ⚠️ Pendiente de **verificación visual en móvil real** (no se pudo testear; si molesta, quitar la línea `<StickyMobileBar.../>` del configurador).
@@ -159,6 +192,37 @@ Todo el tracking vive en `src/app/[locale]/layout.tsx`. **Prohibido borrarlo o d
 - **Deploy:** `scp` del layout a `/var/www/universomerchan` + `npm run build` + `pm2 restart universo-tienda`. Verificado en vivo: home y catálogo devuelven `G-D24Y09H8SM`.
 - **Limpieza asociada:** se borraron 9 scripts `deploy-*.js/.sh` obsoletos (apuntaban a rutas/procesos viejos) y se creó `deploy.sh` reutilizable y correcto.
 - **Conexiones / qué NO romper:** el bloque de tracking del layout es intocable (ver §3). El nombre de proceso PM2 correcto es `universo-tienda`.
+
+### 2026-06-30 — Guía de tallas en productos textiles
+- **Qué pasaba / por qué:** los clientes no veían ninguna guía de tallas en las fichas de camisetas/polos/sudaderas, así que no tenían referencia (pecho, largo…) para elegir talla. Midocean ya entrega la guía como PDF (`size_chart`) dentro de `digital_assets`, y el sync ya la guardaba en BD (`sync-engine.ts:132`) y la exponía en `product.documents` (`catalog-api.ts:754`); solo faltaba mostrarla. Cobertura: **128 de 130** productos con talla traen el PDF.
+- **Qué se cambió:**
+  - `src/components/product/ProductConfigurator.tsx`: nuevo estado `showSizeGuide` + `sizeChartUrl` (busca el doc `subtype==="size_chart"`). Botón **"📏 Guía de tallas"** junto a la cabecera del selector de tallas (solo si existe PDF) y modal que embebe el PDF con `<iframe>` + enlace "Abrir / Descargar PDF" (fallback móvil). Iconos `Ruler`, `X` añadidos al import de lucide.
+  - `src/messages/{es,en,fr,de,it,pt,nl}.json`: claves `size_guide`, `size_guide_title`, `size_guide_hint`, `size_guide_open`, `close` en los 7 idiomas.
+- **Deploy:** `./deploy.sh` (desde el Mac) de los 8 archivos → `npm run build` + `pm2 restart universo-tienda`. Verificado en vivo.
+- **Conexiones / qué NO romper:** depende de que el sync siga guardando `digital_assets` a nivel producto (no quitar el `size_chart` del filtro de `documents`). Los 2 textiles sin PDF simplemente no muestran el botón (degradación elegante). No afecta al cálculo de precios ni al canvas de marcaje.
+
+### 2026-06-30 — Guía de tallas también en el acordeón de la ficha
+- **Qué pasaba / por qué:** Marina quería la guía de tallas visible también como sección del acordeón de la ficha (no solo el enlace pequeño en la caja de compra).
+- **Qué se cambió:** `src/components/product/ProductAccordion.tsx`: nueva pestaña condicional "Guía de tallas" (icono `Ruler`) que solo se añade si existe `documents.find(d => d.subtype === "size_chart")`. Muestra el PDF embebido (`<iframe>`) + enlace de descarga. Se añade como **primera** pestaña del acordeón cuando aplica. i18n: `accordion_sizeguide_title` y `accordion_sizeguide_intro` en los 7 `src/messages/*.json` (el botón reutiliza `size_guide_open`).
+- **Deploy:** `./deploy.sh` (Mac) de `ProductAccordion.tsx` + 7 idiomas → build + `pm2 restart universo-tienda`. Verificado en vivo.
+- **Conexiones / qué NO romper:** complementa el botón del configurador (ver entrada anterior del mismo día). Mismo origen de dato (`size_chart` de Midocean). En productos sin PDF la pestaña no se renderiza.
+
+### 2026-06-30 — Recordatorios de presupuestos a punto de caducar
+- **Qué pasaba / por qué:** los presupuestos (`quotes`) se crean con `expiresAt` (+15 días) pero no había ningún aviso al cliente antes de que caducaran. Marina pidió enviar mails de recordatorio.
+- **Qué se cambió:**
+  - `src/lib/email-service.ts`: nueva `sendQuoteReminderEmail` (emailType `quote_reminder`, tono de urgencia, botones Confirmar pedido / Ver PDF).
+  - `src/lib/quote-reminders.ts` (nuevo): `checkExpiringQuotes()` — busca presupuestos que caducan en ≤3 días, **no convertidos** (`convertedToOrderId IS NULL`) y **vigentes** (`expiresAt > now`); resuelve email (user o `guestEmail`) y nombre; envía recordatorio. **Anti-duplicado** por `email_log` (emailType `quote_reminder` + asunto que contiene el `quoteNumber`) → 1 recordatorio por presupuesto. NO se tocó el esquema de BD.
+  - `src/app/api/cron/quote-reminders/route.ts` (nuevo): ruta cron protegida por `CRON_SECRET` (mismo patrón que `check-abandoned-carts`).
+  - **Crontab del servidor:** `0 9 * * *` (diario, ~11:00 Madrid) → `curl GET /api/cron/quote-reminders` con `Authorization: Bearer CRON_SECRET_placeholder`.
+- **Deploy:** `./deploy.sh` de los 3 archivos de código → build + `pm2 restart universo-tienda`; + alta de la línea en `crontab -l`. Verificado llamando la ruta a mano.
+- **Conexiones / qué NO romper:** depende de `APPS_SCRIPT_EMAIL_URL` (envío vía Google Apps Script) y de `CRON_SECRET=CRON_SECRET_placeholder`. El scheduler interno `cron-scheduler.ts` sigue siendo código muerto (`startCronJobs` no se llama) — los crons reales son el **crontab del sistema**. Ventana de aviso configurable en `REMIND_BEFORE_DAYS` (=3).
+
+### 2026-06-30 — Reescritura de todos los emails a cliente (copy 10/10)
+- **Qué pasaba / por qué:** los emails transaccionales/marketing eran funcionales pero planos (asuntos genéricos, sin preheader, poco copy de conversión y fidelización). Objetivo: vender, fidelizar y mantener marca en mente sin ser pesados.
+- **Qué se cambió:** solo `src/lib/email-service.ts` (sin tocar firmas → no rompe llamadas). Reescritos asuntos + cuerpos + **preheader en todos** los emails a cliente: `welcome`, `order_confirmation` (preheader + línea de gracias, respetando i18n `translateEmail`), `proof_ready`, `proof_reminder` (tono no-pesado), `proof_approved`, `order_shipped`, `order_delivered` (sin "haz otro pedido" agresivo → cierre cálido + top-of-mind), `quote_generated`, `quote_reminder`, `cart_abandoned`, y asunto de `catalog_lead`. Firma "El equipo de Universo Merchan" en los relacionales (sin nombres propios). Un solo CTA principal por email + invitación a responder.
+- **Reglas de negocio respetadas:** NO se promociona devoluciones ni producto sin marcar; NO se expone Midocean; se mantiene "#GeneraEmociones / 80% europea / <10 días". Emails de admin (internos) sin cambios.
+- **Deploy:** `./deploy.sh src/lib/email-service.ts` → build + `pm2 restart universo-tienda`.
+- **Conexiones / qué NO romper:** el envío real sigue por Google Apps Script (`APPS_SCRIPT_EMAIL_URL`). `order_confirmation` usa claves i18n de `email-locales` (las nuevas `order_confirmation_thanks` / `order_confirmation_preheader` caen al fallback español si no existen en otros idiomas). Plantilla base `T()` (header/footer) sin cambios.
 
 ---
 

@@ -27,7 +27,8 @@
     "about": "Chi siamo",
     "how_it_works": "Come funziona",
     "ships_europe": "Spediamo in tutta Europa",
-    "choose_language": "Cambia lingua"
+    "choose_language": "Cambia lingua",
+    "shop": "Negozio"
   },
   "Footer": {
     "about": "Chi siamo",
@@ -234,6 +235,8 @@
     "related_title": "Potrebbe interessarti anche",
     "related_subtitle": "Esplora prodotti simili all'interno della famiglia <b>{category}</b>",
     "related_see_more": "Vedi altro di questa categoria",
+    "accordion_sizeguide_title": "Guida alle taglie",
+    "accordion_sizeguide_intro": "Controlla le misure (petto, lunghezza…) per scegliere la taglia giusta prima di acquistare.",
     "accordion_details_title": "Dettagli del prodotto",
     "accordion_details_no_description": "Nessuna descrizione estesa disponibile.",
     "accordion_details_material": "Materiale:",
@@ -424,6 +427,11 @@
     "ref_label": "REF",
     "color_label": "Colore",
     "quantities_by_size": "Quantità per taglia",
+    "size_guide": "Guida alle taglie",
+    "size_guide_title": "Guida alle taglie",
+    "size_guide_hint": "Controlla le misure per scegliere la taglia giusta prima di acquistare.",
+    "size_guide_open": "Apri / Scarica PDF",
+    "close": "Chiudi",
     "total_units": "Totale: {qty} unità",
     "available_count": "{count} disponibili",
     "sold_out": "Esaurito",
@@ -980,5 +988,24 @@
     "no_thanks": "No, grazie",
     "privacy": "Niente spam. Disiscriviti quando vuoi.",
     "invalid_email": "Inserisci un'email valida"
+  },
+  "Magazine": {
+    "title": "Catalogo",
+    "intro": "Sfoglia le pagine e scopri i nostri prodotti personalizzabili. Prezzi a partire da, sempre aggiornati.",
+    "tagline": "Regali aziendali che emozionano.",
+    "swipe_hint": "Scorri o usa le frecce per sfogliare",
+    "download_cta": "Scarica il catalogo (PDF)",
+    "from": "Da",
+    "view": "Vedi prodotto",
+    "products": "prodotti",
+    "page": "Pagina",
+    "of": "di",
+    "back_title": "Realizziamo il tuo prossimo regalo aziendale?",
+    "back_text": "Personalizziamo qualsiasi prodotto con il tuo marchio. Raccontaci la tua idea.",
+    "back_cta": "Scarica il catalogo (PDF)",
+    "europe": "Produzione 80% europea · Consegna in meno di 10 giorni",
+    "empty": "Il catalogo sarà disponibile molto presto.",
+    "meta_title": "Catalogo | Universo Merchan",
+    "meta_description": "Esplora il catalogo Universo Merchan: oltre 2.000 prodotti personalizzabili per il tuo marchio. Prezzi a partire da, consegna in meno di 10 giorni."
   }
 }

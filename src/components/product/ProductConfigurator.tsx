@@ -8,7 +8,7 @@ import type { ProductDetailResponse } from "@/lib/catalog-api";
 import {
   Leaf, ShoppingCart, Palette, Eye, ArrowLeft,
   Check, Download, Minus, Plus, Info, Gift, Trash2,
-  Layers, Loader2, Package, ShieldCheck, Handshake, Star
+  Layers, Loader2, Package, ShieldCheck, Handshake, Star, Ruler, X
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { StockNotifyForm } from "./StockNotifyForm";
@@ -227,6 +227,13 @@ function ProductConfiguratorInner({ product }: Props) {
   // Modals state
   const [showBlankConfirm, setShowBlankConfirm] = useState(false);
   const [showMissingTechWarning, setShowMissingTechWarning] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
+
+  // URL de la guía de tallas (PDF size_chart de Midocean), si existe para este textil
+  const sizeChartUrl = useMemo(
+    () => product.documents?.find((d) => d.subtype === "size_chart")?.url || null,
+    [product.documents]
+  );
 
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [selectedTechniques, setSelectedTechniques] = useState<Record<string, string>>({});
@@ -911,7 +918,19 @@ function ProductConfiguratorInner({ product }: Props) {
             {hasSize && sizesForColor.length > 0 && (
               <div className="mb-5">
                 <div className="flex justify-between items-baseline mb-3">
-                  <label className="text-sm font-semibold block">{t("quantities_by_size")}</label>
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <label className="text-sm font-semibold block">{t("quantities_by_size")}</label>
+                    {sizeChartUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setShowSizeGuide(true)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand-red hover:text-brand-red-dark underline underline-offset-2 transition-colors"
+                      >
+                        <Ruler size={13} className="shrink-0" />
+                        {t("size_guide")}
+                      </button>
+                    )}
+                  </div>
                   <span className="text-xs bg-surface-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">{t("total_units", { qty })}</span>
                 </div>
                 <div className="flex flex-col gap-1 border border-surface-200 rounded-xl p-1 bg-white">
@@ -1601,6 +1620,52 @@ function ProductConfiguratorInner({ product }: Props) {
               >
                 {t("yes_add_without_marking")}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSizeGuide && sizeChartUrl && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowSizeGuide(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl animate-scale-in flex flex-col max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 p-4 border-b border-surface-200">
+              <div className="flex items-center gap-2 min-w-0">
+                <Ruler size={18} className="text-brand-red shrink-0" />
+                <h3 className="text-base font-bold font-display text-gray-900 truncate">{t("size_guide_title")}</h3>
+              </div>
+              <button
+                type="button"
+                aria-label={t("close")}
+                onClick={() => setShowSizeGuide(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:bg-surface-100 hover:text-gray-700 transition-colors shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 px-4 pt-3">{t("size_guide_hint")}</p>
+            <div className="flex-1 min-h-0 p-4 pt-2">
+              <iframe
+                src={sizeChartUrl}
+                title={t("size_guide_title")}
+                className="w-full h-[55vh] rounded-lg border border-surface-200 bg-surface-50"
+              />
+            </div>
+            <div className="p-4 pt-0">
+              <a
+                href={sizeChartUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors"
+              >
+                <Download size={15} />
+                {t("size_guide_open")}
+              </a>
             </div>
           </div>
         </div>

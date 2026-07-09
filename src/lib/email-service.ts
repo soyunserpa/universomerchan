@@ -93,6 +93,55 @@ export async function sendProspectEmail(to: string, subject: string, htmlContent
   });
 }
 
+// ── CATÁLOGO (Imán de leads) ─────────────────────────────
+// Envía el catálogo (link al PDF + versión online) y el cupón de primer pedido.
+export async function sendCatalogLeadEmail(to: string, d: { coupon: string }) {
+  const html = T(
+    `<h2 style="font-size:24px;font-weight:800;margin:0 0 8px">¡Aquí tienes nuestro catálogo! 🎁</h2>
+     <p style="color:#666;line-height:1.7;margin:0 0 20px">Gracias por tu interés en Universo Merchan. Descárgalo en PDF o explóralo online cuando quieras.</p>
+     <p style="text-align:center;margin:0 0 8px"><a href="${SITE_URL}/api/catalog/pdf" class="btn">📄 Descargar catálogo (PDF)</a></p>
+     <p style="text-align:center;margin:0 0 24px"><a href="${SITE_URL}/catalogo" class="btn btn-dark">📖 Ver catálogo online</a></p>
+     <div class="ab" style="background:#FDECEE;border:1px solid #DE0121;text-align:center">
+       <p style="margin:0 0 4px;font-size:13px;color:#666">Tu descuento de primer pedido</p>
+       <p style="margin:0;font-size:30px;font-weight:800;color:#DE0121;letter-spacing:2px">${d.coupon}</p>
+       <p style="margin:6px 0 0;font-size:12px;color:#888">10% de descuento · aplícalo al finalizar tu compra</p>
+     </div>
+     <p style="color:#666;line-height:1.7;margin:20px 0 0">¿Tienes un producto en mente? Personalizamos cualquier artículo con tu marca. Respóndenos a este email y te ayudamos.</p>
+     <p style="text-align:center;margin:20px 0 0"><a href="${SITE_URL}/catalog" class="btn">Ir a la tienda</a></p>`,
+    "Tu catálogo de Universo Merchan + 10% de descuento"
+  );
+  return sendEmail({
+    emailType: "catalog_lead",
+    recipientType: "customer",
+    to,
+    subject: "Tu catálogo de Universo Merchan + un 10% para estrenar 🎁",
+    html,
+  });
+}
+
+// Aviso INTERNO a Marina cuando alguien descarga el catálogo (nuevo lead).
+const LEAD_ALERT_EMAIL = process.env.LEAD_ALERT_EMAIL || process.env.STOCK_ALERT_EMAIL || "universomerchan7@gmail.com";
+export async function sendCatalogLeadAdminNotice(d: { email: string; companyName?: string | null }) {
+  const html = T(
+    `<h2 style="font-size:22px;font-weight:800;margin:0 0 8px">🧲 Nuevo lead — descarga de catálogo</h2>
+     <p style="color:#666;margin:0 0 16px">Alguien acaba de pedir el catálogo desde la web:</p>
+     <div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:0 0 16px">
+       <p style="margin:0;font-size:16px;font-weight:800">${d.email}</p>
+       ${d.companyName ? `<p style="margin:6px 0 0;font-size:13px;color:#555">Empresa: ${d.companyName}</p>` : ""}
+       <p style="margin:6px 0 0;font-size:12px;color:#888">Origen: catálogo (imán de leads) · ya tiene su cupón del 10%</p>
+     </div>
+     <p style="font-size:12px;color:#888;margin:0">Lo tienes también en el CRM: <a href="${SITE_URL}/admin" style="color:#DE0121">/admin</a></p>`,
+    "Nuevo lead de catálogo"
+  );
+  return sendEmail({
+    emailType: "catalog_lead_admin",
+    recipientType: "admin",
+    to: LEAD_ALERT_EMAIL,
+    subject: `🧲 Nuevo lead de catálogo: ${d.email}`,
+    html,
+  });
+}
+
 // ── STOCK ALERT (Avísame) ────────────────────────────────
 // Aviso interno a operaciones cuando un cliente pide ser avisado de un producto agotado.
 const STOCK_ALERT_EMAIL = process.env.STOCK_ALERT_EMAIL || "universomerchan7@gmail.com";
@@ -120,7 +169,7 @@ export async function sendStockNotifyRequest(d: { customerEmail: string; product
 // ── CUSTOMER EMAILS ──────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, firstName: string) {
-  return sendEmail({ emailType: "welcome", recipientType: "customer", to, subject: "¡Bienvenido/a a Universo Merchan!", html: T(`<h2 style="font-size:24px;font-weight:800">¡Hola ${firstName}!</h2><p style="color:#666;line-height:1.7">Bienvenido/a a Universo Merchan. Explora más de 2.000 productos personalizables.</p><p style="text-align:center"><a href="${SITE_URL}/catalog" class="btn">Explorar catálogo</a></p>`, "Ya puedes personalizar productos") });
+  return sendEmail({ emailType: "welcome", recipientType: "customer", to, subject: `Bienvenido/a a Universo Merchan, ${firstName} 👋`, html: T(`<h2 style="font-size:24px;font-weight:800;margin:0 0 12px">¡Hola ${firstName}! Encantados de tenerte aquí</h2><p style="color:#555;line-height:1.7;margin:0 0 20px">En Universo Merchan convertimos productos en <strong>merchandising que tu equipo y tus clientes quieren tener</strong>: lo personalizamos con tu marca y lo cuidamos de principio a fin.</p><table style="width:100%;border-collapse:collapse;margin:0 0 20px"><tr><td style="padding:7px 0;font-size:14px;color:#444">✨ <strong>+2.000 productos</strong> listos para llevar tu logo</td></tr><tr><td style="padding:7px 0;font-size:14px;color:#444;border-top:1px solid #f0f0f0">🎨 <strong>Lo ves antes de comprar</strong>: personalizas y previsualizas en segundos</td></tr><tr><td style="padding:7px 0;font-size:14px;color:#444;border-top:1px solid #f0f0f0">🚚 <strong>Producción 80% europea</strong> y entrega en menos de 10 días</td></tr></table><p style="text-align:center;margin:0 0 8px"><a href="${SITE_URL}/catalog" class="btn">Explorar el catálogo</a></p><p style="color:#777;line-height:1.7;font-size:13px;margin:24px 0 0">¿Tienes un proyecto en mente o un presupuesto que cuadrar? Responde a este email y te asesoramos sin compromiso.</p><p style="color:#111;font-size:13px;margin:16px 0 0">Un abrazo,<br><strong>El equipo de Universo Merchan</strong></p>`, `${firstName}, así de fácil es lucir tu marca en +2.000 productos`) });
 }
 
 import { translateEmail } from "./email-locales";
@@ -144,37 +193,51 @@ export async function sendOrderConfirmationEmail(to: string, locale: string = "e
   const totalLabel = translateEmail(locale, "total", "Total");
   const deliveryLabel = translateEmail(locale, "delivery_estimated", `Entrega estimada: ${d.estimatedDelivery}`, { estimatedDelivery: d.estimatedDelivery });
   const viewOrderBtn = translateEmail(locale, "view_my_order", "Ver mi pedido");
+  const thanksText = translateEmail(locale, "order_confirmation_thanks", "¡Gracias por confiar en Universo Merchan! Estamos encantados de poner tu marca en marcha.");
+  const preheaderText = translateEmail(locale, "order_confirmation_preheader", `Hemos recibido tu pedido ${d.orderNumber}. Aquí tienes el resumen.`, { orderNumber: d.orderNumber });
 
-  return sendEmail({ emailType: "order_confirmation", recipientType: "customer", orderId: d.orderId, to, subject: subjectText, html: T(`<h2 style="font-size:24px;font-weight:800">${titleText}</h2><p style="color:#666">${helloText}</p>${proofNotice}<div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0"><p style="font-size:13px;color:#888;margin:0 0 4px">${orderNumberLabel}</p><p style="font-size:20px;font-weight:800;color:#DE0121;margin:0">${d.orderNumber}</p></div><table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #111"><th style="text-align:left;padding:8px 0;font-size:12px;color:#888">${productLabel}</th><th style="text-align:center;padding:8px 0;font-size:12px;color:#888">${qtyLabel}</th><th style="text-align:right;padding:8px 0;font-size:12px;color:#888">${detailLabel}</th></tr></thead><tbody>${rows}</tbody></table><div class="price-box"><p style="font-size:13px;color:#888;margin:0 0 4px">${totalLabel}</p><p class="price-total" style="margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#888;margin:8px 0 0">${deliveryLabel}</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">${viewOrderBtn}</a>${invoiceBtn}</p>`) });
+  return sendEmail({ emailType: "order_confirmation", recipientType: "customer", orderId: d.orderId, to, subject: subjectText, html: T(`<h2 style="font-size:24px;font-weight:800">${titleText}</h2><p style="color:#555;line-height:1.7">${helloText}</p>${proofNotice}<div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0"><p style="font-size:13px;color:#888;margin:0 0 4px">${orderNumberLabel}</p><p style="font-size:20px;font-weight:800;color:#DE0121;margin:0">${d.orderNumber}</p></div><table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #111"><th style="text-align:left;padding:8px 0;font-size:12px;color:#888">${productLabel}</th><th style="text-align:center;padding:8px 0;font-size:12px;color:#888">${qtyLabel}</th><th style="text-align:right;padding:8px 0;font-size:12px;color:#888">${detailLabel}</th></tr></thead><tbody>${rows}</tbody></table><div class="price-box"><p style="font-size:13px;color:#888;margin:0 0 4px">${totalLabel}</p><p class="price-total" style="margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#888;margin:8px 0 0">${deliveryLabel}</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">${viewOrderBtn}</a>${invoiceBtn}</p><p style="color:#777;line-height:1.7;font-size:13px;margin:24px 0 0">${thanksText}</p>`, preheaderText) });
 }
 
 export async function sendProofReadyEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string; productName: string; proofUrl: string }) {
-  return sendEmail({ emailType: "proof_ready", recipientType: "customer", orderId: d.orderId, to, subject: `Boceto listo: ${d.orderNumber}`, html: T(`<h2 style="font-size:24px;font-weight:800">Tu boceto está listo</h2><p style="color:#666">Hola ${d.firstName}, el boceto de <strong>${d.productName}</strong> (pedido ${d.orderNumber}) está listo.</p><div class="ab" style="background:#FEF3C7"><p style="font-size:13px;color:#92400E;margin:0"><strong>Acción requerida:</strong> Revisa y aprueba desde tu panel.</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Revisar boceto</a></p>`) });
+  return sendEmail({ emailType: "proof_ready", recipientType: "customer", orderId: d.orderId, to, subject: `¡Mira cómo queda tu marca! Boceto listo (${d.orderNumber})`, html: T(`<h2 style="font-size:24px;font-weight:800">Tu boceto ya está listo 🎨</h2><p style="color:#555;line-height:1.7">Hola ${d.firstName}, hemos preparado el boceto de <strong>${d.productName}</strong> (pedido ${d.orderNumber}). Échale un vistazo: cuando le des el visto bueno, pasa directo a producción.</p><div class="ab" style="background:#FEF3C7"><p style="font-size:13px;color:#92400E;margin:0"><strong>Solo falta tu OK:</strong> revisa y aprueba el boceto desde tu panel.</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Ver y aprobar mi boceto</a></p><p style="color:#777;font-size:13px;text-align:center;margin:16px 0 0">¿Quieres cambiar algún detalle? Respóndenos y lo ajustamos.</p>`, `${d.firstName}, tu boceto está listo — un vistazo y a producción`) });
 }
 
 export async function sendProofReminderEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string; productName: string; proofUrl: string }) {
-  return sendEmail({ emailType: "proof_reminder", recipientType: "customer", orderId: d.orderId, to, subject: `Recordatorio: Boceto pendiente de revisión ${d.orderNumber}`, html: T(`<h2 style="font-size:24px;font-weight:800">Tu boceto necesita revisión</h2><p style="color:#666">Hola ${d.firstName}, te recordamos que tienes pendiente de revisar el boceto de <strong>${d.productName}</strong> (pedido ${d.orderNumber}). Han pasado 48 horas y necesitamos tu aprobación para enviar a producción.</p><div class="ab" style="background:#FEF3C7"><p style="font-size:13px;color:#92400E;margin:0"><strong>Acción requerida:</strong> Revisa y aprueba desde tu panel lo antes posible.</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Revisar boceto</a></p>`) });
+  return sendEmail({ emailType: "proof_reminder", recipientType: "customer", orderId: d.orderId, to, subject: `${d.firstName}, solo te falta aprobar tu boceto (${d.orderNumber})`, html: T(`<h2 style="font-size:24px;font-weight:800">Estás a un clic de producción</h2><p style="color:#555;line-height:1.7">Hola ${d.firstName}, tu boceto de <strong>${d.productName}</strong> (pedido ${d.orderNumber}) sigue esperando tu visto bueno. En cuanto lo apruebes, lo ponemos en marcha; sin tu OK no enviamos nada a producción.</p><div class="ab" style="background:#FEF3C7"><p style="font-size:13px;color:#92400E;margin:0"><strong>Un último paso:</strong> revisa y aprueba el boceto desde tu panel.</p></div><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Aprobar mi boceto</a></p><p style="color:#777;font-size:13px;text-align:center;margin:16px 0 0">¿Algo que afinar antes de aprobar? Responde a este email y lo vemos juntos.</p>`, `Un clic y lo enviamos a producción. Estamos listos cuando tú lo estés.`) });
 }
 
 export async function sendProofApprovedEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string }) {
-  return sendEmail({ emailType: "proof_approved", recipientType: "customer", orderId: d.orderId, to, subject: `Boceto aprobado — En producción: ${d.orderNumber}`, html: T(`<h2 style="font-size:24px;font-weight:800">¡En producción!</h2><p style="color:#666">Hola ${d.firstName}, el pedido <strong>${d.orderNumber}</strong> ya está en producción. Te avisaremos cuando se envíe (5-8 días).</p><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Ver estado</a></p>`) });
+  return sendEmail({ emailType: "proof_approved", recipientType: "customer", orderId: d.orderId, to, subject: `¡Manos a la obra! Tu pedido ${d.orderNumber} ya está en producción 🎉`, html: T(`<h2 style="font-size:24px;font-weight:800">¡Aprobado y en producción! 🎉</h2><p style="color:#555;line-height:1.7">Hola ${d.firstName}, gracias por tu visto bueno. Tu pedido <strong>${d.orderNumber}</strong> ya está en producción y nuestro equipo lo está cuidando al detalle. Te avisaremos en cuanto salga hacia ti (normalmente en 5-8 días).</p><p style="text-align:center"><a href="${SITE_URL}/account/orders" class="btn">Seguir mi pedido</a></p>`, `Todo en marcha. Te avisamos en cuanto tu pedido salga hacia ti.`) });
 }
 
 export async function sendOrderShippedEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string; trackingNumber: string; trackingUrl: string; forwarder: string }) {
-  return sendEmail({ emailType: "order_shipped", recipientType: "customer", orderId: d.orderId, to, subject: `¡Tu pedido va en camino! ${d.orderNumber}`, html: T(`<h2 style="font-size:24px;font-weight:800">¡Pedido enviado!</h2><p style="color:#666">Hola ${d.firstName}, tu pedido <strong>${d.orderNumber}</strong> va en camino.</p><div class="ab" style="background:#D1FAE5"><p style="font-size:13px;color:#065F46;margin:0 0 4px">Transportista: <strong>${d.forwarder}</strong></p><p style="font-size:13px;color:#065F46;margin:0">Seguimiento: <strong>${d.trackingNumber}</strong></p></div><p style="text-align:center"><a href="${d.trackingUrl}" class="btn">Seguir mi envío</a></p>`) });
+  return sendEmail({ emailType: "order_shipped", recipientType: "customer", orderId: d.orderId, to, subject: `¡En camino! Tu pedido ${d.orderNumber} ya viaja hacia ti 🚚`, html: T(`<h2 style="font-size:24px;font-weight:800">¡Tu pedido va en camino! 🚚</h2><p style="color:#555;line-height:1.7">Hola ${d.firstName}, buenas noticias: tu pedido <strong>${d.orderNumber}</strong> acaba de salir y ya viaja hacia ti.</p><div class="ab" style="background:#D1FAE5"><p style="font-size:13px;color:#065F46;margin:0 0 4px">Transportista: <strong>${d.forwarder}</strong></p><p style="font-size:13px;color:#065F46;margin:0">Nº de seguimiento: <strong>${d.trackingNumber}</strong></p></div><p style="text-align:center"><a href="${d.trackingUrl}" class="btn">Seguir mi envío en tiempo real</a></p>`, `${d.firstName}, sigue tu pedido ${d.orderNumber} en tiempo real`) });
 }
 
 export async function sendOrderDeliveredEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string }) {
-  return sendEmail({ emailType: "order_delivered", recipientType: "customer", orderId: d.orderId, to, subject: `Pedido entregado: ${d.orderNumber}`, html: T(`<h2 style="font-size:24px;font-weight:800">¡Entregado!</h2><p style="color:#666">Hola ${d.firstName}, tu pedido <strong>${d.orderNumber}</strong> ha sido entregado.</p><p style="text-align:center"><a href="${SITE_URL}/catalog" class="btn">Hacer otro pedido</a></p>`) });
+  return sendEmail({ emailType: "order_delivered", recipientType: "customer", orderId: d.orderId, to, subject: `¿Ha llegado todo perfecto, ${d.firstName}?`, html: T(`<h2 style="font-size:24px;font-weight:800">¡Tu pedido ya está ahí! 🎁</h2><p style="color:#555;line-height:1.7">Hola ${d.firstName}, nos consta que tu pedido <strong>${d.orderNumber}</strong> ha sido entregado. Esperamos que a tu equipo le encante tanto como a nosotros nos ha gustado prepararlo.</p><p style="color:#555;line-height:1.7">Si algo no está como esperabas, respóndenos a este email: lo resolvemos rápido y bien.</p><p style="color:#777;line-height:1.7;font-size:13px;margin:20px 0 0">Y cuando llegue vuestra próxima campaña, evento o regalo corporativo, aquí estaremos para ayudarte a generar emociones de nuevo.</p><p style="color:#111;font-size:13px;margin:16px 0 0">Gracias por confiar en nosotros,<br><strong>El equipo de Universo Merchan</strong></p>`, `Esperamos que tu equipo lo disfrute. Estamos a un mensaje de distancia.`) });
 }
 
 export async function sendQuoteEmail(to: string, d: { quoteId?: number; firstName: string; quoteNumber: string; totalPrice: string; pdfUrl: string; buyUrl: string; expiresDate: string }) {
-  return sendEmail({ emailType: "quote_generated", recipientType: "customer", orderId: d.quoteId, to, subject: `Presupuesto ${d.quoteNumber} — ${d.totalPrice}`, html: T(`<h2 style="font-size:24px;font-weight:800">Tu presupuesto</h2><p style="color:#666">Hola ${d.firstName}, aquí tienes tu presupuesto.</p><div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0;text-align:center"><p style="font-size:13px;color:#888;margin:0 0 4px">${d.quoteNumber}</p><p style="font-size:28px;font-weight:800;color:#DE0121;margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#888;margin:4px 0 0">Válido hasta ${d.expiresDate}</p></div><p style="text-align:center"><a href="${d.buyUrl}" class="btn">Comprar ahora</a><br><br><a href="${d.pdfUrl}" class="btn btn-dark">Descargar PDF</a></p>`) });
+  return sendEmail({ emailType: "quote_generated", recipientType: "customer", orderId: d.quoteId, to, subject: `Tu presupuesto está listo: ${d.totalPrice} (${d.quoteNumber})`, html: T(`<h2 style="font-size:24px;font-weight:800">Aquí tienes tu presupuesto</h2><p style="color:#555;line-height:1.7">Hola ${d.firstName}, hemos preparado tu presupuesto con todo a medida. Cuando quieras confirmarlo, lo dejamos en marcha en un clic.</p><div style="background:#F9F9F9;border-radius:12px;padding:16px;margin:16px 0;text-align:center"><p style="font-size:13px;color:#888;margin:0 0 4px">${d.quoteNumber}</p><p style="font-size:28px;font-weight:800;color:#DE0121;margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#888;margin:4px 0 0">Precio reservado hasta el ${d.expiresDate}</p></div><p style="text-align:center"><a href="${d.buyUrl}" class="btn">Confirmar mi pedido</a><br><br><a href="${d.pdfUrl}" class="btn btn-dark">Descargar en PDF</a></p><p style="color:#777;font-size:13px;text-align:center;margin:16px 0 0">¿Quieres ajustar unidades, colores o productos? Responde a este email y lo adaptamos a ti.</p>`, `${d.firstName}, tu presupuesto de ${d.totalPrice} — precio reservado hasta el ${d.expiresDate}`) });
+}
+
+export async function sendQuoteReminderEmail(to: string, d: { firstName: string; quoteNumber: string; totalPrice: string; pdfUrl: string; buyUrl: string; expiresDate: string; daysLeft: number }) {
+  const urgency = d.daysLeft <= 1
+    ? `Tu presupuesto caduca <strong>hoy</strong>`
+    : `Tu presupuesto caduca en <strong>${d.daysLeft} días</strong>`;
+  return sendEmail({
+    emailType: "quote_reminder",
+    recipientType: "customer",
+    to,
+    subject: `⏰ Tu presupuesto ${d.quoteNumber} caduca pronto`,
+    html: T(`<h2 style="font-size:24px;font-weight:800">Tus precios siguen reservados ⏳</h2><p style="color:#555;line-height:1.6">Hola ${d.firstName}, ${urgency}. Hemos mantenido estas condiciones para ti, pero después tendríamos que recalcularlas. Si te encaja, confírmalo y nos ponemos en marcha.</p><div style="background:#FFF4F4;border:1px solid #FBD5D5;border-radius:12px;padding:16px;margin:16px 0;text-align:center"><p style="font-size:13px;color:#888;margin:0 0 4px">${d.quoteNumber}</p><p style="font-size:28px;font-weight:800;color:#DE0121;margin:0">${d.totalPrice}</p><p style="font-size:12px;color:#B91C1C;margin:4px 0 0;font-weight:600">Válido solo hasta el ${d.expiresDate}</p></div><p style="text-align:center"><a href="${d.buyUrl}" class="btn">Confirmar mi pedido</a><br><br><a href="${d.pdfUrl}" class="btn btn-dark">Ver presupuesto (PDF)</a></p><p style="color:#888;font-size:12px;text-align:center;margin-top:16px">¿Necesitas cambiar algo o ampliar el plazo? Responde a este correo y te ayudamos.</p>`, `${d.firstName}, tus precios siguen reservados pero por poco tiempo`) });
 }
 
 export async function sendCartAbandonedEmail(to: string, d: { orderId?: number; firstName: string; items: Array<{ name: string; price: string }>; totalPrice: string; cartUrl: string }) {
   const list = d.items.map(i => `<div style="background:#F9F9F9;border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid #E5E7EB;"><strong style="color:#111;font-size:14px;display:block;margin-bottom:4px;">${i.name}</strong><span style="color:#666;font-size:13px;">${i.price}</span></div>`).join("");
-  return sendEmail({ emailType: "cart_abandoned", recipientType: "customer", orderId: d.orderId, to, subject: "Tu configuración guardada en Universo Merchan", html: T(`<h2 style="font-size:24px;font-weight:800">¿Retomamos tu configuración?</h2><p style="color:#666;line-height:1.6;margin-bottom:24px;">Hola ${d.firstName}, hemos guardado los productos en los que mostraste interés para que no tengas que volver a configurarlos.</p><div style="margin-bottom:24px;">${list}</div><p style="font-weight:800;font-size:20px;color:#DE0121;text-align:right;margin-bottom:32px;">Importe total: ${d.totalPrice}</p><p style="text-align:center"><a href="${d.cartUrl}" class="btn">Retomar mi configuración</a></p>`) });
+  return sendEmail({ emailType: "cart_abandoned", recipientType: "customer", orderId: d.orderId, to, subject: `${d.firstName}, tu configuración te está esperando`, html: T(`<h2 style="font-size:24px;font-weight:800">Lo dejamos todo listo para ti</h2><p style="color:#555;line-height:1.7;margin-bottom:24px;">Hola ${d.firstName}, hemos guardado los productos que estabas configurando con tu marca, para que no tengas que empezar de cero. Retómalo justo donde lo dejaste:</p><div style="margin-bottom:24px;">${list}</div><p style="font-weight:800;font-size:20px;color:#DE0121;text-align:right;margin-bottom:24px;">Importe total: ${d.totalPrice}</p><p style="text-align:center"><a href="${d.cartUrl}" class="btn">Retomar mi configuración</a></p><p style="color:#777;font-size:13px;text-align:center;margin:16px 0 0">¿Dudas con unidades, marcaje o plazos? Responde a este email y te asesoramos sin compromiso.</p>`, `${d.firstName}, guardamos tu configuración lista para que no empieces de cero`) });
 }
 
 export async function sendReviewRequestEmail(to: string, d: { orderId?: number; firstName: string; orderNumber: string; couponCode: string; googleReviewUrl: string }) {

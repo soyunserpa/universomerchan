@@ -7,3 +7,4 @@ backups
 /uploads/
 *.log
 .DS_Store
+.deploy.local.env

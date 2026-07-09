@@ -27,7 +27,8 @@
     "about": "Über uns",
     "how_it_works": "So funktioniert's",
     "ships_europe": "Wir liefern in ganz Europa",
-    "choose_language": "Sprache ändern"
+    "choose_language": "Sprache ändern",
+    "shop": "Shop"
   },
   "Footer": {
     "about": "Über uns",
@@ -234,6 +235,8 @@
     "related_title": "Das könnte Sie auch interessieren",
     "related_subtitle": "Entdecken Sie ähnliche Produkte aus der Familie <b>{category}</b>",
     "related_see_more": "Mehr aus dieser Kategorie ansehen",
+    "accordion_sizeguide_title": "Größentabelle",
+    "accordion_sizeguide_intro": "Prüfen Sie die Maße (Brust, Länge…), um vor dem Kauf die richtige Größe zu wählen.",
     "accordion_details_title": "Produktdetails",
     "accordion_details_no_description": "Keine ausführliche Beschreibung verfügbar.",
     "accordion_details_material": "Material:",
@@ -424,6 +427,11 @@
     "ref_label": "REF",
     "color_label": "Farbe",
     "quantities_by_size": "Mengen nach Größe",
+    "size_guide": "Größentabelle",
+    "size_guide_title": "Größentabelle",
+    "size_guide_hint": "Prüfen Sie die Maße, um vor dem Kauf die richtige Größe zu wählen.",
+    "size_guide_open": "PDF öffnen / herunterladen",
+    "close": "Schließen",
     "total_units": "Gesamt: {qty} Stk.",
     "available_count": "{count} verfügbar",
     "sold_out": "Ausverkauft",
@@ -980,5 +988,24 @@
     "no_thanks": "Nein, danke",
     "privacy": "Kein Spam. Jederzeit abbestellbar.",
     "invalid_email": "Gültige E-Mail eingeben"
+  },
+  "Magazine": {
+    "title": "Katalog",
+    "intro": "Blättern Sie durch die Seiten und entdecken Sie unsere personalisierbaren Produkte. Preise ab, immer aktuell.",
+    "tagline": "Werbegeschenke, die Emotionen wecken.",
+    "swipe_hint": "Wischen oder die Pfeile zum Blättern verwenden",
+    "download_cta": "Katalog herunterladen (PDF)",
+    "from": "Ab",
+    "view": "Produkt ansehen",
+    "products": "Produkte",
+    "page": "Seite",
+    "of": "von",
+    "back_title": "Gestalten wir Ihr nächstes Firmengeschenk?",
+    "back_text": "Wir personalisieren jedes Produkt mit Ihrer Marke. Erzählen Sie uns Ihre Idee.",
+    "back_cta": "Katalog herunterladen (PDF)",
+    "europe": "80% europäische Produktion · Lieferung in unter 10 Tagen",
+    "empty": "Der Katalog ist in Kürze verfügbar.",
+    "meta_title": "Katalog | Universo Merchan",
+    "meta_description": "Entdecken Sie den Universo-Merchan-Katalog: über 2.000 personalisierbare Produkte für Ihre Marke. Preise ab, Lieferung in unter 10 Tagen."
   }
 }

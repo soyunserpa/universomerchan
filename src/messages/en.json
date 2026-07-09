@@ -27,7 +27,8 @@
     "about": "About us",
     "how_it_works": "How it works",
     "ships_europe": "We ship across Europe",
-    "choose_language": "Change language"
+    "choose_language": "Change language",
+    "shop": "Shop"
   },
   "Footer": {
     "about": "About Us",
@@ -234,6 +235,8 @@
     "related_title": "You might also like",
     "related_subtitle": "Explore similar products within the <b>{category}</b> family",
     "related_see_more": "See more from this category",
+    "accordion_sizeguide_title": "Size guide",
+    "accordion_sizeguide_intro": "Check the measurements (chest, length…) to pick the right size before you buy.",
     "accordion_details_title": "Product details",
     "accordion_details_no_description": "No extended description available.",
     "accordion_details_material": "Material:",
@@ -424,6 +427,11 @@
     "ref_label": "REF",
     "color_label": "Color",
     "quantities_by_size": "Quantities by size",
+    "size_guide": "Size guide",
+    "size_guide_title": "Size guide",
+    "size_guide_hint": "Check the measurements to pick the right size before you buy.",
+    "size_guide_open": "Open / Download PDF",
+    "close": "Close",
     "total_units": "Total: {qty} units",
     "available_count": "{count} available",
     "sold_out": "Sold out",
@@ -980,5 +988,24 @@
     "no_thanks": "No, thanks",
     "privacy": "No spam. Unsubscribe anytime.",
     "invalid_email": "Enter a valid email"
+  },
+  "Magazine": {
+    "title": "Catalogue",
+    "intro": "Flip through the pages and discover our customisable products. Prices from, always up to date.",
+    "tagline": "Corporate gifts that spark emotions.",
+    "swipe_hint": "Swipe or use the arrows to turn pages",
+    "download_cta": "Download catalogue (PDF)",
+    "from": "From",
+    "view": "View product",
+    "products": "products",
+    "page": "Page",
+    "of": "of",
+    "back_title": "Shall we make your next corporate gift?",
+    "back_text": "We personalise any product with your brand. Tell us your idea.",
+    "back_cta": "Download catalogue (PDF)",
+    "europe": "80% European production · Delivery in under 10 days",
+    "empty": "The catalogue will be available very soon.",
+    "meta_title": "Catalogue | Universo Merchan",
+    "meta_description": "Explore the Universo Merchan catalogue: 2,000+ customisable products for your brand. Prices from, delivery in under 10 days."
   }
 }

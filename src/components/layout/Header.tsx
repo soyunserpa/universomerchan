@@ -27,7 +27,8 @@ export function Header() {
   const tCommon = useTranslations("Common");
 
   const navLinks = [
-    { href: "/catalog", label: t("catalog") },
+    { href: "/catalogo", label: t("catalog") },
+    { href: "/catalog", label: t("shop") },
     { href: "/#sobre-nosotros", label: t("about") },
     { href: "/#como-funciona", label: t("how_it_works") },
     { href: "/#contacto", label: t("contact") },
