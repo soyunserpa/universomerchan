@@ -19,3 +19,8 @@ Entregable: `Propuesta_WelcomeKit_UniversoMerchan.pptx` (11 diapositivas, look &
   de cada producto (tier 100 uds) y en el simulador de marcaje antes de enviar.
 - Las opciones "Grupo Xscape" (funda 16/17" a medida y libreta a medida con hojas impresas) son propuestas de producto;
   no se ha podido consultar su catálogo desde la sesión. Sustituir por referencia y precio real del proveedor.
+
+## Otros ficheros
+- `Propuesta_WelcomeKit_UniversoMerchan_preview.pdf` → vista previa en PDF generada desde los renders HTML (LibreOffice no
+  funciona en la sesión). Sirve para revisar o enviar por móvil; el fichero maestro sigue siendo el PPTX.
+- `email_respuesta_Euge.md` → borrador del correo de respuesta al cliente.
