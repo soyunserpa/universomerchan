@@ -56,6 +56,8 @@ body{width:1100px;height:1100px;overflow:hidden;
 /* etiquetas de zona */
 .zone{position:absolute;border:2.4px dashed rgba(255,26,61,.98);border-radius:4px;
  box-shadow:0 0 22px rgba(222,0,33,.30)}
+.zonec{position:absolute;border:2.4px dashed rgba(255,26,61,.98);border-radius:50%;
+ box-shadow:0 0 22px rgba(222,0,33,.30)}
 .zlab{position:absolute;font-family:'Poppins',sans-serif;font-size:15px;font-weight:600;
  letter-spacing:.14em;color:#FF1A3D;text-transform:uppercase}
 .cap{position:absolute;text-align:center;font-family:'Poppins',sans-serif;font-weight:300;
@@ -78,6 +80,13 @@ def zone(x, y, w, h, label=None, lab_below=True):
     return ''.join(o)
 
 
+def zone_circle(x, y, d, label=None):
+    o = [f"<div class='zonec' style='left:{x}px;top:{y}px;width:{d}px;height:{d}px'></div>"]
+    if label:
+        o.append(f"<div class='zlab' style='left:{x}px;top:{y+d+12}px'>{label}</div>")
+    return ''.join(o)
+
+
 def cap(txt, y=1010):
     return f"<div class='cap' style='left:0;top:{y}px;width:1100px'>{txt}</div>"
 
@@ -97,6 +106,9 @@ def sleeve(mat='nylon', view='front', logo=True, logo_style='serig', quilt=False
     o.append(f"<div class='tab' style='left:{x+W-48}px;top:{y+25}px;width:28px;height:13px'></div>")
     if pocket and view == 'front':
         py, ph = y + 132, Hh - 182
+        o.append(f"<div style='position:absolute;left:{x+36}px;top:{py-24}px;width:{W-72}px;height:28px;"
+                 f"background:linear-gradient(180deg,transparent 46%,rgba(255,255,255,.09) 50%,transparent 54%);"
+                 f"clip-path:polygon(0 100%,9% 0,91% 0,100% 100%)'></div>")
         o.append(f"<div class='{mat}' style='position:absolute;left:{x+36}px;top:{py}px;width:{W-72}px;height:{ph}px;"
                  f"border-radius:24px;box-shadow:0 -2px 0 rgba(255,255,255,.09), 0 14px 26px rgba(0,0,0,.55)'>"
                  f"<div class='gloss' style='inset:0'></div></div>")
@@ -122,6 +134,58 @@ def sleeve(mat='nylon', view='front', logo=True, logo_style='serig', quilt=False
         o.append(cap(caption))
     return ''.join(o)
 
+
+
+# ============ FUNDA VERTICAL (KLYRO) ============
+def sleeve_v(logo=True, logo_style='serig', zones=None, caption=None,
+             view='front', W=505, Hh=700):
+    """Funda vertical acolchada en rombo, cremallera perimetral en U,
+    bolsillo frontal abierto en los dos tercios inferiores."""
+    x, y = (1100 - W) // 2, 190
+    o = [f"<div class='sh' style='left:{x+40}px;top:{y+Hh-16}px;width:{W-80}px;height:70px'></div>"]
+    # cuerpo
+    o.append(f"<div class='nylon' style='position:absolute;left:{x}px;top:{y}px;width:{W}px;height:{Hh}px;"
+             f"border-radius:34px;box-shadow:0 42px 76px rgba(0,0,0,.62), 0 8px 18px rgba(0,0,0,.4),"
+             f"inset 0 2px 0 rgba(255,255,255,.10), inset 0 -2px 0 rgba(0,0,0,.6)'>"
+             f"<div class='gloss' style='inset:0'></div></div>")
+    # acolchado en rombo grande (recortado al cuerpo)
+    dia = []
+    step = 132
+    for i in range(-3, 8):
+        dia.append(f"<div style='position:absolute;left:{i*step}px;top:-160px;width:2px;height:1100px;"
+                   f"background:rgba(255,255,255,.085);transform:rotate(42deg);transform-origin:top left'></div>")
+        dia.append(f"<div style='position:absolute;left:{i*step}px;top:-160px;width:2px;height:1100px;"
+                   f"background:rgba(255,255,255,.085);transform:rotate(-42deg);transform-origin:top left'></div>")
+    quilt_h = Hh if view == 'back' else 250
+    o.append(f"<div style='position:absolute;left:{x}px;top:{y}px;width:{W}px;height:{quilt_h}px;"
+             f"overflow:hidden;border-radius:34px 34px 0 0;pointer-events:none'>{''.join(dia)}</div>")
+    # cremallera perimetral en U
+    o.append(f"<div class='zip' style='left:{x+26}px;top:{y+16}px;width:{W-52}px;height:9px'></div>")
+    o.append(f"<div style='position:absolute;left:{x+16}px;top:{y+26}px;width:9px;height:{Hh-260}px;"
+             f"border-radius:5px;background:repeating-linear-gradient(180deg,#585860 0 4px,#0f0f12 4px 7px);"
+             f"box-shadow:0 1px 3px rgba(0,0,0,.8)'></div>")
+    o.append(f"<div style='position:absolute;left:{x+W-25}px;top:{y+26}px;width:9px;height:{Hh-260}px;"
+             f"border-radius:5px;background:repeating-linear-gradient(180deg,#585860 0 4px,#0f0f12 4px 7px);"
+             f"box-shadow:0 1px 3px rgba(0,0,0,.8)'></div>")
+    o.append(f"<div class='pull' style='left:{x+4}px;top:{y+Hh-262}px;width:24px;height:34px'></div>")
+    if view == 'front':
+        # bolsillo frontal abierto (sin cremallera)
+        py = y + 246
+        o.append(f"<div class='nylon' style='position:absolute;left:{x+8}px;top:{py}px;width:{W-16}px;"
+                 f"height:{Hh-254}px;border-radius:16px 16px 30px 30px;"
+                 f"box-shadow:0 -3px 0 rgba(255,255,255,.10), 0 -10px 20px rgba(0,0,0,.55)'>"
+                 f"<div class='gloss' style='inset:0'></div></div>")
+        o.append(f"<div style='position:absolute;left:{x+8}px;top:{py}px;width:{W-16}px;height:3px;"
+                 f"background:rgba(255,255,255,.14);border-radius:2px'></div>")
+    if logo:
+        lw = 268
+        o.append(lg(x + (W - lw) // 2, y + 430, lw, 58, logo_style))
+    if zones:
+        for z in zones:
+            o.append(zone(*z))
+    if caption:
+        o.append(cap(caption))
+    return ''.join(o)
 
 # ============ LIBRETA ============
 def notebook(mat='pu', view='front', plate=False, logo=True, logo_style='deboss',
@@ -220,12 +284,12 @@ SL_X, SL_Y, SL_W, SL_H = (1100 - 720) // 2, 280, 720, 510
 
 SHOTS = {
   # ---------- KLYRO ----------
-  'kl_front':  sleeve('nylon', 'front', True, 'serig', quilt=True, caption='Frontal · serigrafía 1 color'),
-  'kl_back':   sleeve('nylon', 'back', False, quilt=True, pocket=False, caption='Trasera lisa'),
-  'kl_zone':   sleeve('nylon', 'front', True, 'serig', quilt=True,
-                      zones=[(SL_X+207, SL_Y+346, 306, 90, 'Frontal · 1 posición')],
-                      caption='Serigrafía · área de marcaje'),
-  'kl_detail': detail_quilt('Pespunte en rombo · nylon acolchado'),
+  'kl_front':  sleeve_v(True, 'serig', caption='Frontal · serigrafía 1 color'),
+  'kl_back':   sleeve_v(False, view='back', caption='Trasera · acolchado en rombo'),
+  'kl_zone':   sleeve_v(True, 'serig',
+                        zones=[(297+22, 190+404, 268+56, 112, 'Frontal · 1 posición')],
+                        caption='Serigrafía · área de marcaje'),
+  'kl_detail': detail_quilt('Nailon acolchado en rombo'),
 
   # ---------- SWISS PEAK ----------
   'sp_front':  sleeve('rpet', 'front', True, 'serig', caption='Frontal · serigrafía 1 color'),
@@ -266,6 +330,26 @@ SHOTS = {
                         zones=[(NB_X+52, NB_Y+180, 336, 250, 'Frontal 120 × 190 mm')],
                         caption='Área de marcaje'),
 }
+
+
+# posiciones Swiss Peak (funda apaisada: SL_X=190, SL_Y=280, W=720, H=510)
+SHOTS['sp_p_front'] = sleeve('rpet', 'front', True, 'serig',
+    zones=[(390, 478, 320, 162, 'Frontal 200 × 100 mm')], caption='Frontal · hasta 6 colores')
+SHOTS['sp_p_back'] = sleeve('rpet', 'back', True, 'serig', pocket=False,
+    zones=[(390, 400, 320, 240, 'Trasera 200 × 150 mm')], caption='Trasera · hasta 6 colores')
+SHOTS['sp_p_up'] = sleeve('rpet', 'front', False,
+    zones=[(470, 352, 160, 42, 'Franja superior 100 × 25 mm')], caption='Franja superior · hasta 6 colores') \
+    + lg(478, 356, 144, 34, 'serig')
+SHOTS['sp_p_emb'] = sleeve('rpet', 'front', False) \
+    + zone_circle(440, 452, 224, 'Bordado 140 × 140 mm') + lg(468, 540, 168, 42, 'serig')
+
+# posiciones libreta A5 PU (NB_X=330, NB_Y=230, W=440, H=630)
+SHOTS['ar_p_front'] = notebook('pu', logo=True, logo_style='serig', logo_pos='center',
+    zones=[(NB_X+40, NB_Y+96, 350, 440, 'Portada')], caption='Serigrafía en portada')
+SHOTS['ar_p_back'] = notebook('pu', logo=True, logo_style='serig', logo_pos='center',
+    zones=[(NB_X+56, NB_Y+96, 318, 440, 'Contraportada')], caption='Serigrafía en contraportada')
+SHOTS['ar_p_pad'] = notebook('pu', logo=True, logo_style='serig', logo_pos='lower',
+    zones=[(NB_X+92, NB_Y+400, 224, 74, 'Franja inferior')], caption='Tampografía en portada')
 
 if __name__ == '__main__':
     exe = glob.glob('/opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell')[0]

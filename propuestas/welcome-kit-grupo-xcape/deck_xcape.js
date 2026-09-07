@@ -18,7 +18,16 @@ const RED = "DE0021", REDL = "FF2D4D", REDDK = "2A0409";
 const HF = "Poppins", BF = "Poppins Light";
 const UM = "/tmp/logo_white.png";
 const XC = "/tmp/brand/xcape_white_t.png";
-const I = n => `/tmp/xc/${n}.png`;
+const fs = require("fs");
+// Si existe la foto real en /tmp/fotos la usa; si no, cae a la maqueta.
+const REAL = "/tmp/fotos/";
+const I = n => {
+  for (const ext of [".jpg", ".jpeg", ".png", ".webp"]) {
+    const f = REAL + n + ext;
+    if (fs.existsSync(f)) return f;
+  }
+  return `/tmp/xc/${n}.png`;
+};
 
 let n = 0;
 
@@ -63,46 +72,49 @@ const PRODUCTOS = [
   {
     id: "kl", titulo: "Funda portátil acolchada",
     familia: "Funda para portátil",
-    claim: "Nailon acolchado con pespunte en rombo y bolsillo frontal con cremallera.",
+    claim: "Nailon acolchado en rombo, formato vertical y bolsillo frontal abierto.",
     hero: "kl_front",
-    fotos: [["kl_front", "Frontal con marcaje"], ["kl_back", "Trasera"], ["kl_detail", "Pespunte en rombo"], ["kl_zone", "Área de marcaje"]],
-    desc: "Funda de formato sobre para portátiles de hasta 15\", pensada para el día a día de oficina y para viajar. El exterior es de nailon con pespunte en rombo, un acolchado tipo matelassé que aporta cuerpo y un acabado técnico muy limpio en negro. Entre el exterior y el forro hay una capa de espuma de 4 mm que absorbe golpes y roces, y el interior va forrado en poliéster 210D para que la carcasa del portátil no se raye al entrar y salir.\n\nEl bolsillo frontal con cremallera propia resuelve el cargador, el ratón y los cables sin abrir el compartimento principal. Cierre de cremallera a lo largo del canto superior y tiradores a tono, sin ningún elemento de color que rompa el conjunto.",
+    fotos: [["kl_front", "Frontal con marcaje"], ["kl_back", "Trasera acolchada"], ["kl_detail", "Acolchado en rombo"], ["kl_zone", "Área de marcaje"]],
+    desc: "Funda vertical acolchada para portátiles de hasta 15\". El portátil entra por la parte superior y la cremallera recorre el perímetro en forma de U, con tirador de tela a tono, de modo que la apertura es amplia y el equipo entra y sale sin forzar.\n\nEl exterior es de nailon mate con acolchado en rombo de trazo amplio, que da cuerpo a la pieza y un aspecto técnico muy reconocible. Bajo el tejido hay una capa de espuma de 4 mm que amortigua golpes, y el interior va forrado en poliéster 210D para no rayar la carcasa. En la cara frontal, un bolsillo abierto ocupa los dos tercios inferiores: entra el cargador, el ratón o un par de cables, a mano y sin cremallera que abrir.",
     specs: [
-      ["Material exterior", "Nailon con pespunte en rombo"],
+      ["Material exterior", "Nailon mate con acolchado en rombo"],
       ["Protección", "Espuma de 4 mm en las paredes"],
       ["Forro interior", "Poliéster 210D"],
+      ["Formato", "Vertical · entrada superior"],
       ["Medidas", "26,5 × 2,5 × 37 cm"],
       ["Capacidad", "Portátiles de hasta 15\""],
-      ["Cierre", "Cremallera superior con tirador a tono"],
-      ["Bolsillo", "Frontal con cremallera independiente"],
+      ["Cierre", "Cremallera perimetral en U con tirador de tela"],
+      ["Bolsillo", "Frontal abierto, dos tercios de la cara"],
       ["Color", "Negro"],
     ],
     marcajeImg: "kl_zone",
-    tecnica: { nombre: "Serigrafía", detalle: "1 color · 1 posición", pos: "Frontal centrado" },
+    tecnica: { nombre: "Serigrafía", detalle: "1 color · 1 posición", pos: "Bolsillo frontal" },
     alternativas: [
-      ["Serigrafía", "Hasta 4 colores planos. La opción presupuestada, en blanco sobre negro."],
-      ["Transfer serigráfico", "Hasta 8 colores. Para logotipos con más detalle."],
-      ["Transfer digital", "Todo color, incluidos degradados y fotografía."],
-      ["Bordado", "Acabado textil de gama alta, muy sobrio tono sobre tono."],
+      ["Serigrafía", "Tintas sólidas, ideal para grandes tiradas. Es la opción presupuestada, en blanco sobre negro."],
+      ["Sublimación / Transfer", "Calidad de impresión extrema."],
+      ["Transfer digital", "Fotográfico y muy resistente."],
+      ["Transfer reflectante", "Alta visibilidad técnica."],
     ],
-    nota: "Las áreas exactas de marcaje se confirman con el arte final: el pespunte en rombo condiciona el tamaño máximo.",
+    nota: "El producto admite una única posición de marcaje, centrada en el bolsillo frontal.",
     precio: "9,00", total: "900", cantidad: "100 uds",
   },
   {
     id: "sp", titulo: "Funda portátil reciclada",
     familia: "Funda para portátil",
-    claim: "100 % poliéster reciclado, forro a juego y marcaje en las dos caras.",
+    claim: "100 % rPET con forro a juego, bolsillo frontal con cremallera y marcaje en las dos caras.",
     hero: "sp_front",
-    fotos: [["sp_front", "Frontal con marcaje"], ["sp_back", "Trasera con marcaje"], ["sp_detail", "Tejido y cremallera"], ["sp_zone", "Área de marcaje"]],
-    desc: "Funda de línea premium para portátiles de 15,6\", fabricada íntegramente en poliéster reciclado a partir de botellas PET, con forro interior del mismo material. Es un producto libre de PVC y con trazador de material reciclado, de modo que el origen del tejido es verificable: un argumento sólido si la memoria de sostenibilidad de la compañía recoge los regalos corporativos.\n\nLa silueta es limpia y muy plana, con un bolsillo frontal de cremallera para el cargador y los cables, y un compartimento principal que ajusta el portátil sin holguras. Las cremalleras son reforzadas, de deslizamiento suave, y todo el herraje va en negro. Es la opción con mejor acabado de las dos y la única que admite el logotipo en las dos caras dentro del precio presupuestado.",
-    specs: [
-      ["Material exterior", "100 % poliéster reciclado (rPET)"],
-      ["Forro interior", "Poliéster reciclado a juego"],
+    fotos: [["sp_front", "Frontal con marcaje"], ["sp_back", "Trasera con marcaje"], ["sp_detail", "Cremallera perimetral"], ["sp_zone", "Área de marcaje"]],
+    desc: "Funda de formato apaisado para portátiles de 15,6\", fabricada en rPET 100 % con un forro interior también de rPET. Es una pieza sobria y de acabado profesional: silueta plana, tejido mate y todo el herraje en negro, sin un solo elemento que rompa el conjunto.\n\nEl compartimento principal aloja de forma segura los portátiles modernos de 15,6\" y la cremallera recorre el perímetro con un deslizamiento suave y firme. En la cara frontal, un bolsillo con cremallera propia, rematado en pico en las esquinas superiores, resuelve el acceso rápido a lo esencial: cargador, cables o documentación.\n\nEstá fabricada con poliéster reciclado que incorpora un trazador de material verificable, es libre de PVC y el 2 % de los ingresos de cada unidad vendida se destina a Water.org. Su huella declarada es de 1,55 kg de CO₂.",
+        specs: [
+      ["Material exterior", "100 % rPET (poliéster reciclado)"],
+      ["Forro interior", "rPET a juego"],
+      ["Formato", "Apaisado · cremallera perimetral"],
       ["Capacidad", "Portátiles de 15,6\""],
-      ["Cierre", "Cremallera reforzada"],
-      ["Bolsillo", "Frontal con cremallera"],
+      ["Cierre", "Cremallera reforzada de deslizamiento suave"],
+      ["Bolsillo", "Frontal con cremallera, remate en pico"],
       ["Composición", "Libre de PVC"],
-      ["Sostenibilidad", "Trazador de material reciclado verificable"],
+      ["Sostenibilidad", "Trazador verificable · 2 % a Water.org"],
+      ["Huella", "1,55 kg de CO₂"],
       ["Color", "Negro"],
     ],
     marcajeImg: "sp_zone",
@@ -114,23 +126,33 @@ const PRODUCTOS = [
       ["Bordado", "Relieve textil, acabado de gama alta."],
     ],
     nota: "Las áreas exactas de marcaje se confirman con el arte final.",
+    posiciones: [
+      { img: "sp_p_front", nombre: "Frontal", med: "200 × 100 mm", hi: true,
+        tec: [["Serigrafía transfer", "hasta 6 colores"], ["Transfer digital", "hasta 6 colores"]] },
+      { img: "sp_p_back", nombre: "Trasera", med: "200 × 150 mm", hi: true,
+        tec: [["Serigrafía transfer", "hasta 6 colores"], ["Transfer digital", "hasta 6 colores"]] },
+      { img: "sp_p_up", nombre: "Franja superior", med: "100 × 25 mm",
+        tec: [["Serigrafía transfer", "hasta 6 colores"], ["Transfer digital", "hasta 6 colores"]] },
+      { img: "sp_p_emb", nombre: "Bordado", med: "140 × 140 mm",
+        tec: [["Bordado", "hasta 12 colores"], ["Única posición", "para esta técnica"]] },
+    ],
     precio: "14,00", total: "1.400", cantidad: "100 uds", hi: true,
-    dosPos: true,
   },
   {
     id: "tz", titulo: "Cuaderno A5 premium",
     familia: "Libreta",
-    claim: "Símil piel con placa metálica frontal grabada a láser.",
+    claim: "Tapa dura en símil piel con placa metálica pulida grabada a láser.",
     hero: "tz_front",
     fotos: [["tz_front", "Portada con grabado"], ["tz_plate", "Placa metálica"], ["tz_open", "Interior rayado"], ["tz_back", "Contraportada"]],
-    desc: "Cuaderno A5 de tapa blanda en símil piel, con un tacto suave y flexible que resulta muy agradable en la mano y que envejece bien. El elemento que lo distingue es la placa metálica aplicada en la portada: es la zona natural para el logotipo y, grabada a láser, da un acabado permanente y discreto, con el relieve del metal como único brillo sobre el negro mate de la tapa.\n\nEl interior son 160 páginas rayadas en papel reciclado, con una encuadernación de lomo encolado que permite abrir el cuaderno y que se quede plano sobre la mesa. Se cierra con goma elástica vertical a tono y lleva cinta marcapáginas integrada en el lomo, ambas en negro.",
+    desc: "Cuaderno A5 de tapa dura forrada en símil piel de textura graneada, con dos bandas de estrías finas en relieve que cruzan la portada y la contraportada y le dan una personalidad muy reconocible. El elemento que lo distingue es la placa metálica pulida aplicada en el canto derecho de la tapa: es la zona natural para el logotipo y, grabada a láser, deja una marca permanente sobre el único brillo de la pieza.\n\nEl interior son 160 páginas rayadas en papel reciclado color crema, con una encuadernación que permite abrir el cuaderno y que se quede plano sobre la mesa. Se cierra con goma elástica vertical a tono y lleva cinta marcapáginas integrada en el lomo, ambas en negro.",
     specs: [
-      ["Material", "Tapa blanda de símil piel (PU)"],
-      ["Detalle", "Placa metálica aplicada en portada"],
+      ["Material", "Tapa dura en símil piel (PU) con textura graneada"],
+      ["Detalle", "Placa metálica pulida aplicada en portada"],
+      ["Relieve", "Bandas de estrías finas en portada y contraportada"],
       ["Formato", "A5 · 21,2 × 14,6 × 1,6 cm"],
       ["Interior", "160 páginas (80 hojas) rayadas"],
-      ["Papel", "Papel reciclado"],
-      ["Encuadernación", "Lomo encolado, apertura plana"],
+      ["Papel", "Papel reciclado color crema"],
+      ["Encuadernación", "Apertura plana"],
       ["Cierre", "Goma elástica vertical a tono"],
       ["Extras", "Cinta marcapáginas integrada"],
       ["Color", "Negro"],
@@ -148,28 +170,39 @@ const PRODUCTOS = [
   {
     id: "ar", titulo: "Libreta A5 clásica",
     familia: "Libreta",
-    claim: "Tapa rígida de tacto suave con el logotipo termograbado.",
+    claim: "Tapa dura de PU liso con el logotipo termograbado en seco.",
     hero: "ar_front",
     fotos: [["ar_front", "Portada termograbada"], ["ar_zone", "Área de marcaje"], ["ar_open", "Interior rayado"], ["ar_back", "Contraportada"]],
     desc: "La libreta corporativa por excelencia: tapa rígida forrada en PU de tacto suave, formato A5 y un negro mate uniforme, sin brillos ni contrastes. Es la opción más sobria de la propuesta y la que mejor resiste el uso diario, porque la tapa dura protege el bloque de hojas cuando la libreta viaja dentro de una mochila.\n\nEl interior son 192 páginas rayadas en papel reciclado, con goma elástica de cierre y cinta marcapáginas, ambas a tono. Sobre esta tapa el termograbado funciona especialmente bien: el logotipo queda hundido en el PU, tono sobre tono, sin tinta y sin desgaste posible.",
     specs: [
-      ["Material", "Tapa rígida forrada en PU de tacto suave"],
+      ["Material", "Tapa dura forrada en PU liso de tacto suave"],
       ["Formato", "A5 · 21 × 14 × 1,6 cm"],
       ["Interior", "192 páginas (96 hojas) rayadas"],
-      ["Papel", "Papel reciclado"],
-      ["Cierre", "Banda elástica a tono"],
-      ["Extras", "Cinta marcapáginas"],
+      ["Papel", "Papel reciclado color crema"],
+      ["Cierre", "Goma elástica vertical junto al canto"],
+      ["Extras", "Cinta marcapáginas a tono"],
+      ["Acabado", "Canto redondeado, sin brillos"],
       ["Color", "Negro"],
     ],
     marcajeImg: "ar_zone",
     tecnica: { nombre: "Termograbado", detalle: "1 color · 1 posición", pos: "Portada centrada" },
     alternativas: [
-      ["Termograbado", "Relieve en seco, sin tinta. La opción presupuestada: el logotipo queda hundido tono sobre tono."],
-      ["Serigrafía", "Hasta 4 colores planos, en portada o contraportada."],
-      ["Transfer digital", "Hasta 8 colores, para el logotipo a todo color."],
-      ["Grabado láser", "Marca permanente sobre el PU; conviene validar muestra por el tono resultante."],
+      ["Termograbado en portada", "Relieve en seco, sin tinta. Es la opción presupuestada: el logotipo queda hundido, tono sobre tono."],
+      ["Serigrafía en portada", "Tinta sólida sobre el PU, área amplia que abarca casi toda la tapa."],
+      ["Serigrafía en contraportada", "Misma técnica en la cara posterior, entre los pasadores de la goma."],
+      ["Tampografía en portada", "Área reducida en la franja inferior de la tapa, para el logotipo en pequeño."],
     ],
-    nota: "Áreas orientativas: portada hasta 120 × 190 mm y contraportada hasta 90 × 190 mm. Medida definitiva con el arte final.",
+    nota: "Medidas definitivas de cada área a confirmar con el arte final.",
+    posiciones: [
+      { img: "ar_zone", nombre: "Portada", med: "Termograbado", hi: true,
+        tec: [["Relieve en seco", "sin tinta"], ["1 color", "tono sobre tono"]] },
+      { img: "ar_p_front", nombre: "Portada", med: "Serigrafía",
+        tec: [["Tinta sólida", "sobre el PU"], ["Área amplia", "casi toda la tapa"]] },
+      { img: "ar_p_back", nombre: "Contraportada", med: "Serigrafía",
+        tec: [["Tinta sólida", "cara posterior"], ["Área amplia", "entre pasadores"]] },
+      { img: "ar_p_pad", nombre: "Portada inferior", med: "Tampografía",
+        tec: [["Área reducida", "franja inferior"], ["Logotipo", "en pequeño"]] },
+    ],
     precio: "3,99", total: "399", cantidad: "100 uds",
   },
 ];
@@ -297,7 +330,10 @@ function personalizacion(pr) {
   s.addText("a " + pr.cantidad + "  ·  total " + pr.total + " €", { x: 10.10, y: 3.06, w: 2.2, h: 0.32, align: "right", fontFace: BF, fontSize: 10, color: T3, margin: 0 });
 
   // derecha abajo: otras técnicas
-  s.addText("OTRAS TÉCNICAS DISPONIBLES", { x: 5.34, y: 3.80, w: 7.18, h: 0.28, fontFace: HF, fontSize: 8.5, bold: true, color: RED, charSpacing: 1.8, margin: 0 });
+  s.addText([
+    { text: "OTRAS TÉCNICAS DISPONIBLES", options: { fontFace: HF, fontSize: 8.5, bold: true, color: RED, charSpacing: 1.8 } },
+    { text: "     presupuesto a petición", options: { fontFace: BF, fontSize: 8.5, italic: true, color: T4 } },
+  ], { x: 5.34, y: 3.80, w: 7.18, h: 0.28, margin: 0 });
   const ah = 0.60, ay = 4.16;
   pr.alternativas.forEach((a, i) => {
     const yy = ay + i * ah;
@@ -313,7 +349,9 @@ function personalizacion(pr) {
 // =============== PARRILLA DE POSICIONES (TREZE) ===============
 function posiciones(pr) {
   const s = slide();
-  head(s, "Personalización", "Posiciones y técnicas disponibles", pr.titulo + " · el logotipo mostrado en cada una de las cinco posiciones");
+  const nPal = ["", "una", "dos", "tres", "cuatro", "cinco", "seis"][pr.posiciones.length] || pr.posiciones.length;
+  const suf = pr.posiciones.length === 1 ? "la única posición disponible" : "cada una de las " + nPal + " posiciones";
+  head(s, "Personalización", "Posiciones y técnicas disponibles", pr.titulo + " · el logotipo mostrado en " + suf);
   const nP = pr.posiciones.length, gap = 0.16;
   const bw = (11.90 - gap * (nP - 1)) / nP;
   pr.posiciones.forEach((po, i) => {
@@ -335,6 +373,7 @@ function posiciones(pr) {
     { text: "Presupuestado:  ", options: { fontFace: BF, fontSize: 9.5, color: T3 } },
     { text: pr.tecnica.nombre + " · " + pr.tecnica.detalle + " · " + pr.tecnica.pos, options: { fontFace: HF, fontSize: 9.5, bold: true, color: TX } },
     { text: "     ·     " + pr.precio + " €/ud a " + pr.cantidad + "  ·  total " + pr.total + " €", options: { fontFace: BF, fontSize: 9.5, color: T2 } },
+    { text: "        El resto de posiciones y técnicas, presupuesto a petición.", options: { fontFace: BF, fontSize: 9, italic: true, color: T4 } },
   ], { x: 0.94, y: 6.46, w: 11.3, h: 0.40, valign: "middle", margin: 0 });
   foot(s);
 }
@@ -402,10 +441,11 @@ function cierre() {
 
 // ---------- montaje ----------
 divisor("Fundas para portátil", "Dos fundas,\ndos acabados", "Ambas en negro, con bolsillo frontal con cremallera y el logotipo aplicado en serigrafía.", "sp_front");
-[PRODUCTOS[0], PRODUCTOS[1]].forEach(pr => { galeria(pr); descripcion(pr); personalizacion(pr); });
+galeria(PRODUCTOS[0]); descripcion(PRODUCTOS[0]); personalizacion(PRODUCTOS[0]);
+galeria(PRODUCTOS[1]); descripcion(PRODUCTOS[1]); posiciones(PRODUCTOS[1]);
 divisor("Libretas", "Dos libretas A5,\ndos formas de grabar", "Tapa blanda con placa metálica grabada a láser, o tapa rígida con el logotipo termograbado.", "tz_front");
 galeria(PRODUCTOS[2]); descripcion(PRODUCTOS[2]); posiciones(PRODUCTOS[2]);
-galeria(PRODUCTOS[3]); descripcion(PRODUCTOS[3]); personalizacion(PRODUCTOS[3]);
+galeria(PRODUCTOS[3]); descripcion(PRODUCTOS[3]); posiciones(PRODUCTOS[3]);
 resumen();
 cierre();
 
