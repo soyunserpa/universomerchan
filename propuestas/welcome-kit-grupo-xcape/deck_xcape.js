@@ -26,6 +26,8 @@ const I = n => {
     const f = REAL + n + ext;
     if (fs.existsSync(f)) return f;
   }
+  const light = `/tmp/xcs/${n}.jpg`;
+  if (fs.existsSync(light)) return light;
   return `/tmp/xc/${n}.png`;
 };
 
@@ -74,7 +76,7 @@ const PRODUCTOS = [
     familia: "Funda para portátil",
     claim: "Nailon acolchado en rombo, formato vertical y bolsillo frontal abierto.",
     hero: "kl_front",
-    fotos: [["kl_front", "Frontal con marcaje"], ["kl_back", "Trasera acolchada"], ["kl_detail", "Acolchado en rombo"], ["kl_zone", "Área de marcaje"]],
+    fotos: [["kl_front", "Frontal"], ["kl_back", "Trasera acolchada"], ["kl_detail", "Bolsillo frontal"], ["kl_laptop", "Con el portátil dentro"]],
     desc: "Funda vertical acolchada para portátiles de hasta 15\". El portátil entra por la parte superior y la cremallera recorre el perímetro en forma de U, con tirador de tela a tono, de modo que la apertura es amplia y el equipo entra y sale sin forzar.\n\nEl exterior es de nailon mate con acolchado en rombo de trazo amplio, que da cuerpo a la pieza y un aspecto técnico muy reconocible. Bajo el tejido hay una capa de espuma de 4 mm que amortigua golpes, y el interior va forrado en poliéster 210D para no rayar la carcasa. En la cara frontal, un bolsillo abierto ocupa los dos tercios inferiores: entra el cargador, el ratón o un par de cables, a mano y sin cremallera que abrir.",
     specs: [
       ["Material exterior", "Nailon mate con acolchado en rombo"],
@@ -103,7 +105,7 @@ const PRODUCTOS = [
     familia: "Funda para portátil",
     claim: "100 % rPET con forro a juego, bolsillo frontal con cremallera y marcaje en las dos caras.",
     hero: "sp_front",
-    fotos: [["sp_front", "Frontal con marcaje"], ["sp_back", "Trasera con marcaje"], ["sp_detail", "Cremallera perimetral"], ["sp_zone", "Área de marcaje"]],
+    fotos: [["sp_front", "Frontal"], ["sp_back", "Vista tres cuartos"], ["sp_detail", "Apertura y compartimentos"], ["sp_p_front", "Área de marcaje"]],
     desc: "Funda de formato apaisado para portátiles de 15,6\", fabricada en rPET 100 % con un forro interior también de rPET. Es una pieza sobria y de acabado profesional: silueta plana, tejido mate y todo el herraje en negro, sin un solo elemento que rompa el conjunto.\n\nEl compartimento principal aloja de forma segura los portátiles modernos de 15,6\" y la cremallera recorre el perímetro con un deslizamiento suave y firme. En la cara frontal, un bolsillo con cremallera propia, rematado en pico en las esquinas superiores, resuelve el acceso rápido a lo esencial: cargador, cables o documentación.\n\nEstá fabricada con poliéster reciclado que incorpora un trazador de material verificable, es libre de PVC y el 2 % de los ingresos de cada unidad vendida se destina a Water.org. Su huella declarada es de 1,55 kg de CO₂.",
         specs: [
       ["Material exterior", "100 % rPET (poliéster reciclado)"],
@@ -143,7 +145,7 @@ const PRODUCTOS = [
     familia: "Libreta",
     claim: "Tapa dura en símil piel con placa metálica pulida grabada a láser.",
     hero: "tz_front",
-    fotos: [["tz_front", "Portada con grabado"], ["tz_plate", "Placa metálica"], ["tz_open", "Interior rayado"], ["tz_back", "Contraportada"]],
+    fotos: [["tz_front", "Vista general"], ["tz_detail", "Placa metálica grabada"], ["tz_open", "Interior en papel crema"], ["tz_back", "Lomo y bandas de estrías"]],
     desc: "Cuaderno A5 de tapa dura forrada en símil piel de textura graneada, con dos bandas de estrías finas en relieve que cruzan la portada y la contraportada y le dan una personalidad muy reconocible. El elemento que lo distingue es la placa metálica pulida aplicada en el canto derecho de la tapa: es la zona natural para el logotipo y, grabada a láser, deja una marca permanente sobre el único brillo de la pieza.\n\nEl interior son 160 páginas rayadas en papel reciclado color crema, con una encuadernación que permite abrir el cuaderno y que se quede plano sobre la mesa. Se cierra con goma elástica vertical a tono y lleva cinta marcapáginas integrada en el lomo, ambas en negro.",
     specs: [
       ["Material", "Tapa dura en símil piel (PU) con textura graneada"],
@@ -172,7 +174,7 @@ const PRODUCTOS = [
     familia: "Libreta",
     claim: "Tapa dura de PU liso con el logotipo termograbado en seco.",
     hero: "ar_front",
-    fotos: [["ar_front", "Portada termograbada"], ["ar_zone", "Área de marcaje"], ["ar_open", "Interior rayado"], ["ar_back", "Contraportada"]],
+    fotos: [["ar_front", "Vista general"], ["ar_open", "Canto y marcapáginas"], ["ar_p_front", "Área de portada"], ["ar_p_back", "Área de contraportada"]],
     desc: "La libreta corporativa por excelencia: tapa rígida forrada en PU de tacto suave, formato A5 y un negro mate uniforme, sin brillos ni contrastes. Es la opción más sobria de la propuesta y la que mejor resiste el uso diario, porque la tapa dura protege el bloque de hojas cuando la libreta viaja dentro de una mochila.\n\nEl interior son 192 páginas rayadas en papel reciclado, con goma elástica de cierre y cinta marcapáginas, ambas a tono. Sobre esta tapa el termograbado funciona especialmente bien: el logotipo queda hundido en el PU, tono sobre tono, sin tinta y sin desgaste posible.",
     specs: [
       ["Material", "Tapa dura forrada en PU liso de tacto suave"],
@@ -212,7 +214,7 @@ const PRODUCTOS = [
   const s = slide();
   s.addShape(p.shapes.RECTANGLE, { x: 0, y: 0, w: 5.85, h: H, fill: { color: S1 }, line: { type: "none" } });
   s.addShape(p.shapes.RECTANGLE, { x: 0, y: 0, w: 0.10, h: H, fill: { color: RED }, line: { type: "none" } });
-  s.addImage({ path: I("kl_front"), x: 0.62, y: 1.30, w: 4.6, h: 4.6 });
+  s.addImage({ path: I("kl_life"), x: 0.62, y: 1.30, w: 4.6, h: 4.6 });
 
   s.addImage({ path: UM, x: 6.55, y: 0.72, w: 1.9, h: 0.66 });
   pill(s, "Propuesta comercial", 6.58, 1.86, { fill: REDDK, col: REDL, line: RED, h: 0.34, fs: 9 });
@@ -440,10 +442,10 @@ function cierre() {
 }
 
 // ---------- montaje ----------
-divisor("Fundas para portátil", "Dos fundas,\ndos acabados", "Ambas en negro, con bolsillo frontal con cremallera y el logotipo aplicado en serigrafía.", "sp_front");
+divisor("Fundas para portátil", "Dos fundas,\ndos acabados", "Ambas en negro, con bolsillo frontal y el logotipo aplicado en serigrafía.", "sp_detail");
 galeria(PRODUCTOS[0]); descripcion(PRODUCTOS[0]); personalizacion(PRODUCTOS[0]);
 galeria(PRODUCTOS[1]); descripcion(PRODUCTOS[1]); posiciones(PRODUCTOS[1]);
-divisor("Libretas", "Dos libretas A5,\ndos formas de grabar", "Tapa blanda con placa metálica grabada a láser, o tapa rígida con el logotipo termograbado.", "tz_front");
+divisor("Libretas", "Dos libretas A5,\ndos formas de grabar", "Tapa dura con placa metálica grabada a láser, o tapa de PU con el logotipo termograbado.", "tz_detail");
 galeria(PRODUCTOS[2]); descripcion(PRODUCTOS[2]); posiciones(PRODUCTOS[2]);
 galeria(PRODUCTOS[3]); descripcion(PRODUCTOS[3]); posiciones(PRODUCTOS[3]);
 resumen();
