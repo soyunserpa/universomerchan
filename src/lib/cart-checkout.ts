@@ -663,7 +663,8 @@ export async function submitOrderToMidocean(orderId: number): Promise<void> {
       timestamp: new Date().toISOString(),
       contact_name: order.shippingName || "",
       order_type: order.orderType as "NORMAL" | "PRINT" | "SAMPLE",
-      express: order.expressShipping ? "true" : "false",
+      // Never request express: Midocean ships orders < 300€ as express on its own
+      express: "false",
     },
     order_lines: [...mergedPrintLines, ...normalLines],
   };
