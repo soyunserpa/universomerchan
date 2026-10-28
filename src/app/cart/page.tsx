@@ -23,7 +23,7 @@ function CartContent() {
 
   const targetThreshold = 300;
   const progressPercent = Math.min(100, Math.round((subtotal / targetThreshold) * 100));
-  const remainingForFreeExpress = Math.max(0, targetThreshold - subtotal);
+  const remainingForFreeShipping = Math.max(0, targetThreshold - subtotal);
 
   useEffect(() => {
     const restoreOrder = searchParams.get("restore");
@@ -275,9 +275,9 @@ function CartContent() {
           <div className="bg-white rounded-2xl border border-surface-200 p-6 sticky top-20">
             {/* Gamification Bar */}
             <div className="mb-5 bg-surface-50 rounded-xl p-4 border border-surface-200">
-              {remainingForFreeExpress > 0 ? (
+              {remainingForFreeShipping > 0 ? (
                 <>
-                  <p className="text-sm font-semibold mb-2 text-gray-800">¡Añade <span className="text-brand-red font-bold">{remainingForFreeExpress.toFixed(2)}€</span> para envío Express GRATIS!</p>
+                  <p className="text-sm font-semibold mb-2 text-gray-800">¡Añade <span className="text-brand-red font-bold">{remainingForFreeShipping.toFixed(2)}€</span> para envío GRATIS!</p>
                   <div className="w-full bg-surface-200 h-2.5 rounded-full overflow-hidden">
                     <div className="bg-brand-red h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }} />
                   </div>
@@ -287,7 +287,7 @@ function CartContent() {
                   <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
                     <Truck size={16} />
                   </div>
-                  <p className="text-sm font-black text-green-600">¡Envío Express GRATIS desbloqueado!</p>
+                  <p className="text-sm font-black text-green-600">¡Envío GRATIS desbloqueado!</p>
                 </div>
               )}
             </div>
