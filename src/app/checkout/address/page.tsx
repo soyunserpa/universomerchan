@@ -93,7 +93,7 @@ function CheckoutAddressPage() {
 
   let baseShippingCost = 0;
   if (subtotal < 100) baseShippingCost = 16;
-  else if (subtotal < 300) baseShippingCost = 8;
+  else if (subtotal < 400) baseShippingCost = 8;
   
   let finalShippingCost = baseShippingCost;
   let discountAmount = 0;
@@ -291,13 +291,13 @@ function CheckoutAddressPage() {
                   </div>
                   <span className="font-bold text-sm">16,00€</span>
                 </div>
-              ) : subtotal < 300 ? (
+              ) : subtotal < 400 ? (
                 <div className="flex items-center justify-between p-4 rounded-xl border-2 border-brand-red bg-brand-red/5">
                   <div className="flex items-center gap-3">
                     <Zap size={20} className="text-amber-500" />
                     <div>
                       <p className="text-sm font-semibold">Envío Directo (Gestión pequeña)</p>
-                      <p className="text-xs text-gray-400">Aplicado a pedidos menores de 300€</p>
+                      <p className="text-xs text-gray-400">Aplicado a pedidos menores de 400€</p>
                     </div>
                   </div>
                   <span className="font-bold text-sm">8,00€</span>
@@ -308,7 +308,7 @@ function CheckoutAddressPage() {
                     <Truck size={20} className="text-green-600" />
                     <div>
                       <p className="text-sm font-semibold">Envío Estándar</p>
-                      <p className="text-xs text-gray-500">Pedidos mayores a 300€</p>
+                      <p className="text-xs text-gray-500">Pedidos desde 400€</p>
                     </div>
                   </div>
                   <span className="font-bold text-sm text-green-600">Gratis</span>

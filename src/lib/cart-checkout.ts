@@ -97,7 +97,7 @@ export async function createOrderFromCart(params: {
   
   let baseShippingCost = 0.00;
   if (subtotal < 100) baseShippingCost = 16.00;
-  else if (subtotal < 300) baseShippingCost = 8.00;
+  else if (subtotal < 400) baseShippingCost = 8.00;
   
   let finalShippingCost = baseShippingCost;
 

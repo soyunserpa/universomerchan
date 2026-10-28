@@ -21,7 +21,7 @@ function CartContent() {
   const [quoteMessage, setQuoteMessage] = useState("");
   const [quotePayload, setQuotePayload] = useState<{ number: string; url: string } | null>(null);
 
-  const targetThreshold = 300;
+  const targetThreshold = 400;
   const progressPercent = Math.min(100, Math.round((subtotal / targetThreshold) * 100));
   const remainingForFreeShipping = Math.max(0, targetThreshold - subtotal);
 
